@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 # RailX
+
+🚧 [WIP] Minecraft Mod for Create Forge: train track which can be placed at any angle.
 
 Some code are based on [Create Computing](https://github.com/Sascha-T/create-computing).
 
-## Features
+## Features (not complete)
+
+### FlexiTrack
+
+- Can be placed at any angle.
+- Can be used to implement realistic railroad.
 
 ### Remote Train Observer
 
@@ -39,6 +47,3 @@ Some code are based on [Create Computing](https://github.com/Sascha-T/create-com
 ### Train Signal (addon)
 
 - Use name tag to name block node
-
-
-
