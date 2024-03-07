@@ -1,0 +1,127 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
+package com.lhwdev.minecraft.railx.lua.asm
+
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Type
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.javaMethod
+
+
+inline fun <reified T> descriptor(): String =
+	Type.getDescriptor(T::class.java)
+
+
+class MethodDescriptor(
+	val opcode: Int,
+	val owner: String,
+	val name: String,
+	val descriptor: String,
+	val isInterface: Boolean,
+)
+
+inline fun descriptor(function: KFunction<*>): MethodDescriptor {
+	val method = function.javaMethod!!
+	val owner = method.declaringClass
+	val opcode = when {
+		Modifier.isStatic(method.modifiers) -> INVOKESTATIC
+		owner.isInterface -> INVOKEINTERFACE
+		else -> INVOKEVIRTUAL
+	}
+	return MethodDescriptor(
+		opcode = opcode,
+		owner = Type.getDescriptor(owner),
+		name = method.name,
+		descriptor = Type.getMethodDescriptor(method),
+		isInterface = owner.isInterface
+	)
+}
+
+fun MethodVisitor.visitMethodInsn(descriptor: MethodDescriptor) {
+	visitMethodInsn(descriptor.opcode, descriptor.owner, descriptor.name, descriptor.descriptor, descriptor.isInterface)
+}
+
+fun MethodVisitor.visitMethodInsn(method: Method) {
+	val owner = method.declaringClass
+	val opcode = when {
+		Modifier.isStatic(method.modifiers) -> INVOKESTATIC
+		owner.isInterface -> INVOKEINTERFACE
+		else -> INVOKEVIRTUAL
+	}
+	visitMethodInsn(opcode, Type.getDescriptor(owner), method.name, Type.getMethodDescriptor(method), owner.isInterface)
+}
+
+
+class FieldDescriptor(
+	val owner: String,
+	val name: String,
+	val descriptor: String,
+)
+
+fun MethodVisitor.visitFieldInsn(descriptor: FieldDescriptor) {
+	visitFieldInsn(GETFIELD, descriptor.owner, descriptor.name, descriptor.descriptor)
+}
+
+
+fun MethodVisitor.visitZeroInsn(klass: Class<*>): Int = if(klass.isPrimitive) {
+	when(klass) {
+		Int::class.java,
+		Byte::class.java,
+		Short::class.java,
+		Char::class.java,
+		Boolean::class.java,
+		-> {
+			visitInsn(ICONST_0)
+			1
+		}
+		
+		Long::class.java -> {
+			visitInsn(LCONST_0)
+			2
+		}
+		
+		Float::class.java -> {
+			visitInsn(FCONST_0)
+			1
+		}
+		
+		Double::class.java -> {
+			visitInsn(DCONST_0)
+			2
+		}
+		
+		Void.TYPE -> 0
+		
+		else -> error("unexpected primitive $klass")
+	}
+} else {
+	visitInsn(ACONST_NULL)
+	1
+}
+
+fun MethodVisitor.visitReturnInsn(klass: Class<*>) {
+	visitInsn(Type.getType(klass).getOpcode(IRETURN))
+}
+
+
+fun MethodVisitor.visitIntInsn(value: Int) {
+	when(value) {
+		-1 -> visitInsn(ICONST_M1)
+		0 -> visitInsn(ICONST_0)
+		1 -> visitInsn(ICONST_1)
+		2 -> visitInsn(ICONST_2)
+		3 -> visitInsn(ICONST_3)
+		4 -> visitInsn(ICONST_4)
+		5 -> visitInsn(ICONST_5)
+		in Byte.MAX_VALUE..Byte.MAX_VALUE ->
+			visitIntInsn(BIPUSH, value)
+		
+		in Short.MIN_VALUE..Short.MAX_VALUE ->
+			visitIntInsn(SIPUSH, value)
+		
+		else -> visitLdcInsn(value)
+	}
+}

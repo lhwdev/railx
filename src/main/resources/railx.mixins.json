@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.lhwdev.minecraft.railx.mixin.facade",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "railx.refmap.json",
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "AccessHelper",
+    "CobaltLuaMachineMixin",
+    "MethodSupplierImplMixin",
+    "ComputerThread$WorkerThreadMixin",
+    "PeripheralAPI$PeripheralWrapperMixin",
+    "PeripheralAPIMixin",
+    "TrackTargetingClientMixin",
+    "TrainStatusMixin",
+    "WiredModemPeripheral$WrapperMixin",
+    "dynamicLuaTable.BaseLibMixin",
+    "dynamicLuaTable.OperationHelperMixin",
+    "dynamicLuaTable.TableLibMixin"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railx:block/computerized_redstone_link"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GTG",
+    " BM",
+    " E "
+  ],
+  "key": {
+    "G": {
+      "item": "create:golden_sheet"
+    },
+    "T": {
+      "item": "minecraft:redstone_torch"
+    },
+    "B": {
+      "item": "create:brass_casing"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "M": {
+      "item": "computercraft:wired_modem"
+    }
+  },
+  "result": {
+    "item": "railx:computerized_display_target"
+  }
+}

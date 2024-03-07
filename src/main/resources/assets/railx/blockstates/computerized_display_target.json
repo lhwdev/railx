@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "railx:block/computerized_display_target"
+    },
+    "facing=east": {
+      "model": "railx:block/computerized_display_target", "y": 90
+    },
+    "facing=south": {
+      "model": "railx:block/computerized_display_target", "y": 180
+    },
+    "facing=west": {
+      "model": "railx:block/computerized_display_target", "y": 270
+    }
+  }
+}

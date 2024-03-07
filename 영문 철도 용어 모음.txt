@@ -1,0 +1,3746 @@
+신호 원격제어장치(전자식) (Electro) Remote Control System
+1레일 궤도회로 Single Rail Track Circuit
+1종 경계 The First-Class Warning
+2레일 궤도회로 Double Rail Track Circuit 
+2레일 궤도회로 불평형 Unbalanced Double Rail Track Circuit 
+2종 경계 The Second-Class Warning
+3종 경계 The Third Class Warning
+4행정식 기관 four stroke(cycle) engine
+가감링크 expansion link
+가감변 regulator valve
+가감변 손잡이 regulator handle
+가공단선식 overhead single line system
+가공단선식 전차선로 single overhead contact line
+가공복선식 전차선로 overhead double wire
+가공 전차선  Overhead line, Overhead wire)
+가공 지선 overhead ground wire
+가교(임시교량) Temporary
+가교판 apron
+가도교 Over bridge, Railway over bridge (ROB) 
+가동구간  Movable Section
+가동 노우스분기기 Movable Nose Turnout
+가동 노우즈크로싱 Movable Nose Crossing or Movable Nose Rail Frog or Swing-Nose Crossing
+가동 다이아몬드크로싱 movable dimond crossing
+가동 둔단크로싱 Movable Stub Crossing
+가동레일 movable rail
+가동받침 movable support
+가동식 팔걸이 Movable arm rest
+가동크로싱 Movable Frog or Continuous Rail Frog
+가동 K크로싱 Movable K type Crossing or Movable Center Frog Crossing
+가드 guard
+가드레일 guard rail
+가드면 거리 guard face gauge
+가드 유효길이 actual lenhth of guard
+가람링크 받침 motion plate
+가랜드형 통풍기 Garland ventilator
+가로 빔 transom, cross beam
+가로 의자 cross seat
+가변 궤간 variable gauge device
+가변 저항기 Adjustable Resistor, Variable Resistor
+가변 콘덴서 Adjustable Condenser, Variable Condenser
+가변 패드 adjustable pad
+가선 Overhead Catenary
+가선 보전차 trolley wire maintenance car)
+가선 시험차 catenary testing car
+가선 연선차 trolley wire extending car
+가선 작업차 trolley wire service car
+가선 전압검출장치 trolley voltage detector
+가선 전원식별표지 AC DC change-over post
+가선 절연구간예고표지 Catenary Dead-Section Advance Notice Indicator
+가선 절연구간표지 Catenary Dead-Section Indicator
+가선종단표지 Trolley Wire Terminal Indicator
+가속도  Acceleration
+가속도계[ATC/ATO용] Accelerometer [ATC/ATO]
+가속도계[MBS용] Accelerometer [MBS]
+가속도곡선 Acceleration Curve
+가속도저항 Acceleration resistance
+가속력  Acceleration Force
+가속력곡선 Accelerating Force Curve
+가속저항 acceleration resistance
+가스터빈기관차 gas-turbine locomotive
+가요접수  Flexible Coupling
+가용성  Availability
+가용성플러그 Fusible Plug
+가용전  Fusible Plug
+가우스의정리 Gauss's Theorem
+가우시안주파수편이변조 Gaussian Frequency Shift Keying
+가청주파수  Audio Frequency
+가청주파수(AF)궤도회로 Audio Frequency Track Circuit(AF TC) 
+가청주파수궤도회로제어케이블 AF Track Circuit Control Cable
+가축차 stock car, csttle van
+가치공학 value engineering
+각진멈춤못 dog spike
+각형지붕 tapered roof
+간몬터널 Kanmon tunnel
+간선  Trunk Line
+간선철도  main-line railway
+간섭곡선  Intervention Curve
+간이역  Simple Station
+간접경비 indirect cost
+간접제어 indirect control
+간헐적전송 Intermittent Transmission
+감가상각 depreciation
+감류저항기 current decreasing resistor
+감속  Deceleration
+감속기어장치 Speed Reduction Gear Device
+감속데이터  Deceleration Data
+감속도 deceleration
+감속비 reduction gear ratio
+감속신호  Reduced Speed Signal
+감속제어  Reduced Speed Control 
+감쇠특성  Attenuation Characteristic 
+감시기능 detector function
+감시와관리레벨 Supervision and Management Level
+감실수화물 mising luggage
+감압변  Reducing Valve
+강우검지장치  Rainfall Detector 
+강제통풍식 forced ventilation system
+강체단선식 Single Rigid System
+강체복선식 Double Rigid System
+강체조가식 rigid catenary system
+개로전압  Open Voltage
+개못  Dog Spike
+개방간격  Open Spacing
+개방력  Open Force
+개산수입  Aggregate Revenue
+개인용컴퓨터 Personal Computer
+개전로식궤도회로 Open Type Track Circuit 
+개집표구 A ticket gate
+개찰 Examination of ticket
+개찰구 Ticket gate
+개찰구 Ticket gate
+개체제어기  Object Controller
+개통대  Waiting for Block Free
+개통방향표시등 Free Traffic Direction Indication Lamp
+개통표시등 Opening Indication Route Clear Light
+개표  Check of Ticket 
+개표소  Ticket Gate or Inspection
+객차 Passenger car
+객차킬로  Passenger-Car Kilometer
+객화차 Pass and freight car
+객화취급역 passenger and freight landing station
+갱문  Tunnel Portal
+거더  Girder
+거리동기화  Distance Synchronization
+거리조정기(UM71C) Symmetrical Fictive Line 
+거리표  Distance Post or Kilo Post
+거푸집  Form Work Shuttering 
+거화신호 flame signal
+건널목  Grade Crossing or Railroad Crossing or Railway Crossing or Level Crossing
+건널목가드레일 Guard Rail for Rail Road Crossing
+건널목경보기 Crossing Signal(or Warnings) or Bell and Flash Signal
+건널목경보기고장표시등 Crossing Signal Failure Indication Lamp
+건널목경보기용경보등(LED형) Crossing Flash Warning Signal Light
+건널목경보기전원카드 Crossing Signal Power Card
+건널목경보시간 Crossing Warning Time
+건널목경보음카드 Crossing Melody or Announce Card
+건널목경보장치 Railroad Crossing Alarm
+건널목경표 Crossing Warning Sign
+건널목계속경보검지 Crossing Continuance Alarm Detector
+건널목고장감시장치 Failure Monitoring Device Crossing
+건널목방호설비 Protection Device for Railway Crossing
+건널목보안장치 Safety Equipment of Railway Crossing
+건널목사고 Railway Crossing Accident
+건널목예고표 Approach Sign of Railroad Crossing
+건널목원격감시장치 Remote Monitoring Device
+건널목전동차단기 Crossing Barrier or Crossing Gate
+건널목정보분석장치 Signal Information Analyzer for Level Crossing
+건널목정시간제어기 Constant Time Controller of Railroad Crossing
+건널목정시간제어기(함) Crossing Regular Timer Control Box
+건널목제어기 Controller of Railroad Crossing
+건널목제어유닛 Railroad Crossing Control Unit
+건널목지장물검지장치 Obstruction Detecting Device
+건널목표지 Railroad Crossing Indicator
+건넘선 Crossover
+건축한계  Structure Gauge or Track Clearance Construction Gauge
+건축한계축소표 Special Limitation on Track Clearance
+검사  Inspection
+검사공 inspection hole
+검사선 inspecting track
+검사작업대 inspection trap
+검수  Inspection or Repair
+검수고운영자콘솔 Depot Inspection Console 
+검수선  Repair Track
+검수주기  Maintenance Cycle 
+검수피트  Inspection Pit
+검증 Verification
+검증자  Verifier
+검차  Car Inspection 
+검표 Inspection of tickets
+게이지블록 Gauge Block
+격리모드  Isolation Mode
+견습기관사 apprentice (or learner) locomotive driver
+견인력  Tractive Power or Tractive Force or Hauling Capacity
+견인전동기  Traction Motor
+견인정수 Nominal tractive capacity of locomotive, Tractive carnumber
+결선도  Circuit Diagram
+결표  Missing Tickets
+결함  Fault
+결함검지시간  Fault Detection Time
+결함고립 Fault Isolation
+결함무시시간  Fault Negation Time
+결함측고장 Wrong Side Failure
+결합계수  Coupling Coefficient 
+결합시간  Coupling Time
+경간  Bridge Span
+경계설비 equipment of boundary
+경계신호  Caution signal(Restricted Speed Signal)
+경계제어장치 Vigilance Control Device
+경고  Warning
+경금속차체 lightweight metal body
+경두레일 Head hardened rail
+경량객차 Light weight passenger car
+경량전철 Light weigh electric railway
+경로지정 pre-setting of routes
+경미한고장 Minor Failure 
+경보기[ATS용] Warning Bell of Automatic Train Stop or ATS Warning Bell
+경보등단심검지 Detection of Lamp Failure
+경보및오동작기록 Warning and Malfunction Record 
+경보장치(차상) Warning Device(On-board) 
+경보제어거리 Control Range of Railroad Crossing Alarm
+경보종고장검지 Failure Monitoring Device of Railroad Crossing Alarm
+경상 slight injury
+경전철 Light Rail Transit
+경제속도 Economic speed
+계기용변성기  Instrument Transformer
+계단제동 graduated brake
+계전기  Relay
+계전기가 relay rack (or bay)
+계전기낙하 Relay Drop
+계전기낙하 Relay Drop
+계전기유닛 Relay Unit
+계전기인터페이스[ATC/ATO용] Relay Interface 
+계전연동장치  Relay Interlocking System
+계중기 Track scale, Weight bridge
+계중대  Track Scale or Weight Bridge
+계획속도 Scheduled speed
+고가철도  Elevated Railway or Overhead Railway
+고망간강크로싱 High Manganese Steel Crossing
+고성전화장치 Two-Way Radio
+고속궤도검측차 High Speed or Track Inspection Car
+고속도차단기 High Speed circuit breaker
+고속열차 High Speed train
+고속철도  High Speed Railway or Rapid Transit Railway
+고압회로차단기 Roof Disconnector or High Voltage Circuit Disconnector
+고장  Failure
+고장률  Failure Rate
+고장률곡선 Failure Rate Curve or Bath Tub
+고장유형에따른영향및치명도분석 Failure Modes, Effects and Criticality Analysis
+고장조건  Failure Conditions
+고장진단  Failure Diagnostic
+고전력스위칭용반도체 IGBT : Insulated Gate Bipolar Transistor
+고전압임펄스궤도회로 High Voltage Impulse Track Circuit(HVI TC) 
+고전압임펄스송신기 High Voltage Impulse Transmitter or HVI TC Transmitter 
+고전압임펄스수신기 High Voltage Impulse Receiver or HVI TC Receiver 
+고전압임펄스전압안정기 High Voltage Impulse Voltage Stabilizer or HVI TC Power Stabilizer 
+고정(콘크리트)도상  Fixed(or Concrete) Roadbed
+고정국  Fixed Station
+고정발리스  Fixed Balise
+고정축간거리  Rigid Wheel Base
+고정크로싱 Rigid Frog or Rigid Crossing
+고정폐색  Fixed Block
+고정폐색방식 Fixed Block System
+고조파  Harmonic Wave
+고주파  High Frequency or High-Frequency Wave
+곡간  Deflecting Bar
+곡선  Curve Line
+곡선내방분기기 Double Curve Turnout in Same   Direction or Turnout on Inside of a Curve 
+곡선반경  Radius of Curvature
+곡선보정  Curve Compensation
+곡선부 On curves
+곡선부궤간확대 Increment of Track Gauge Width at Curves
+곡선분기기 Curved Turnout
+곡선외방분기기 Double Curve Turnout in Opposite Direction or Turnout On Outside of a Curve
+곡선저항  Curve Resistance
+곡선표지  Curve Post
+공간높이  Free Headroom Overhead Clearance
+공공철도  Public Railroad
+공급관 feed pipe
+공기분사 pneumatic injection
+공기여과기 air filter
+공기제동기 Compressed-Air Brake or Air Brake
+공기차단기 Air-blast Circuit Breaker
+공기차단코크 Air Shut-Off Cock
+공기호스연결기 Hose(or Pipe) Coupling
+공동접지  Common Earth
+공심유도자  Air Core Inductor 
+공작창  Workshop or Back shop
+공전  Slipping wheel turn(Slipping)
+공주거리  Idle Running Distance
+공주시간  Idle Running Time
+공중사상사고 Nonpassenger casually accident
+공중선 antenna
+공진주파수 Resonance Frequency
+공차  Empty Car
+공차주행킬로 Empty Car Kilometer
+공차회송 Empty Running
+공칭변압비 Nominal Transformation Ratio
+공칭용량  Nominal Capacity
+공칭전압  Nominal Voltage
+공칭정격 Nominal rating
+공통모드결함 Common-Mode Fault
+공회전  Idle Running
+과급기관  Supercharger Engine or Motor
+과부하 Over Load
+과부하계전기 Overload Relay
+과선교  Over Bridge or Overpass or Over-Line Bridge
+과속도방어[ATP용] ATP Over speed protection
+과속방호  Overspeed Protection
+과압밀비 OCR
+과열증기  Superheated Steam
+과열증기기관차 Superheated Steam Locomotive
+과전류 Over Current
+과전류계전기 Over-Current Relay
+과전압 Over Voltage
+과전압계전기 Over Voltage Relay
+과전압보호장치 Over Voltage Protective Device
+과주  Over Run 
+과주여유거리  Overlap
+과충기  Overcharging of the Brake
+과충전  Overcharge
+관광열차 Sightseeing train, Tourist train
+관광철도  Sightseeing Railway
+관리자용콘솔 Manager's Console 
+관절대차 Articulated bogie
+관제사 Train-traffic controller
+관통제동  Continuous Brake or Penetration Brake
+관확장기 tube expander
+광궤 Broad gauge
+광궤철도 Wide Gauge Railway or Broad Gauge
+광기전효과 Photovoltaic Effect
+광산철도  Mining Railway
+광역철도 Wide area railway
+광전변환기  Media Converter 
+광케이블의정보량 Amount Information of Optical Cable
+광통신  Optical Communication
+광통신케이블 Optical Cable
+광학적마크인식 Optical Mark Recognition
+광학적문자인식 Optical Character Recognition
+교각  Angle of Intersection
+교대  Abutment
+교량 Railroad bridge
+교량가드레일 Bridge Guard Rail
+교량보판  Foot Floor of Bridge
+교량장대레일 Long Rail on Bridge
+교량침목  Bridge Tie
+교량침목  Bridge Tie
+교류계전기 AC Relay
+교류궤도회로 Alternating Current Track Circuit 
+교류궤도회로 reactance alternating surrent tract circuit
+교류밸런서 AC Balancer
+교류전압 AC Voltage
+교류전용전기동차 AC/DC Dual Voltage Electric Car
+교류전위차계 AC Potentiometer
+교류AT급전방식 AC Auto-Transformer Feeding System
+교류BT급전방식 AC Booster-Transformer Feeding System
+교신거리 Contact Length
+교외철도  Suburban Railway
+교점  Point of Intersection
+교직겸용전기동차 AC/DC Dual Voltage Electric Car 
+교직겸용전동차 AC․DC dual voltage electric car
+교직류기관차 Dual Current Locomotive
+교직양용기관차 dual current locomotive
+교차승인  Cross-Acceptance
+교차정차장  Crossing Station
+교착방지 Deadlocking Prevention
+교측보도 Side walk on bridge
+교통안전시설  Traffic Safety Facilities
+구간  Section 
+구간거리  Sectional Distance 
+구간타이머 Section Timer
+구내  Yard or Station Yard
+구내수송 yard transit
+구내운반  Yard Transit
+구내운전 Driving in the station yard
+구내운전  Driving in the(Station) Yard
+구동축  Driving Shaft
+구름  Roll Away
+구배  Grade
+구배별속도거리곡선(버드나무곡선) Willow Curve
+구배저항  Grade Resistance
+구배표  Grade Post or Gradient Post
+구분애자  Section insulator
+구분장치  Sectioning Device
+구성  Configuration 
+구성관리  Configuration Management
+구역  Block 
+구원열차 Relief train, Wrecking train
+국가철도망 National railroad network
+국내값  National Values
+국내열차제어시스템 National Train Control System
+국내컨테이너  Domestic Container 
+국유철도  Government Railway or State Railway or National Railway
+국제무선장해특별위원회 International Special Committee on Radio Interference[CISPR] 
+국제철도연맹 International Union of Railways 
+군여객 military passenger
+군용열차 military train
+군지수 Group Index
+군화통  U.S. Government Bill of Loading 
+권고  Recommended
+권고속도  Recommended Speed
+권선 Winding stranded wire
+권선형유도전동기 Wound-rotor Induction Motor
+권선형회전자 Wound Rotor
+권양기 Hoist
+권장속도  Advisory Speed
+권철심 Wound Core
+권철심변압기 Wound Core Transformer
+궤간  Gauge or Track Gauge
+궤간묶음대 Gauge Tie Rod
+궤간버팀대 Gauge Brace
+궤간절연 Track Gauge Insulation 
+궤간정정  Gauge Adjusting or Correction of Gauge
+궤간틀림  Gauge Irregularity
+궤간확대  Gauge Widening
+궤광  Track Panel or Track Frame Track Span or Track Skeleton
+궤광갱신작업 Renewal Work of Track Panel
+궤도  Track or Rail Track
+궤도갱신 tract renewal
+궤도검측차  Track Inspection Car or Track Recording Coach or Track Geometry Car
+궤도계수  Track Coefficient
+궤도계전기  Track Relay 
+궤도단락감도 Track Shunting Sensitivity 
+궤도단락검지 Track Shunt Detection 
+궤도단락저항 Track Shunt Resistance
+궤도리액터 Track Reactor 
+궤도모터카 Rail Motor-Car
+궤도버스 Railway Bus
+궤도부설차 Rail Construction Car or Track Installation Car
+궤도비점유  Track Free
+궤도설명  Track Description
+궤도송신기  Track Transmitter 
+궤도쇄정  Track Locking
+궤도수용력 Standing Capacity of Track
+궤도역학  Track Dynamics
+궤도용수준기 Track Leveller
+궤도응력  Track Stress
+궤도이설  Moving of Track
+궤도재료 track material
+궤도저항기  Track Resistor 
+궤도점유  Track Occupied
+궤도정정  Adjustment of Track or Lining of Track or Re-alignment of Track or Re-lining of Track
+궤도조건  Track Condition
+궤도조명반 Illuminated Track Diagram 
+궤도조명반 illuminated diagram
+궤도조상기 Track Raising Machine
+궤도중심  Track Center or Center of Track
+궤도중심간격 Distance Between Track Centers or Distance Center to Center of Track
+궤도중심간격측정차 Track Spacing Measuring Car
+궤도중심선 Center Line of Track
+궤도침하 Subsidence of Track
+궤도트럭 Railway Truck
+궤도틀림 Track Irregularity or (Disorder Defect or Distortion) Irregularity of Track
+궤도틀림지수 Index of Disorder of Track orIndex of Track Irregularity
+궤도패드 Track Pad
+궤도회로  Track Circuit 
+궤도회로경계표지 Track Circuit boundary Post
+궤도회로극성 Polarity of Track Circuit 
+궤도회로기능감시장치 Track Circuit Function Supervision Device(TLDS)
+궤조면상높이 height from the rail
+궤조전환 turuing of rails
+궤조절연 rail insulation
+귀선  Retrace Cable or Return Current Cable
+귀중품소화물  Valuable Parcel
+규소강판 Silicon Steel Plate
+균등충전법 Equal Charge
+균일식승차권  Flat Charge Tickets
+균형속도  Balanced Speed or Equilibrium Speed
+균형추  Balance Weight(Wheels) 
+균형캔트 Balanced cant, Equilibrium cant
+그래픽유저인터페이스 Graphical User Interface(GUI)
+근거리운전  Shuttle Service
+근거리통신망 Local Area Network(LAN)
+급기 admission(of steam)
+급기구 Steam admission port
+급기변  Inlet Valve
+급송품 Urgent goods ,Dispatch goods
+급수관연결기 feed water-pipe coupling
+급수관접수 feed water-pipe coupling
+급수설비 watering facilities
+급수소 water supply point
+급수역 watering station
+급수장 water supply point
+급수주 water crane
+급이구 feed container
+급전구간 Electricity feeding section
+급전구분소 Electricity sectioning post
+급전방식  Method of Electric Supply
+급전선  Feeder
+급전선로  Feeder line
+급전회로  Feeder circuit
+급정차 Emergent stop
+급제동  Sharp Braking
+급제동위치 Rapid Acting Brake Position
+급행 Express train
+급행열차  Express Train
+급행요금  Express Charge
+급행요금  Express Charge
+긍선 single cross-over
+긍선분기기 Single Crossover Road Turnout
+긍선점퍼 Jump Wire or Cross Over Jumper
+긍정적고장 Right Side Failure
+기계다지기 Mechanical Tamping
+기계쇄정법 Mechanical Locking
+기계신호기 Mechanical Signal
+기계신호기 Mechanical Signal
+기계연동장치 Mechanical Interlocking Device
+기계장치 mechanical equipment
+기관사(기장) Engineman, Engine driver, (Locomotive) Engineer
+기관사시각모드 On Sight Mode
+기관사시각운전 Driving On Sight
+기관사식별 Drivers Identification
+기관조사 assistant drive
+기관차  Engine or Locomotive or Power Unit
+기관차대기시간 engine waiting time
+기관차선대차 Leading Truck of a Locomotive
+기관차운용표 Running Diagram
+기관차운전정비 Locomotive Servicing
+기관차제동시험 Engine Brake Test
+기관차차고 Engine House or Engine Shed
+기관차킬로 Locomotive Kilometers
+기기랙  Apparatus Rack
+기능장애  Malfunction
+기대창  Expectation Window
+기동  To Set in Motion or Set in Motion or Engine Starting
+기동계전기  Starting Relay
+기동력  Motive Power
+기동스위치  Starting Switch
+기동차  Rail Car
+기록기  Recorder
+기록장치 Recording Unit
+기록장치[ATP용] ATP Recorder
+기록장치[KVB용] KVB recorder
+기름분리기  Oil Extractor
+기본값  Default Value
+기본레일  Stock Rail or Line Rail or Datum Rail
+기본편성 Standard organization
+기본프로그램 main program
+기상검지장치  Meteorological Detector
+기술적상호운용성 Technical Interoperability
+기억용량  Storage Capacity
+기외정차 Train stop of signal outside
+기울기 Grade, Gradient, Slope, Pitch
+기적  Horn or Whistle
+기적취명  Whistling
+기적표 whistle post
+기적표지  Whistle Post
+기전반응  Electromotive Reaction
+기준레일  Base Rail
+기지국  Base Station
+기지모드[ATC용] ATC Yard Mode 
+기지운전모드  Depot Operation Mode
+기호처리 Symbolic Processing
+기화기  Carburettor
+기화기기관 Carburettor Engine
+깎기  Cutting
+깬자갈도상 crushed ballast
+꼬리표 tag
+꾸밈  Making
+끌림검지장치  Dragging Detector
+끝닳음용접  Build-up Welding(of Rail End) or Re-surfacing by Welding on Rail End
+나사스파이크 Screw Spike
+나전선  Bare wire)
+낙석덮게 tunnel for falling stones
+낙석방지  Prevention Against Falling Stone
+낙석주의표 signboard for falling stones
+낙찰 loss of tags
+낙클핀 knucle pin
+낙하전류  Drop Down Electric Current
+난방차  Heater Car
+난방호스 Heating Hose
+난방호스 Heating hose
+난방호스연결기 Heating Coupling
+난연성케이블 Flame Retardant Cable
+난조방지권선 Damper Winding
+날자기  Ticket-Dating Machine
+낮은승강장 Low Formation Platform 
+내구성  Durability
+내궤  Inner Rail
+내방분기기 Turnout on Inside of a Curve
+내부전계 Internal Field
+내연기관  Internal Combustion Engine
+내연기철도  Diesel Railway
+내용년수  Service Life or Life cycle.
+내장판  Interior Plate
+내철형변압기 Core type Transformer
+내측  In Rear
+내화벽돌  Fireproof Brick
+냉각수자켓트 Water Jacket
+냉각장치  Cooling Device
+냉각회로  Cooling Circuit
+냉장차 Refrigerator car
+너클 Knucle
+너클핀 Knuckle Pin
+네온변압기 Neon Transformer
+네트워크  Network
+네트워크관리시스템 Network Management System
+노면전차 Street car
+노반  Roadbed or Subgrade
+노반부담력 Bearing Capacity of Roadbed
+노반압력 Roadbed Pressure
+노우스  Nose or Point of Crossing
+노우스레일 Nose Rail
+노인 the aged(old)
+논리점유 Logical Occupied
+논-바이탈  Non-Vital
+놋치  Regulating Notch
+뇌격 Lightning Stroke
+뇌서지 Lightning Surge
+뇌현상  Lightning
+누기변  Leakage Valve
+누설  Leakage 
+누설동축케이블 Leakage Coaxial Cable
+누설리액턴스 Leakage Reactance
+누설변압기 Leakage Transformer
+누설인덕턴스 Leakage Inductance
+누설자속 Leakage Flux
+누설전류 Leakage Current
+누설전류 Leakage Current
+누설컨덕턴스 Leakage Conductance
+누전  Electric leakage
+누전차단기  Earth leakage breaker
+누화감쇠량  Cross-Talk Attenuation
+눈날림방지림 Forest for Snow Storm Prevention
+눈날림방지설비 Defensive Structure Against Snow Drift
+눈사태넘기기 snow Slip deflection
+눈사태방지림 Plantation for Snow Slip Protection or Plantation Against Avalanche
+눈사태방지옹벽 Baffle Wall Defecting Snow Slip
+눈사태방호설비 Defensive Structure Against Snow-Slide
+눈사태파괴 Snow Slip Cracker
+눈지붕  Snow-Shed
+다등형색등식신호기구 Multi-Unit Type Color Light Signal
+다등형신호기 Multi-Unit Type Signal
+다변주식공진주파수 Multi-Modulation Resonance Frequency
+다운로딩도구  Downloading Tool
+다음궤도진입속도 Entering Speed Into the Next Track Circuit
+다이아 Diagram for train scheduling
+다이아몬드크로싱 Diamond Crossing
+다이아부차륜  Tyred Wheel
+다이오드  Diode
+다중  Multiple
+다중계  Multiplex System
+다중처리모듈 Multi Processor Module 
+다진로표시기 Multi-Route Indicator
+단계별제동  Graduated Brake
+단권변압기 Auto Transformer
+단궤조궤도회로 single track circuit(mono-rail circuit)
+단독승무운전 One-Man Operation
+단독운전  Single Operation
+단독정자식 Independent Lever Type
+단독제어  Single control)
+단동선로전환기 Single Point
+단등형색등식신호기 Search-light Type Colour-Light Signal
+단락 Short-circuit
+단락저항 drop shunt of a track circuit
+단로기  Disconnecting Switch
+단류소기 uniflow scavenging(engines)
+단말기 terminal
+단말장치  Terminal Device
+단방향통신방식 One-Way Communication System
+단부열처리레일 End-Hardened Rail
+단분기기  Single Turnout
+단상반파정류회로 Single-Phase Half-Wave Rectifier Circuit
+단상변압기 Single-phase Transformer
+단상유도전동기 Single-phase Induction Motor
+단상전파정류회로 Single-Phase Full-Wave Rectifier Circuit
+단선  Breaking of wire, Disconnection)
+단선[궤도용] Single Track
+단선[전기용] One Line
+단선운전  Single Track Operation
+단선자동폐색장치 Automatic Block System for Single Lines
+단선자동폐색제어장치(삽입형식) Automatic Block System Controller(plug-in type)
+단속계전기  Flashing Relay
+단심검지기  ST Alarm
+단자  Terminal)
+단자반  Output Terminal Rack
+단척레일 Shorter Rail
+단체승차권 Group ticket
+단체여객 Group passenger
+단판 end of wagon
+단행기관차  Single Engine
+단행운전  Single Engine Running
+달시전달표 instruction bulletin
+담차  Dump Car
+답면구배 Conicity wheel tread, Conicity of wheel surface
+대기모드  Stand-By Mode
+대기선  Engine Waiting Track
+대기시간 Waiting time
+대수선  Heavy Repairs
+대여화차  Rent Freight Car
+대역압축 Band Compression
+대용폐색방식  Substitute Block System
+대지저항률 Ground Resistance Rate
+대지전압  Ground voltage)
+대지전위상승 Rise of Ground Potential
+대차  Bogie or Truck
+대차간중심거리 Wheel-Base Distance of a Vehicle
+대차축간거리  Wheel Base
+대차축거 wheel base
+대차후레임  Bogie Frame
+대피선  Relief Track
+대피소  Recess Refuge Hole
+대향  Facing or Facing of Turnout
+대향분기기 Facing of Turnout
+대향식홈  Opposite Platform
+대형기계보선작업 Mechanized Track Maintenance or Maintenance working of Track
+댐퍼  Damper
+더블슬립스위치 Double Slip Switch
+더스트키퍼 Dust Guard or Dust-Keeper
+덕켄쥴러  A Track Shifter
+덤미가프링 dummy(hose)coupling
+데스크탑시뮬레이터 Desk Top Simulator 
+데시벨  Decibel
+데이터단말장치 Data Terminal Equipment(DTE) 
+데이터로거[ATC용] ATS Data Logger
+데이터베이스  Database
+데이터베이스관리시스템 Data Base Management System
+데이터연속전송  Continuous Data Transmission
+데이터처리판넬[KVB용] KVB data processing panel
+데이터통신장치 Data Communication System 
+데이터회선방식 Data Circuit System
+데이터회선종단장치 Data Circuit Termination Equipment(DCE)
+델타선 delta track
+도말개변 alternation
+도상  Ballast
+도상갱환 ballast changing
+도상계수  Ballast Coefficient
+도상교환작업차 Track Bed Exchange Car
+도상다지기 Ballast Tamping
+도상단면  Ballast Profile or Section
+도상두께  Depth(or Thickness) of Ballast
+도상압력  Ballast Pressure
+도상어깨폭 Width of Ballast Shoulder
+도상자갈  Ballast 
+도상작업  Ballast Work
+도상저항력  Resisting Force of Ballast
+도상저항력측정기 Resisting Force Meter of Ballast
+도상전압  Ballast Rolling
+도상종저항력 Longitudinal Resisting Force of Ballast
+도상침하곡선 Ballast Sinking Curve
+도상횡저항력 Lateral Resisting Force of Ballast
+도선장치 trams-track carrier
+도시간철도 Inter Urban Railway or Intercity Railway
+도시교통권역 Urban transport area
+도시철도  Urban Railway
+도어롤러  Door Roller
+도장공장 paint shop
+도전율 Conductivity
+도전전류 Conduction Current
+도중역 Intermediate station
+도중정차  Intermediate Stop
+도중하차  Break of Journey
+도중하차인  Brake-of-Journey Station Stamp
+도착선  Arrival Track
+도착통지 arrival notice
+도트  Dot
+도플러효과 Doppler Effect
+독립적고장 Independent Failure
+독립접지  Independent Earth
+돌극계자 Salient Pole Field
+돌극기 Salient Pole Machine
+돌방 Pushing off kicking, Throwing
+돌방입환  Push and Pull Shunting
+동기  Synchronization
+동기리액턴스 Synchronous Reactance
+동기발전기 Synchronous Generator
+동기속도 Synchronous Speed
+동기식데이터전송 Synchronized Data Transmission
+동기임피던스 Synchronous Impedance
+동기전동기 Synchronous Motor
+동기조상기 Synchronous Phase Modifier
+동력객차 Power vehicle
+동력대차 Motor Truck
+동력분산식 Multiple power
+동력선로전환기 Power Point Switch or Power Switch Machine 
+동력식전철기 motive power, locomotive
+동력집중식 Power car, Locomotive
+동력차  Motive Power or Locomotive or Power Car
+동력차보조후레임 Power Car Auxiliary Frame
+동력차승무원 Drivers or Train Crew
+동력차재고량 Locomotive In-Shop
+동륜 Driving wheel
+동륜직경  Driving Wheel Diameter
+동바리  Timbering or Staging 
+동적궤도안정기 Dynamic Track Stabilizer
+동적속도감시설계속도 Design Speed of Dynamic Speed Supervision
+동적속도프로파일 Dynamic Speed Profile
+동정  Stroke or Maximum Expansion
+동조유닛  Tuning Unit(TU) 
+동차 Power vehicle
+동차열차  Motor-Coach Train
+동축케이블 Coaxial Cable
+둑돋기 fill
+드라이브 Drive
+등가회로 Equivalent Circuit
+등열식신호기 Position light Signal
+디렉터리  Directory
+디버그  Debug
+디스크  Disk
+디스크드라이브 Disk Drive
+디스크브레이크 Disk Brake
+디젤기관차  Diesel Locomotive
+디젤동차 Diesel Rail Car
+디젤전기기관차 Diesel Electric Locomotive
+디지털  Digital
+디지털변조 Digital Modulation
+디지털서비스장치 Digital Service Unit(DSU) 
+디지털신호 Digital Signal
+디지털입출력장치 Input/Output Unit
+디지털전송 Digital Transfer
+디지털컴퓨터 Digital Computer
+라우터 Router
+랏치  Latch
+랏치달린전철기 switch stand with ratchhandle
+랜덤액세스메모리 Random Access Memory
+랜접속기기 LAN Interconnecting Device
+런  Run
+레버쇄정 Locking of the Lever
+레벨0 Level 0
+레벨1 Level 1
+레벨2 Level 2
+레벨3 Level 3
+레벨STM Level STM
+레이저디스크 Laser Disk
+레일  Rail
+레일가열기 Rail Heater
+레일갱환(교환) Rail Renewal(or Renewing), Renewal of Rail or Rerailling 
+레일거더 Rail Girder
+레일검사 rail examination
+레일경좌 Tilting of Rail or Canting Installation of Rail
+레일굴곡기 Rail Bending Device
+레일끝 end of the rail
+레일내부응력 Rail Bender Internal Rail Stress
+레일내측면 Gauge-Side of Rails or Guiding Surface or Inner Edge
+레일단락감도 Rail Shunting Sensitivity of Track Circuit 
+레일단면측정기 Rail Profile Recorder
+레일도유기 Rail Head Lubricator
+레일두부 Rail Head
+레일두부유궤(후로) Flow of Rail Head
+레일두부좌궤 Crushing of Rail Head
+레일마모 Wear of Rail or Wearing of Rail or Abrasion of Rail
+레일면높이 height from the rails
+레일바꿔놓기 turning of rails
+레일박힘 Rail Cut on Sleeper
+레일버릇 Warp of Rail
+레일복부 Web of the Rail
+레일본드 Rail Bond 
+레일삭정기 Rail-Grinding Machine
+레일삭정차 Rail Grinding Car
+레일스위치 Rail Switch
+레일앵커 Rail Anchor
+레일온도검지장치 Rail Temperature Detector 
+레일유간게이지 Joint Clearance Gauge
+레일의복부 web of the rail
+레일의장출 Defect in the track, Bucking of rail
+레일의체결 rail fastening
+레일이음매 Rail Joint
+레일작업용기계 Rail Maintenance Equipment
+레일장출 Bucking of Rail
+레일전위 Electric Potential of Rail
+레일전환 Turning of Rails or Rail Shifting
+레일절곡기 rail bender
+레일절손 Rail Break or Rail Rupture
+레일절연 Rail Insulation
+레일중량화 Use of Heavier Rails
+레일천공기 Rail Drill or Rail Drilling Machine
+레일체결 Rail Fastening
+레일축력측정기 Axial Force Meter of Rail
+레일탐상기 Rail Flaw Detector
+레일탐상차 Rail Defect Detector Car or Rail Flow Detecting Car
+레일팅  Railting
+레일파상마모기 Rail Corrugation Grinding Machine
+레일파상마모삭정기 Rail Corrugation Grinding Machine Car
+레일후로삭정기 Flow Grinding Machine
+렌더링  Rendering
+렌쯔의법칙 Lenz's Law
+로그인 Login
+로드 Load
+로러베아링 roller bearing
+로밍  Roaming 
+로카암  Rocker Arms
+록카암,로카암 rocker arms
+록크너트와셔 Lock Nut Washer
+롤러베어링 Roller Bearing
+롤백방호 Rollback Protection
+롬 Read Only Memory
+루멘 Lumen
+루프  Loop
+루프메시지포맷 Loop Message Format
+루프선  Loop Track
+루프전송모듈 Loop Transmission Module
+루프주파수 Loop Frequency
+루프코일 Loop Coil 
+루프표지종단 End of Loop Marker
+리니어 Linear
+리드곡선 Lead Curve
+리드길이 Lead Length
+리드반경 Radius of Lead Curve
+리셋  Reset
+리셋버튼[VOBC용] Vehicle On Board Controller Reset Button
+리스토어  Restore
+리액터 Reactor
+리액터시동전동기 Reactor Start Motor
+리액턴스  Reactance
+리이버쇄정 locking of the lever
+리턴키 Return Key
+리피터 Repeater
+링크  Link
+마그네트클러치 Magnet Clutch
+마더보드 Mother Board
+마모고장 Wear Out Failure 
+마모방지레일 Antiwear of Rail
+마모판  Wearing Plate
+마모플렌지 Worn Flange
+마이크로컴퓨터  Micro Computer
+마찰연축기 Friction Clutch
+막자갈도상  Sand and Gravel Ballast
+만차 Loaded car
+망간강레일 Manganese Steel Rail
+망간크로싱  Manganese Crossing or Manganese Frog
+맞이방 Wating room
+매개루프 Medium Loop
+매칭트랜스 Matching Transformer 
+매표 Issuing a ticket
+매표상자 ticket bins for sale
+매표소 Ticket office
+맥동율 Ripple Factor
+맥동전동기 Ripple Current Motor
+맥동전류 Pulsating Current
+맥스웰브리지 Maxwell Bridge
+맥스웰의전자방정식 Maxwell's Electromagnetic Equation
+맨홀  Manhole
+먹이통 feed container
+멀티-드롭방식 Multi Drop or Multi Point
+멀티플라이어렌치 Multiplier Wrench
+멀티플라이탐퍼 multiple tie tamper
+멀티플렉서  Multiplexer
+멀티플타이탬퍼 Multiple Tie Tamper
+메가  Mega
+메모리 Memory
+메모리어드레스 Memory Address
+메시지  Message
+면마춤  Track Level Adjustment
+면틀림  Irregularity in Longitudinal Level
+명예철도원 honorary railman(railroader)
+모노레일철도 Monorail 
+모니터[ATC용] ATC Monitor 
+모뎀(변조․복조)  Modulator Demodulator
+모듈  Module
+모드  Mode
+모드전환회로 Mode Change Circuit
+모래도상  Sand Ballast
+모래통  Sand Box
+모선 bus-bar
+모터카 Motor car
+목침목  Wooden Tie or Wood Sleeper
+목표거리  Target Distance
+목표거리운행방식 Distance to Go
+목표경사도  Target Gradient
+목표속도  Target Speed
+목표위치  Target Location
+무가압시험  No Power Applied Test
+무개차  Gondola Car or Open Wagon
+무경보검지 Detection of Non-Warning
+무극선조계전기 Nonpolar Line Relay 
+무도상궤도  Ballast-less Track or Track Without Ballast
+무동작고장 Immobilizing Failure 
+무배치간이역  Unmanned Simplified Station
+무부하손 No-load Loss
+무부하포화전압 No-load Saturation Voltage
+무선방호 Train protection by radio
+무선인필장치  Radio In-Fill Unit
+무선주파수  Radio Frequency
+무선주파수간섭 Radio Frequency Interference
+무선폐색센터  Radio Block Center
+무선홀  Radio Hole
+무여자  Demagnetized
+무인역  No-Manned Station
+무인운전 Automatic operation
+무임 Free of charges
+무임승차증  Free Ticket
+무전원모드  No Power Mode
+무절연궤도회로 Non Insulated Track Circuit 
+무절연궤도회로[UM71C-TVM430용] UM71C-TVM430 Jointless Track Circuit
+무접점릴레이 Non-Contact Relay
+무정전전원장치 Uninterruptible Power Supply Unit(UPS)
+무정전전원장치 Uninterruptible Power Supply
+무지향성  Omni-Directional
+무표 Deadhead passenger
+무화기관차 dead engine
+무효전력  Reactive Power
+무효전력제어  Var Control
+무효전류 Reactive Current
+문전수송  Door-to-Door Delivery
+물류시간 Time for mobilization of materials
+물분리기 water separator
+물표 Tag
+미국철도기술협회 American Railway Engineering Association(AREA) 
+미국철도기술협회형레일 American Railway Engineering Association Rail
+미니플로피디스크 Mini Floppy Disk
+미디어접근제어주소 Media Access Control Address 
+미터표  Meter Post
+미하화차 Unloaded car
+민자역  Privately Invested Station
+민자역사 Private capital station
+밀착검지기 Adherence Detector
+밀착연결기 Tight coupler
+밀착조절간  Switch Adjuster
+밀착  Close Adherence
+밀폐형무보수연축전지 Lead-Calcium Storage Battery
+밉스  Million Instruction Per Second
+바라스트레규레터 ballast regulater
+바라스트콤팩터 ballast compactor
+바라스트크리너 ballast cleaner
+바라스트포크 ballast fork
+바리스터  Varistor
+바아르  Bar
+바이모달시스템 Bi-modal system
+바이모달트램 Bi-modal tram
+바이어스계전기 Bias Relay
+바이어스형궤도계전기 Bias Type Track Relay 
+바이탈  Vital
+바이트  Byte 
+바이패스  Bypass
+바코드리더 Bar Code Reader
+바코드  Bar Code
+바퀴받침  Stop(or supporting) Block(or car stop)
+반자성체  Diamagnetic Substance
+반도체  Semi conductor
+반복선  Turn-Around
+반송전류전송 carrier current system of transmission
+반송주파수  Carrier Frequency
+반송기일 date of return
+반송파감지다중접속 Carrier Sense Multiple Access
+반송파  Carrier Wave
+반쇄정  One Way Lock
+반액승차권 Half price ticket
+반연속전송 Semi-Continuous Transmission
+반위접점  Contactor of Reverse Position
+반위  Reverse Position
+반이중통신방식 Half Duplex Communication System
+반자동신호기 Semi-Automatic Signal
+반향곡선  Reverse Curve
+발광기  Laser Beam Transmitter
+발광다이오드 Light Emitting Diode
+발광신호(특수신호발광기) Light Emitting Signal(Special Signal Emitter)
+발뢰신호  Detonator Signal
+발리스[ATP용] ATP Balise
+발리스[KVB용] KVB Balise
+발리스그룹 Balise Group
+발리스연결 Balise Linking
+발리스전송모듈 Balise Transmission Module
+발리스통합시스템 Balise Coordinate System
+발매업자  Issuing House
+발매역  Issuing Station
+발역  Departure Station
+발역반송  Returning Baggage
+발열축상  Hot Box
+발전제동 Electric braking
+발전제동장치  Dynamic Brake or Regenerating Brake
+발전차 Power source car
+발진기  Oscillator
+발진주파수  Oscillation Frequency
+발진회로  Oscillation Circuit
+발차통보  Announcement of the Departure of a Train
+발착선  Departure/Arrival Track
+발틀 Shackle
+발판 Step board
+밧도(오일패드) oil pad
+방수형선로전환기 Prevention of Flood Point or Water-Proof Type Point
+방전관  Discharge Lamp
+방전율  Discharge Ratio
+방청도료 Rust proof
+방출변  Outlet Valve
+방향계전기  Directional Relay 
+방향변경 Directional change
+방향전환 Reverse operation
+방향전환  Switching Direction
+방향표 destination sign
+방호스위치 Track Side Protection Switches 
+배기가스  Exhaust Gas
+배기관엘보우 Exhaust Elbow Pipe
+배기구  Exhaust-Gas Port
+배기압력  Exhaust-Gas Pressure
+배수콕크  Drain Cock
+배장기(排障器) Guard-Iron Rail Guard
+배전반 Switchboard, Switchgear
+배전변압기 Distribution Transformer
+배전변전소 Distribution Substation
+배전압정류회로 Voltage Multiplier Rectifier Circuit
+배치간이역  Manned Simplified Station
+배판 back board
+배향  Trailing or Trailing of Turnout
+배향분기기 Trailing Turnout
+백게이지  Back Gauge
+백신  Vaccine
+백업파일 Back Up File
+밸러스트레귤레이터 Ballast Regulator
+밸러스트컴팩터 Ballast Compactor
+밸러스트크리너 Ballast Cleaner
+밸러스트포크 Ballast Fork
+버그  Bug
+버스  Bus
+버스어댑터 Bus Adapter
+버전 Version 
+버퍼  Buffer
+버퍼링  Buffering
+베어링레이스 Bearing-Race
+베이스밴드전송방식 Base Band Transmission
+변류기  Current Transformer
+변복조장치 modulator demodulator(MODEM)
+변수  Variable
+변스프링 valve spring
+변압기  Transformer
+변전소  Substation
+Electric Power Substation
+변조 alternation
+변환  Transition
+병렬전송방식 Parallel Transmission
+보기대차  Bogie Frame 
+보기중심핀  Upper Center Casting
+보기차 Bogie Stock or Bogie Car
+보류쇄정  Stick Lock
+보류현시신호기 Stick Indication Signal
+보상기 Compensating Machine
+보상용콘덴서 Building out Condenser or Compensation Condenser 
+보수  Maintenance
+보수자선로횡단장치 Maintenance Crew Cross Railroad Device
+보안기  Protector or Arrester
+보안장치 Safety device
+보온화물수송 traffic carried under controlled temperature
+보유량수  Rolling Stock Owned
+보전성  Maintainability
+보정구배  Compensated Grade or Compensating Grade
+보조  Auxiliary
+보조공기통  Auxiliary Air Reserver
+보조구배  Assisting Grade
+보조기관차  Auxiliary Engine
+보조도상  Sub-Ballast
+보조레일  Assist Rail
+보조물표 supplementary tag
+보조신호기  Subsidiary Signal
+보조전원장치  Static Inverter
+보충승차권  Supplementary Ticket(or additional ticket)
+보통궤도  Common Track
+보통급소화물  Ordinary Parcel 
+보통역  Ordinary Station
+보호계전기 Protective Relay
+보호된결함측고장 Protected Wrong Side Failure
+보호운전모드  Automatic Train Protection Manual Mode
+복권발전기 Compound Generator
+복권전동기 Compound Motor
+복궤조궤도회로 double rail track circuit
+복귀스위치[ATS용] Release Switch of Automatic Train Stop
+복복선  Four-Track Line or Quadruple Line or Quadruple Track
+복선  Double Track or Double Line
+복선기  Re-Railing Train
+복진  Creeping or Rail Creepage
+복진방지장치 Anticreeper
+복편 Return coupon
+복합레일  Compound Rail
+복호기  Decoder
+본드핀  Bond Pin 
+본무  Main Task
+본무기관사 Main locomotive driver
+본선 Main line, Main track
+본선로  Main Track
+볼베어링축상 Ball Bearing Axle-Box
+봉인  To Affix or Sealing 
+부가금 fine, penalty
+부급전선  Negative Feeder
+부기관사 Vice engine drive
+부동구간  Unmovable Section
+부동충전  Floating Charge
+부동피스톤  Floating Piston
+부레키슈 brakeshoe
+부본선  Auxiliary Main Track or Subsidiary Main Track
+부분감시모드 Partial Supervision Modes
+부상자 the injurde
+부정기열차 Non scheduled train
+부정승차 Passenger travelling without a valid ticket
+부족캔트  Insufficient Cant or Insufficient Super Elevation
+부착식철도 Adhesion Type Railway
+부하시험  Load Test
+부하용량 Load Capacity
+부하율 Load Factor
+부하의불균형 Unbalanced Load
+분계역  Border Station
+분권발전기 Shunt Generator
+분권전동기 Shunt Motor
+분기가드레일 Crossing Guard Rail
+분기기  Turnout or Switch and Frog or Switch and Crossing or Point and Crossing
+분기기도중전환 Throwing Over the Switch Under the Train
+분기기동정  Stroke of a Point Rail
+분기기번호  Turnout Number
+분기기보수 Point Maintenance
+분기기시단 Point of Switch
+분기기융설장치 Snow Melting Equipment for Railway Turnout
+분기기저항 Point Resistance
+분기기종단 End of Turnout or Heel of Frog
+분기부대곡선 Second Curve of Turnout or Turnout Curve(Behind Crossing)
+분기역  Conjunction Station
+분기정차장 Branch of Station or Junction Station
+분기침목 Switch Sleeper or Switch Tie
+분니현상  Water Pump
+분리된열차방호 Separated Train Protection
+분리스위치 Isolating Switch-Group
+분배변  Distributing Valve
+분배주궤도회로 Dividing and Doubling Frequency Track Circuit
+분사펌프  Injection Pump
+분압기  Potentiometer
+불꽃취소  Throwing Off Spark
+불법점유  Occupation without Permission 
+불시제동  Untimely Brake
+
+ill-timed conductors brake
+불연속정보전송루프  Intermittent Transmission Loop Cable 
+불일치  Not Correspondence
+불통승락 acceptance of interruption
+불평형부하 Unbalanced Load
+불평형전류 Unbalanced Current
+불평형회로 Unbalanced Circuit
+붉은바탕 red ground
+브라우저  Browser
+브래키트 blacket
+브리지형계전기 Bridge type Relay
+블록  Block
+블록침목 Block Tie
+블링크  Blink
+비돌극기 Non-salient Machine
+비동기기 Asynchronous Machine
+비동기식데이터전송 Asynchronous Data Transmission
+비동기조상기 Asynchronous phase Modifier
+비디오복사장치 Video Hard Copy Machine 
+비보류현시신호기 Non-Stick Indication Signal
+비보호된결함측고장 Unprotected Wrong Side Failure
+비상대응계획 Emergency plan
+비상정지리셋요구 Emergency Brake Reset Request
+비상정차  Emergency Stop
+비상제동  Emergency Brake
+비상제동거리  Emergency Braking Distance
+비상제동기  Emergency Brake 
+비상제동기  Emergency Brake 
+비상제동리셋버튼 Emergency Brake Reset Button
+비상제동변  Emergency Brake Valve
+비상제동변  Emergency Brake Valve
+비상제동위치 Emergency Brake Application Position
+비상제동위치 Emergency Brake Application Position
+비상제동재설정 Emergency Brake Reestablishment
+비상제어방식  Emergency Control Mode 
+비상제어방식  Emergency Control Mode 
+비상차 Emergency vehide
+비상통화  Emergency Call
+비선도모드 Non-Leading Mode
+비승비강 Jumping on and off from train
+비이터  Beater
+비자동폐색구간 Non-Automatic Block Section
+비장착모드  Unfitted Mode
+비장착선로  Non-Equipped Line
+비트  Bit
+비활성화  Deactivate
+빗형홈 combshaped platform
+사고분석  Accidental Analysis 
+사고원인  Cause of Accident
+사구간  Dead section)
+사구간보완회로 Dead Section Complementary Circuit
+사두타이탬퍼 Four Head Tie Tamper
+사령  Control Dispatcher 
+사령실  System Management Center
+사령요원  Central Operator
+사령통화  Command Call
+사륜대차  Two-Axle Bogie
+사망자 the deceased, the dead
+사무자동화  Office Automation
+사상사고 Casualty accident
+사설철도  Private RailwayPrivately Owned Railway
+사업용철도 Railroad for enterprise
+사용자인터페이스 Man Machine Interface
+사용차 cars in use
+사유견궤 kennels
+사유차  Privately-Owned Car
+사유철도  Private Railway
+사이드베어링 Side Friction Block or Side Bearing
+사이라트론 thyratorn
+사이리스터 Thyristor
+사이리스터모터 Thyristor Motor
+사이리스터인버터 Thyristor Inverter
+사인반파장완화곡선 Sine Wave or Sine Half Wave Length Transition Curve
+사일로 Silo
+사중 dead weight
+사현시속도조사식ATS Four Aspect Speed Detection Type ATS
+사후정비 Corrective Maintenance
+삭도  Rope Ways or Cable Way or Cable Railway
+산술․논리연산장치 Arithmetic and Logic Unit
+산악(등산)철도 Mountainous railway
+산업,과학,의학용대역 Industrial or Scientific or Medical Band
+산적화물  Bulk Freight
+살붙이기용접 building-up by welding
+살사노즐 Sand Nozzle
+삼단계유지보수 Third Line Maintenance
+삼동변  Triple Valve
+삼동선로전환기 Three Movement Point by One Button
+삼방코크  Three-Way Cock
+삼상반파정류회로 Three-Phase Half-Wave Rectifier Circuit
+삼상전파정류회로 Three-Phase Full-Wave Rectifier Circuit
+삼위식  Three-Position System
+삼위식궤도회로 Three Position System Track Circuit 
+삼지분기기 Three Throw Turnout or Single Slip Switch
+삼차포물선 Cubic Parabola
+삽 shovel
+삽다짐 ballast tamping by shovel
+삽입형계전기 plug-in type realy
+상대식이음매 Square Joints
+상대식홈 separate flatform
+상대제동거리 Relative Braking Distance
+상본선  Up Main Track
+상비승차권  Ticket with Printed Destination
+상비역  Reserved Station
+상선  Up Track
+상시쇄정  Usually Lock
+상용제동  Normal Brake Application
+상용제동거리  Service Braking Distance
+상용제동세션 Service Brake Session
+상용제품  Commercial Off the Shelf 
+상용주파수궤도회로 Commercial Frequency Track Circuit 
+상용폐색방식 Regular Block System
+상전도식자기부상열차 Electromagnet MAGLEV
+상치신호기  Fixed Signal
+상판 Decking
+상판  Bed Plate
+상호식이음매 Alternate Joint
+상호운용성  Interoperability
+상호운용성구성요소 Interoperability Constituents
+상호유도 Mutual Induction
+상호인덕턴스 Mutual Inductance
+상호임피던스 Mutual Impedance
+색등식자동폐색 automatic block signal
+색류선륜 choke coil
+서미스터 Thermister
+서미스터전력계 Thermister Wattmetter
+서버  Server
+서브시스템레벨공장시험 Hardware Factory Acceptance Test 
+서비스에영향을미치는고장 Service-Affecting Failure
+서비스에영향을미치는고장들간의평균시간 Mean Time Between Service-Affecting Failure
+서지  Surge
+서지발생기 Surge Generator
+서지임피던스 Surge Impedance
+서지전압 Surge Voltage
+서지흡수기 Surge Absorber
+서행신호 Slow speed signal
+서행신호기 Slow speed signal
+서행예고신호기 Slow Speed Advance Notice Signal
+서행해제신호기 Slow Speed Release Signal
+서행허용표지  Slow Speed Permissive Indicator
+선간전압 Line Voltage
+선도장치 Leading Unit
+선두부 Head of car
+선로  Line
+선로관리도 Control map of track
+선로구조물  Structures in Roadway
+선로등급  Class of Roadway or Class of Track
+선로반 track gangs
+선로변기능모듈 Track Side Functional Module 
+선로변레벨 Track Side Level 
+선로변장치 Line side Equipment
+선로변제어장치 Line Side Electronic Unit
+선로상수 Line Constant
+선로시설물 Facilities of tract
+선로연변 Area along of railway
+선로연장  Route Kilomders or Route Length
+선로용량  Carrying Capacity or Track Capacity
+선로용량증대[ATP용] Increase for Track Capacity of ATP 
+선로유효장  Clearance,
+Cleatance limit
+선로의작업표지 Work mark of track
+선로일시사용중지 Track Temporary Usage Suspension
+선로작업표  Work Mark of Railway
+선로장애 Track incidents
+선로장애  Railway Obstruction
+선로전류 Line Current
+선로전환기감시회로[WCU용] Wayside Control Unit Switch Point Supervision Circuit
+선로전환기반위 Reverse Position of A SwitchPoint
+선로전환기쇄정간 Lock Bar of A Switch Point
+선로전환기쇄정장치 Switch and Lock or Switch Device
+선로전환기전단 Toe of Switch or Top of Switch
+선로전환기정위 Normal Position of Point Machine
+선로전환기제어회로[WCU용] Wayside Control Unit
+선로전환기해정 Release of the Points
+선로전환기후단 Heel of Switch
+선로제표  Railway Post
+선로중심간격 Track center, Track spacing, Distance between track centers
+선로차단  Track Blocking
+선로최고속도 Line maximum speed
+선륜장하  Coil Loading Pupinization
+선명찰  Nameplate
+선별처리장치  Front System Processor(FSP)
+선상역  Over Track Station
+선조계전기  Line Relay
+선종륜축 carring axle
+선택도  Selectivity or Quality Factor
+선택배류법 Polarized Drainage System
+선택호출전화 Selective Automatic Telephone
+선행운전  Pilot Working or Overtaking
+설계당국  Design Authority
+설계운전시격 Design Headway
+설비인터페이스[CTC용] CTC System Interface
+설정온도  Laying(Setting) Temperature
+설정유간  Laying Joint Gap
+섬식승강장 Island Platform
+세관  Boiler Washing
+세로홈  Longitudinal Platform
+세차선 washing track
+세차설비  Washing Facilities
+섹션인슐레이터 Section Insulator
+섹터  Sector
+센서 Sensor
+센터핀  Center Pin
+셔터  Shutter
+셔틀모드 Shuttle Mode
+소감 heat assembly
+소구혼재화물 mixed freight
+소급 L.C.L
+소단위집하화물  Small Unit Mixed Freight
+소단위집하화물취급  Small Unit Mixed Car Load Freight
+소수선 minor repairs
+소요차  Required Cars
+소운송업  Freight Forwarder
+소운전 Shuttle service
+소인  Factor or Primary Cause
+소프트웨어  Software
+소프트웨어수명주기 Software Life Cycle(System)
+소호각 Angle of Extinction
+소화물  Express Baggage
+소화전  Fire Hydrant
+속도기록계 Speed Recorder
+속도센서  Speed Sensor
+속도제어방식 Speed Control System 
+속도제한  Limited Speed
+속도제한모드  Speed Limit Mode
+속도제한표  Limited Speed Control Post
+속도제한표지 Speed Limit Post
+속도제한해제표지 Speed limit remove post
+속도조사기[ATC용] ATC Speed Check 
+속도충격율 Speed Impact Rate
+속도측정모듈 Velocity Measurement Module 
+속도코드지상전송방식 Speed Code Transfer System 
+속도표시기  Speed Indicator
+속도향상  Increase in Train Speed or Speed Up
+속행열차 Sequence of trains
+송전손실 Transmission-loss Coefficient
+송착전점퍼선 Power Transmission Receiving Jumper Wire 
+송풍기  Blower
+송화인  Consignor or Consigner
+쇄기형홈  Wedge platform
+쇄정  Lock
+쇄정간  Lock Rod
+쇄정장치 locking apparatus
+수광기  Laser Beam Receiver
+수도권전철구간 The Area of Seoul Metropolitan Subway 
+수동모드[ATC용] ATC Manual Mode
+수동식선로전환기 Manual Switch
+수동신호기  Manual Signal
+수동운전모드 Manual Operation Mode
+수동제어패널 Manual Control Panel
+수동조작반[ATC용] ATC Manual Control Panel
+수동차단기 Hand Operated Gate
+수리조치  Repair Action
+수면계  Water Gauge 
+수명주기 비용(시스템)  Life Cycle Cost(System)
+수선선  Repair Track 
+수송거리  Shipping Distance 
+수송경로  Shipping Route 
+수송단위  Traffic Unit 
+수송력  Transportation Capacity 
+수송밀도  Traffic Density 
+수송효율  Transportation Efficiency 
+수습기관사  Apprentice Driver or Learning Driver 
+수시수선방식 Method of Occasional Repair Work
+수시정차  Optional Stop
+수신기[ATC용] Receiver 
+수신안테나[ATC용] Pick Up Coil 
+수신호  Hand Signal
+수신호기  Hand Signal 
+수익자부담 Beneficiary charge
+수제동기  Hand Brake
+수제동기체결 Hand Brake Application
+수제동핸들  Hand Brake Wheel
+수준표  Bench Mark Post or Bench Mark Drop Pit
+수지품 accompanied luggage
+수차  Honey Car
+수취시기 pick up time allowance
+수탁 acceptance of a consignment
+수탁수화물 registered luggage
+수평게이지 Cross Level Gauge
+수평틀림  Irregularity in Cross Level
+수화물 luggage. Baggage
+수화물차 baggage car
+수화물취급소 luggage registration office
+수화인 consignee
+숙련자  Skilled Person
+순서변경 Train sequence change
+순환선  Belt Line or Loop Line
+순환잉여검사코드 Cyclic Redundancy Code 
+스러스트볼베어링 Ball Thrust Bearing
+스위치백 Switchback
+스위치백정차장  Switch Back Station
+스위치타이탬퍼 Switch Tie Tamper
+스윕  Sweep
+스윙볼스터 Swing Bolster
+스크린  Screen(of Cable)
+스크린도어 Platform screen door
+스탭(Staff)책임모드  Staff Responsible Mode
+스파이크박기기계 Spike Driving Machine
+스파이크인발기(동력붙은) Spike Drawing Machine
+스파이크해머 Spike Hammer
+스포크형윤심 Spoke Wheel Centre
+스프링포인트 Spring Point or Spring Switch
+슬래브궤도 Slab Track
+슬래브운반차 Slab Carriage Car or Conveyance Car
+슬랙  Slack
+슬립링 Collector Ring, Slip Ring
+승강구  Entrance Vestibule
+승강장  Platform
+승강장지붕 plateform shelter
+승강장지붕덮개 flatform shed
+승객안내방송 Public Address
+승객정보 Passenger Information
+승객정보시스템 Passenger Information System 
+승무보고  Trip Report 
+승무원 Conductor, Crew
+승무원숙사  Train Crew Dormitory 
+승무원실  Service Compartment 
+승무원적합성검사 Test for crew
+승월분기기  Runover Type Turnout(or Switch)
+승월포인트 run over pype switch
+승차  On Board
+승차권  Train Ticket
+승차권구입  Ticket Purchasing
+승차권류  All Kinds of Tickets
+승차권압날  Stamping
+승차권예약  Reservation or Advance Booking
+시가철도  Street Railway
+시간분할다중화방식 Time Division Multiplex System
+시간지연계전기 time realy
+시계 Sight distance
+시계운전 Operation by naked eye
+시공기면  Formation Level
+시내소화물취급소 L.C.L collection point
+시린다간격 point to cylinder head clearance(locomotive cylinder)
+시멘트주입장치 grouting apparatus(cement)
+시뮬레이션 Simulation
+시뮬레이터인터페이스장치 Simulator Interface Assembly 
+시발역  Originating Station
+시분할다중접속방식 Time Division Multiple Access 
+시사스분기기 Scissors Turnout
+시사스크로싱 Double Crossover or Scissors Crossing
+시스템  System
+시스템[KVB용] KVB System(Alstom)
+시스템[ZUB용] ZUB System(Siemens)
+시스템고장모드 System Failure Mode
+시스템서버[ATC용] ATS System Server
+시스템소프트웨어 System Software
+시스템수명주기 System Life Cycle
+시스템엔지니어 System Engineer
+시스템조건 System Conditions
+시에프에스 C.F.S : Container freight station
+시운전  Trial Operation
+시운전불가영역 Uncommossion Area
+시정거리 Visibility
+시정조치  Correction or Rectification
+시퀀서  Sequencer
+시퀀스제어 Sequential Control
+시큐리티 Security
+시험차  Testing Car
+식당차  Dinning Car
+식별번호  Identification Number
+신규수동조작반[ITCS용] ITCS New Manual Control Panel
+신뢰성  Reliability
+신속완해변  Rapid Brake Release Valve
+신속완해폐달 Rapid Brake Release Pedal
+신축량  Expansion Length
+신축이음매  Expansion Joint or Expansion Device
+신호  Signal
+신호교  Signal Gantry
+신호기  Signal Post
+신호기구 Signal Apparatus
+신호기구함 Signal Apparatus Case
+신호기내방 Inner Section of Signal
+신호기방호구간 Protective section by signal
+신호기외방 External of Signal
+신호기정위 Signal Normal Position
+신호기확인거리 Signal Confirmation Distance
+신호뇌관  Signal Torpedo or Detonator
+신호레버쇄정  Lock for Signal Lever
+신호모진 Run past a stop signal
+신호반응기 signal repeater
+신호반응등  Signal Repeater
+신호발생모듈 Real Time Clock 
+신호변환장치 Signal Convert 
+신호보안설비  Signaling Equipment
+신호보안장치  Signaling System
+신호본드  Signal Bond 
+신호부동정류기 Floating Rectifier for Signal
+신호부속기  Signal Appendant
+신호부호전송기[ATP용] ATP Signal Cord Transmitter 
+신호설비검측차 Signal Equipment Measuring Car
+신호소  Signal Station
+신호시스템  Signalling System
+신호염관  Fusee Signal
+신호용단자 Connection Terminal for Signal
+신호용배전반 Distributing Panel for Signal
+신호용보호단자 Protector Terminal for Signal
+신호용전선 Signal Cable
+신호원격 제어장치  Signal Remote Control System
+신호위치  Signal Location
+신호장  Signal Box
+신호장비 소유  Possession of Signaling Equipment
+신호주파수  Signal Frequency 
+신호중계기 Signal repeating
+신호철선  Signal Wire
+신호케이블단말격벽자재 Terminal Partition Materials for Signal Cable
+신호코드  Signal Aspect Code 
+신호코드[ATC용] ATC Signal Code 
+신호표시기 signal indicator
+신호현시계열 Affiliated Signal Indication
+신호현시방식 Affliated single formula
+실렉터  Selector
+실린더간격 Cylinder Head Clearance 
+실린더벽 Cylinder Wall
+실린더헤드 Cylinder Head
+실제동거리 Actual Braking Range
+실제사후정비시간 Active Corrective Maintenance Time
+심구농형유도전동기 Deep-slot Squirrel-cage Induction Motor
+싱글슬립스위치 Single Slip Switch
+싸이폰 siphon
+쌍동선로전환기 Double Point
+쌍동전철기 coupled points
+쌍두레일  Double Headed Rail
+쌍신폐색식  Pair Communication Block System
+C.Y Container yard
+아날로그변조 Analog Modulation
+아날로그신호 Analog Signal
+아날로그컴퓨터 Analog Computer
+아취구교  Arched Culvert 
+아크  Electric Arc
+안내소  Information Booth
+안전가드레일 Safety Guard Rail
+안전거리  Safety Distance
+안전계수 Safety Factor
+안전변  Safety Valve
+안전상태  Safe State
+안전성  Safety
+안전성수명주기 Safety Life Cycle
+안전속도차내계산방식 Calculation Method of SafetySpeed the Inside of a Cab 
+안전제동거리  Safety Braking Distance
+안전제동모델 Safety Brake Model
+안전책(승강장안전휀스) Platform Safety Fence
+안전측동작 Fail-Safe
+안전측선  Catching Side or Refuge Siding or Safety Siding
+안전한 열차이격거리 Safe Train Separation Distance
+안테나  Antenna or Aerial
+안테나공중선 Antenna
+안티크리퍼  Anticreeper 
+알고리즘  Algorithm
+알람윈도우 Alarm Window
+알칼리축전지 Alkaline Battery
+암페어 Ampere
+암페어의 오른나사법칙 Ampere's Right-Handed Screw Rule
+압구 Button
+압력강하  Pressure Drop
+압상구배  Ascending Grade
+압축비  Compression Ratio
+압축실  Compression Chamber
+압축율  Compression Rate
+애자  Insulator)
+액세스시간 Access Time
+액티베이션레벨 Activation Level
+앵글이음매판 Angle Bar
+약계자제어기 field-weakening controller
+양개분기기 Symmetrical Turnout or Double Curve Turnout
+양도  Hand-over
+양방향불능 Both Side Direction Impossibility 
+양쪽스패너 Double End Spanner
+양턱타이플레이트 Double Shouldered Tie-Plate
+어드레스  Address
+어드레스레지스터 Address Register
+어드레스맵 Address Map
+어드레스부  Address Part
+어드미턴스 Admittance
+어레이 Array
+어린이 factor, primary cause
+어린이승차권 child's ticket
+어복레일 Fish Bellied Rail
+어트리뷰트  Attribute
+언어  Language(ERTMS/ETCS) 
+엄호신호기  Protecting Signal
+에드몬슨식승차권 Edmonson type tickets
+에디터  Editor
+에러리스트 Error List
+에러율  Error Rate
+에스케이프크랭크 Escapement Crank
+에어섹션  Air Section
+에어섹숀 Air gap overlap span
+에어조인트 Air Joint
+에어클러치 Pneumatic Clutch
+에프디엠단국 frequency division multiplex
+엔코더  Encoder
+엔트리  Entry
+여객사상사고 Passenger casualty accident
+여객역  Passenger Station
+여객열차  Passenger Train
+여객열차킬로  Passenger-Train KM
+여객영업연장킬로  Passenger Service Extension KM
+여객영업킬로  Passenger Service KM
+여객인킬로  Passenger per KM 
+여객콩코스 passenger concourse
+여객통로 passage
+여자  Energized
+여자기 Exciter
+여자발전기 exciter
+여자전류 Exciting Current
+여파기  Frequency Filter
+여행개시  Traveling Commencement 
+여행보류  Pending Travel 
+여행사  Travel Agency 
+여행알선  Travel Assistance 
+여행종료  End of Travel 
+여행중지  Abandonment of a Journey 
+역  Station
+역광장 station front, station plaza
+역단위전산기  Station Accountancy and Control Unit
+역대합실 Waiting Room
+역류소화물  Station Custodial Express Baggage
+역률  Power Factor
+역률계  Power-Factor Meter
+역명표지 Station notice
+역무실  Station Office
+역무자동장치 Automatic fare collection
+역무자동화장치 Automatic Fare Collection(AFC)
+역방향모드 Reversing Mode
+역방향전류 Reverse Current
+역방향전압 Reverse Voltage
+역변환장치(인버터) Power Inverter
+역사 Station building
+역상계전기 Negative-phase Relay
+역상분 Negative-phase-sequence Component
+역선로감시장치  Local Line Supervision
+역세조사 station influential area
+역수송  Movement-Against Traffic
+역신호조명반 Local Signal Illumination Board 
+역압증기  Counter-Pressure Steam
+역운전제어반 Local Control Console 
+역원무배치역  Non-Attendant Station
+역자체조작방식 LM MODE
+역전간 Reversing rod
+역전기핸들  Reversing Rod
+역전장치  Steam Reversing Gear or Reversing Gear
+역정보전송장치  Local Data Transmission System 
+역정보처리장치  Front End Processor for Operating Level
+역정차시간 Station Dwell Time
+역조작반  Local Control Panel
+역주행  Reverse
+역행운전 Power running
+역행표지 Power-Running Post
+연결거리  Linking Distance
+연결기 Coupler
+연결기 Coupler
+연결기간격  Coupler Clearance
+연결기해방  Coupler Release
+연결봉  Coupling Rod or Side Rod
+연결정보  Linking Information
+연관  Flue
+연돌  Smoke Chimney
+연동검사  Testing of Interlocking
+연동구간  Interlocking Section
+연동도표  Interlocking Table or Locking Sheet
+연동선로전환기 interlocked points
+연동선로전환기 Interlocked Points
+연동시험  Testing of Interlocking 
+연동역  Interlocking Station
+연동장치  Interlocking Device
+연동처리장치  Solid State Interlocking 
+연동폐색  Inter Locked Block
+연동폐색방식  Inter Locked Block
+연동함 locking box
+연락승차권  Combined Ticket
+연락운송  Transport Linkage
+연락정차장  Junction Station
+연료펌프 Fuel Pump
+연마재  Abrasive 
+연선  Stranded Cable
+연소실  Combustion Chamber
+연속궤도회로 Continuous Track Circuit 
+연속식이음매판 Continuous Splice Plate
+연속정격 Continuous Rating
+연속정격속도 Continuos Rate Speed
+연속제어방식  Continuous Control 
+연속제어법  Continuous Control Method
+연쇄  Chain Interlock 
+연약지반개량을 위한 선행재하 Free Loading
+연착  Train Delay
+연축전지  Lead Storage Battery
+연피외장 lead jacket or covering(sleath) (cables)
+연피케이블 Lead-Covered Cable
+열교환기  Heat Exchanger
+열차  Train
+열차감시 Train Supervision(Dispatching)
+열차검사  Train Inspection
+열차검지 Train Detection 
+열차검지신호 Sign of Train Detection
+열차대피 Waiting for another train
+열차등급  Grade of a Train or Description of a Train
+열차명  Train Name
+열차무선전화 Radio Telephone
+열차방해  Train Disturbance
+열차방호  Train Protection 
+열차번호인식기 Train Number Analyzer
+열차번호표시장치 Train Number Describer System 
+열차부정출발방지장치 Magnetic Train Stop or Illegal Start Protection of Train 
+열차분리  Separation of Railway Carriage from a Train
+열차상간 Time between Trains
+열차서행  Slowing Down of Train
+열차속도  Train Speed
+열차속도검지 Train Speed Monitoring
+열차속도결정 Determination of Train Speed
+열차승무원  Train Crew
+열차우회 Train Diversion
+열차운전 Train operation
+열차운전모드 Train Operation Mode 
+열차운전제어시스템 Computer and Radio Aided Train Control System
+열차운행도표 train diagram
+열차운행비  Costs of a Train Operation
+열차운행시간기록계 Train Timetable Recorder
+열차위치와추적 Train Location & Tracking
+열차자동감시장치  Automatic Train Supervision(ATS)
+열차자동방호장치  Automatic Train Protection
+열차자동방호장치수동모드 Automatic Train Protection Manual
+열차자동속도제어  Automatic Speed Control
+열차자동운영컴퓨터 Automatic Train Operation System
+열차자동운전장치  Automatic Train Operation
+열차자동정지장치  Automatic Train Stop or ATS
+열차자동제어장치  Automatic Train Control
+열차저항  Train Resistance
+열차접근경보기 Train Approach Warning Light
+열차접근표시등 Approach Indicating Lamp
+열차정보송수신장치 Train Information Transmitting /Receiving Equipment 
+열차정보수신장치 Train Information Receiving Equipment
+열차정지목표 Train Stop Mark
+열차정지표지  Train Stop Indicator
+열차제어시스템 Train Control System 
+열차조성  Make Up a Train
+열차존재감시  Supervision for the Presence of Train 
+열차종별  Classification of a Train, train class
+열차진동  Train Vibration
+열차진동검사 Inspection of Train Vibration 
+열차진입검지 Train Approach Monitoring
+열차집중제어반 centralized traffic control pannel
+열차집중제어장치  Centralized Traffic Control 
+열차체류표시반 illuminated diagram
+열차추적 Train Tracking 
+열차출발[ATO용] ATO Train departure
+열차출입문제어인터페이스 Train Door Control Interface
+열차콩코스  Train Concourse
+열차킬로  Train Kilometers
+열차투시거리 Visible distance
+열차표지 Train indicator,  Train marker
+열차하중  Train Load
+열차행선안내장치 Train destination indicator
+열차후부감시장치 End of Train Telemetry System
+열차DIA Train Diagram 
+열처리레일 Heat-Treated Rail
+영상감지장치 closed circuit television(CCTV)
+영업거리 Service kilometers
+영업계수  Operating Ratio
+영업선  Commercial Service Line or Service Line
+영업킬로  Service Kilometers
+영차 Loaded car
+영차수송  Running Under Load
+영차킬로  Load Car KM
+예비차  Standby Car or Reserved Car
+예약승차권발매  Issuing of Reserved Ticket
+예약전용단말기 Terminal for the Reservation Only
+예열  Pre-Heating
+오구입 purchasing of wrong ticket
+오류  Error
+오버랩  Overlap
+오보홀 Overhaul
+오승 wrong train ride
+오예품 contaminable goods
+오일패드  Oil Pad
+오프라인  Off-Line
+옥내배선  indoor wiring)
+옥외배선  Outdoor wiring)
+옥탄가  Octane 
+온도계전기 Temperature Relay
+온도상승 Temperature Rise
+온라인시스템 Online System
+옴 Ohm
+옹벽  Revetments or Retaining Wall
+와이어레스LAN Wireless LAN
+와전류 Eddy Current
+완급차  Brake-Van or Caboose
+완동계전기  Slow Pick Up Relay
+완목식신호기  Semaphore Signal
+완방계전기  Slow Release Relay
+완전감시모드  Full Supervision Mode
+완전자동모드 Full Auto Mode
+완충개선  Bolsterless Air Bag 
+완충기  Gear Draft or Buffer 
+완충기행정  Buffer Stroke
+완충레일 Buffer Rail or Expansion Adjusting Rail
+완충스프링 Buffer Spring
+완충장치  Draft Gear or Buffer
+완해  Brake Releasing
+완화곡선  Transition Curve
+완화곡선장  Length of Transition Curve
+왕복승차권  Return(or Round) Ticket
+왕복운행시간 Round Trip Time
+왜율 Distortion Factor
+외궤  Outer Rail
+외방분기기  Hand Turnout With Contra flexional Curve
+외연기관  External Combustion Engine
+외장케이블 Armoured Cable
+외철형변압기 Shell type Phase Transformer
+외턱타이플레이트 Single Shoulder Tie-Plate
+요상액 assessed value
+용접레일궤도 Welded Rail Track
+용접이음매  Welded Joint
+용접크로싱 Welded Crossing
+우발고장  Accidental Fault 
+우회경로 indirect route
+운반차 luggage truck
+운송계약 contrack of carriage
+운송인수 acceptance for carriage
+운송장  Dispatch Note
+운송조건 shipping conditions
+운수수입 traffic revenue
+운영상의 상호운용성 Operational Interoperability
+운영자콘솔 Dispatcher Workstation 
+운용시간당 유지보수 투입인원 Maintenance Man-Hours per Operating Time
+운용차  Serviceable Cars
+운용효율  Operation Efficiency
+운임  Rates of Charge
+운임계산거리  Charge-Computing Distance
+운임표  Rates Charge Table
+운임할증  Surcharge for Carriage of Goods
+운전간이역  General Station without BlockSystem
+운전곡선도 Train performance diagram
+운전관계승무원  Member of Driving Crew or Train Crew
+운전명령  Operational Dispatch(Orders)
+운전모드[MBS용] MBS Operation Mode
+운전모드선택스위치 Operation Mode Selection Switch 
+운전보안장치  Signaling Facilities
+운전불능  Inoperable Condition
+운전사고  Railway Accident
+운전사령 Train dispatcher
+운전선도  Run Curve
+운전설비  Operation Facilities
+운전속도  Running Speed
+운전시각표  Time Table
+운전시격  Train Interval or Headway
+운전실  Driver's Cab
+운전자조작반 Manual Control Panel
+운전자표시장치 Driver's Display Unit
+운전자화면표시장치 Visual Display Unit 
+운전장애  Train Operating Obstruction 
+운전정비중량  Weight in Working Order
+운전제어곡선 Running Control Curve
+운전지시  Control or Dispatching
+운전지시자  Control Dispatcher or TrainDispatcher 
+운전취급방법(Mode)  Operating Mode 
+운행거리측정주기 Distance Measuring Cycle
+운행계획이 설정되지 않은 열차 Unscheduled Train
+운행고장 Service Failure
+운행시각편차 Variance of Operating Time
+운행시간  Turn-Around Time
+운행시간표 Schedule-Timetable
+운행운전시격 Operational Headway
+운행제어실 Operation Control Center
+워드  Word
+워드프로세서 Word Processor
+워크스테이션  Workstation
+워크스테이션[ATC용] ATS Workstation
+원곡선  Circular Curve
+원발역  Originating Station
+원방신호기  Distant Signal(Distanced or Advanced Signal)
+원방제어스위치 remote control switch
+원심력  Centrifugal Force
+원심하중  Centrifugal Load
+원통스위치 cylindrical controller
+원판후부표지  Tail Disc
+월승 On carriage
+위규운전  Illegal Train Operation
+위상차 Phase Difference
+위치정보  Position Information
+위치참조  Location Reference loop
+위탁발매소  Commission Sales Agent
+위험  Risk
+위험도분석 Risk analysis
+위험물  Explosives or Combustibles
+위험요소  Hazard
+위험지점  Danger Point
+위험표지  Danger Mark
+위험현시  Danger Aspect
+유간  Joint Gap or Joint Clearance
+유간검사  Inspection for Joint Gaps or Rail Joint Rectifier
+유간정정  Adjustment of Joint Gap
+유간정정기 Rail Joint Expander
+유개차  Box Car
+유개차수송 Box Car Shipment
+유극3위계전기  3 Position Polarized Relay
+유극계전기  Polarized Relay
+유극선조계전기  Polarized Line Relay
+유도  Guide
+유도기전력 Induced Electromotive Force
+유도신호기  Calling-on Signal
+유도장해  Inductive Interference
+유도전동기 Induction Motor
+유도전류 Induced Current
+유럽열차제어시스템 European Train Control System(ETCS)
+유럽철도교통관리시스템 European Rail Traffic Management System(ERTMS)
+유로라디오 Euro Radio
+유로루프 Euro Loop
+유막 oil film
+유손 deterioration through moisture
+유입차단기  Oil Circuit-Breaker
+유전  Idle Running 
+유전손 Dielectric Loss
+유전체 Dielectric substance
+유절연궤도회로 Insulated Track Circuit 
+유지보수성  Maintainability
+유지보수도 Maintainability 
+유지보수조건  Maintenance Conditions
+유지보수콘솔 Maintenance Console 
+유지보수투입인원 Maintenance Man-Hours
+유지비  Maintenance Expense 
+유체커플링 Hydraulic Coupling
+유치선  Hold Track or Storage(or Pool) Track
+유치차량  Detrained car
+유효장  Clearance or Effective Length of A Track
+유효전력 Active Power
+육상교통 land transportation
+육상이동국 Land Mobile Station
+윤심  Wheel Center
+윤연로  Flange Way
+윤연로  Flange Way
+윤연로깊이 Flange Way Depth
+윤연로폭 Flange Way Width
+윤좌  Wheel Seat
+윤중  Wheel Load
+윤축프레스 Wheel Press
+윤활위크 Lubricating Wick
+윤활유펌프 Lubricating Pump
+응급복구  Emergency Rehabilitation
+응급이음매판 Emergency Joint Bar
+의무사항  Mandatory
+의존성고장 Dependant Failure
+이단계유지보수 Second Line Maintenance
+이더넷  Ethernet
+이동권한  Permissive Movement Authority or Movement Authority 
+이동권한종단  End of Movement Authority
+이동권한취소  Revocation of Movement Authority
+이동무선국 mobile station
+이동폐색  Moving Block
+이동폐색방식  Moving Block System
+이론교차점 Theoretical(or Mathematical) Point
+이방향운전 Wrong Direction Running
+이벤트기록기 Event Recorder
+이선운전 wrong direction running
+이선진입  Running in the Wrong Track
+이원형궤도계전기 Two Element Type Track Relay
+이위식  Two-Position System
+이위식궤도회로 Two Position Type Track Circuit 
+이음매침목  Joint Tie
+이음매판  Fish Plate or Joint Bar or Splice Bar
+이정  Shift
+이정이음매법 Two Tie Joint
+이조철색식신호기 Two Wire Type Signal
+이종레일이음매 Cranked Splice or Step Joint
+이중계  Redundancy
+이중안전장치 Fail-Safe 
+이중탄성체결 Double Elastic Fastening
+이진연산 Binary Operation
+이차보수장비 Second Line Maintenance Device 
+ICE Inter City Express
+이피롬  Erasable and Programmable Read Only Memory
+이형이음매판 Cranked Splice Plate or Step Joint Bar
+인도기간 delivery term
+인도불능소화물 left(abandoned or unclaimed)luggage, left baggage
+인력인덱스 Manning Index
+인력입환  Manual Shunting
+인버터  Inverter
+인버터제어방식 Inverter control system
+인상선  Draw Out Track or Drill Track
+인쇄전신기  Teleprinter
+인수  Argument
+인영  Image(of Stamp) or Stamp Image
+인입선 Lead in track
+인지 Acknowledgement
+인코더  Encoder 
+인킬로  Passenger Kilometer 
+인터럽트제어모듈 Interrupt Controller Module 
+인터페이스  Interface
+인터페이스계전기판넬 Interface Relay Panel
+인터페이스단자함 Cable Terminating Frame 
+인터페이스모듈 Interface Module
+인터페이스컴퓨터 Interface Computer
+인터프리터  Interpreter
+인필루프  In-Fill Loop
+인필정보  In-Fill Information
+일급선  1st Class Track
+일단계유지보수 First Line Maintenance
+일단정지표지 One Moment Stop Marker
+일단정지후진행[ATC용] ATC Stop and Proceed Mode 
+일반철도 High speed railway, Rapid transit railway
+일반철도차량 Commercial railroad car
+일반통화  General Call
+일부기 ticket-dating machine
+일상검수  Daily Inspection
+일시보관소 locker service
+일시정지표지  Once Stop Marker
+일일평균승차키로 Average Passenger KM/D 
+일정준수 Schedule Adherence
+일중탄성체결 Single Elastic Fastening
+일체대차기관차 solid frame of locomotive
+일톤평균수송킬로  Average Transportation KM/T 
+일화차킬로  Average Car ㎞s/day 
+임무  Mission
+임시검수  Temporary Repairs
+임시신호기  Temporary Signal
+임시약속운송계약화물 articles accepted for carrige under certain conditions
+임시열차  Special Train or Extra Train
+임시저장모듈 Temporary Latch ‘A’ Module 
+임피던스  Impedance
+임피던스본드 Impedance Bond 
+임항철도  Harbour Railway
+입사각  Incident Angle or Switch Angle
+입석  Standing Room
+입석승차권  Ticket of Standing Room
+입선집전시험 Pantograph Test
+입장권  Platform Admission Ticket 
+입출력  Input/Output
+입출력단자부 Interface Panel Assembly
+입출력제어장치 I/O Unit
+입협  To Punch a Ticket or To Chip a Ticket
+입환  Shunting
+입환료 shunting rates
+입환모드 Shunting Mode
+입환선  Shunting Track
+입환신호기 Shunting Signal
+입환이동 Shunting Movement
+입환전호 Shunting Sign
+입환중계신호기 Shunt Repeating Signal
+입환표지  Shunting Indicator
+자가수송  Transport on Own Account
+자갈궤도 Ballasted track
+자갈막이  Ballast Stopper
+자갈선  Ballast Track Line
+자갈전용차  Hopper Ballast Wagon or Hopper Car
+자갈차 side-tipping ballast wagon, ballast car
+자갈치기  Ballast Cleaning(or Screening)
+자극  Magnetic Pole
+자기디스크 Magnetic Disk Unit
+자기부상식철도 Magnetic Levitation(Maglev) Railway
+자기부상열차  Magnetic Levitation(Maglev) Train
+자기유지계전기  Self-Holding Relay 
+자기유지회로  Self-Holding Circuit 
+자기저항 Reluctance
+자기저항율 Reluctivity
+자기테이프  Magnetic Tape 
+자기회로  Magnetic Circuit
+자동개집표기  Automatic Gate or Automatic Gate Machine(AGM)
+자동발권기  Automatic Ticketing Machine or Ticket Vending Machine
+자동발매기  Passenger Operated Machine(POM) or Automatic Ticket'sMachine(ATM)
+자동식별표지  Automatic DiscriminationIndicator
+자동신호기  Automatic Signal
+자동연결기  Automatic Coupler
+자동열차방호장치 A.T.P,  Automatic train protection
+자동열차운전장치 A.T.O, Automatic train operation
+자동열차정지장치 Automatic train stop
+자동온도조절기  Thermostat
+자동완해  Automatic Release
+자동운전 Automatic train operation(ATO)
+자동운전모드 Auto Mode
+자동운전시작버튼 Automatic Train Operation Start Button
+자동전압조정기  Automatic Voltage Regulator
+자동제동  Automatic Application of the Brakes
+자동제동변  Automatic Brake Valve
+자동제어방식  Automatic Control Mode 
+자동진로설정 Automatic Route Calling
+자동진로설정장치 A.R.C,  Automatic rouke control
+자동진로제어 Automatic Route Control
+자동진로제어장치 Programmed Route Control orAutomatic Route Control System 
+자동폐색  Automatic Block
+자동폐색구간 Automatic Block System Section
+자동폐색식  Automatic Block System
+자동폐색신호기  Automatic Block Signal
+자동폐색장치 A.B.S,  Automatic block system
+자동폐색장치기능검지장치 Automatic Block System Function Tester
+자동폐색제어유닛 Automatic Block Control Unit
+자동회차모드 Auto Reverse or Driverless Train Reverse Operation
+자분탐상검사  Magnetic Particle Examination
+자성승차권  Magnetic Ticket
+자유석승차권  Free Seat Ticket
+자유신축  Free Expansion
+작업별원가 service cost
+작업원  Railway Worker or Rail Worker
+작업통화  Operating Call 
+잠파연결기 jumper(coupler)
+잡음 Noise
+잡음전압 psophometric voltage
+장거리철도  Long Distance Railway
+장내신호기  Home Signal
+장대레일 Continuous Welded Rail
+장대레일궤도 Continuous Welded Rail Track
+장대형전동차단기 Long Shape Electromotive Gate
+장물차  Flat Car
+장방형차고 Square Engine Shed
+장방형홈 Rectangle Platform
+장착선로 Equipped Line
+장척레일 Longer Rail
+장출  Buckling or Track Deformation or Warping Snaking
+재구입 repurchasing of ticket
+재발송 reforwarding
+재발송역 reforwarding station
+재발행화물통지서 reissued way bills
+재벌  Secondary Coat 
+재사용물표 reissued tags
+재설정  Resetting or Refastening-Down
+재용레일 Second Hand Rail or Rail forRe-use or Recovered Rail
+저널부라스 journal brass
+저상굴절차량 Kneeling car
+저수위경보기 Low Water Level Warning
+저장 Store
+저전압검지 Low Voltage Monitoring
+저전압계전기 Low-Voltage Relay
+저주파  Low Frequency
+적설검지장치  Snowfall Detector 
+적성검사  Aptitude Test
+적임자 nominee
+적재시간  Loading Time Allowance 
+적재정규  Loading Gauge
+적정원가  Standard Cost 
+적하 Loading, Shipping, Lading
+적하장 Loading Yard
+적화장  Loading Yard
+전계강도 Field Strength
+전공계전연동장치 Electro Pneumatic Relay Interlocking
+전기계전연동장치 Electric Relay Interlocking
+전기기관차  Electric Locomotive
+전기기연동장치 Electric Mechanical Interlocking
+전기동차 Motor car, Electric motor coach
+전기레버 Electric Lever
+전기불꽃 electric arc
+전기사구간 Electric Dead Section
+전기선로전환기 Electric Point Machine
+전기쇄정기  Electric Locker
+전기쇄정법 Electric Locking
+전기신호기  Electrical Signal
+전기연동장치  Electric Interlocking
+전기자 Armature
+전기자반작용 Armature Reaction
+전기제동명령 Electric Brake Command
+전기차  Electric Motor Vehicle
+전기철도  Electric Railway
+전기충격  Electric Shock
+전동견인  Electric Traction
+전동기  Motor
+전동방지제동  Holding Braking or Rolling Prevention Brake
+전동압축기  Electro-Compressor 
+전동차  Motor Car or Electric Motor Coach
+전동차단기  Electromotive Gate
+전동차단기용계전기[선조계전기(DC.F)] Relay for Electromotive Gate
+전력 Electric Power
+전력량 Electric Energy
+전령법  Messenger Method or Staff Dispatching Operation
+전령자 Staff dispatcher
+전류 Current
+전류계전기(소등검지계전기)  Current Relay(Short Lamp Detecting Relay)
+전복탈선  Overturning Derailment
+전삭반  Under Floor Machine
+전선관로  Cable Conduit
+전세급소화물 exclusive express baggage
+전속 Electric Flux
+전송 trans-shipment
+전송방식  Transmission System
+전식  Electric Erosion or Electrolytic Corrosion 
+전신실  Communication Office or Telegraph Office
+전압 Voltage
+전압강하 Voltage Drop
+전압계  Voltmeter
+전열연결기 electric-heating coupling
+전용선  Private Siding or Industry Track
+전용철도  Exclusive Railway
+전용화차  Exclusive Freight Cars
+전원공급장치  Power Supply Unit
+전원부  Power Supply Unit 
+전위 Electric Potential
+전이장치  Transition Apparatus
+전이중통신방식 Full Duplex Communication System
+전자관  Electronic Tube
+전자력 Electromagnetic Force
+전자메일 Electronic Mail System
+전자변  Electromagnetic Valve or Solenoid Valve
+전자연동장치  Electronic Interlocking System
+전자연동장치소프트웨어(운영체계) Electronic Interlocking Equipment Software
+전자연동장치하드웨어 Electronic Interlocking Equipment Hardware
+전자유도  Electromagnetic Induction
+전자장 Electromagnetic Field
+전자제어서브랙 WCU(Wayside Control Unit), Electronics Controller Subrack
+전자클러치 Magnetic Clutch
+전자파  Electromagnetic Wave
+전자파간섭 Electro-Magnetic Interference 
+전자파내성 Electro-Magnetic Susceptibility 
+전자파적합성 Electromagnetic Compatibility
+전제동  Full Application(of brake) or Full Brake Application
+전주구배  Descending Grade
+전지  Cell or Dry Battery
+전차고  Electric Car Shed
+전차대  Turn Table
+전차대회전레일 Turning Rail for Turn Table
+전차선  Trolly Wire
+전차선구분표지 Pantograph Section Post
+전차선귀선회로 Retrace Cable
+전차선로  Power Network for Catenary
+전차선편위 Deviation of Contact Wire
+전철간  Front Rod or Switch Rod
+전철감마기  Switch Prevention of Wear Out
+전철기 points, switch point
+전철기반위 reverse position
+전철기쇄정간 lock bar(point machine)
+전철기해정 release of the points
+전철단동기  Single Point Lever
+전철레버 Switch Lever
+전철선별계전기 Normal Selection Relay or Reverse Selection Relay
+전철쇄정 point lock
+전철쇄정계전기  Switch Lock Relay
+전철쇄정기 point lock
+전철쌍동기  Coupled Point Machine
+전철전호  Switch Status Sign
+전철제어기  Switch Point Controller
+전철표시기  Point Indicator
+전철표지  Switch Stand
+전철표지등  Switch Point Indication Lamp
+전철화 Electrification of railway
+전축구동  All Driving Axles
+전파방해  Jamming
+전해콘덴서 Electrolytic Condenser
+전향선  Turning Track
+전향설비  Engine Turning Facilities
+전호  Sign
+전호등 Signal lantern
+전호용접  Enclosed Arc Welding
+전화  Electrification
+전화구간  Electrified Section
+전환불능  Switch Impossibility
+전환쇄정기  Switch and Lock Movement
+전환쇄정장치 Switch and Lock Device
+전환장치  Switch Throwing Device or Switch Stand
+전환침목  Roller or Runner
+절단 cutting off
+절대신호기  Absolute Signal
+절대온도  Absolute Temperature
+절연  Insulation
+절연구간  Insulated Section 
+절연구간(전차선)  Insulated Section
+절연구간예고장치  Notice System of Insulated Section
+절연레일 Insulated Rail 
+절연시험장치  Insulation Testing Apparatus 
+절연이음매 Insulated Joint 
+절연이음매판 Insulated Joint
+절연저항  Insulation Resistance
+절연케이블 Insulated Cable
+절연파괴  Dielectric Break Down or Insulation Break Down
+절연판  Insulation Plate 
+절환변  Change-Over Valve
+절환스위치 Change-Over Switch
+점유된 Occupied
+점전송 Spot Transmission
+점제어식ATS Intermittent Control or Point Control or Intermittent Control Type ATS
+점착력  Adhesion
+점퍼본드 Jumper Bond 
+점퍼선 Jumper Wire
+점퍼연결기 Jumper or Jumper Coupler
+점퍼케이블 Jumper Cable
+점화불꽃 Ignition Spark
+점화전극봉 Ignition Plug
+점화코일 Ignition Coil
+접근구간  Approach Section
+접근쇄정  Approach Locking
+접근표시등  Approach Indicator
+접속  Branch-Line Service
+접속역  Transit Station
+접점저항  Contact Resistance
+접지  Earth or Earth Connection Ground
+접지[VOBC용] VOBC(Vehicle On Board Controller) Earth Connecting
+접지계전기  Earthing Relay
+접지보호장치  Protection Against Accidental Earthing
+접지봉  Earthing Rod
+접지선  Earth(or Ground) Wire
+접지저항  Ground(or Ea`rthing) Resistance
+접지저항계  Ground Resistance Meter
+접촉기 contactor
+접촉브러시 Contactor Brush
+접촉정차장 Touch Station
+접촉지점 Fouling Point
+정거장  Station 
+정거장내방  Inside of Station
+정거장외방  Outside of Station
+정격동작전류 normal operating amperage
+정격전압  Normal Voltage
+정기검수  Scheduled Maintenance
+정기수선방식  Periodical Repair System
+정기승차권  Season-Ticket
+정기여객  Commuter
+정기열차  Regular Train
+정기외여객  Non-Commuter
+정류  Rectification or Commutation
+정류관  Rectifier Tube
+정류궤도회로 Commutation Track Circuit
+정류기  Rectifier
+정류기변압기 Rectification Transformer
+정류소자 Rectifier Element
+정류자 Commutator
+정류자편  Commutator Segment
+정밀검사  Accuracy Inspection
+정밀진단 Precision diagnosis
+정반위쇄정  Lock of Normal and Reverse
+정보전송시스템[ATP용] ATP Information Transfer System 
+정보전송장치 Data Transmission System
+정보처리유닛(ATC) Processing Unit
+정보편집컴퓨터 Data Compiler Computer
+정부하특징(전기선로전환기)  Characteristics of Constant Load(Electric Point Machine)
+정산수입  Audited Revenue
+정속도운행제어 Fixed Speed Control
+정시간제어기고장진단기능 Failure Diagnosis Function
+정시간제어기차륜검지기 Wheel Detector
+정위쇄정  Lock of Normal Position
+정위치검지기 Proximity Reader 
+정위치정차검지기 Proximity Sensor
+정위치정차등 Precision Stop Lamp
+정위치정차마커 Precision Stop Marker
+정위치정차용근접판 Proximity Plates
+정위치정차제어용루프 ATO Positioning Loop
+정위치정차지상송신기 Proximity Plate
+정적속도감시설계속도 Design Speed of Static SpeedSupervision
+정적속도프로파일 Static Speed Profile
+정전기 Static Electricity
+정전력제어 Constant Power Regulation
+정전류제어 Constant Current Regulation
+정전류충전법 Constant-Current Charging Method
+정전압전원 Constant-Voltage Regulated Power Supply
+정전압정전류충전법 Constant-Voltage or Constant-Current Charging Method
+정전압제어 Constant Voltage Regulation
+정전압충전 Constant Voltage Charge
+정전용량  Capacitance or Electrostatic Capacity
+정전유도 Electrostatic Induction
+정전작업 Dead-Line Work
+정지간주속도 Stop Deemed Speed
+정지신호 Stop signal
+정지신호제어[ATP용] ATP Stop Signal Control 
+정지신호현시 Stop Signal Indication
+정지장치 stopping device
+정지점변위속도 Displacement Speed of Stop Position
+정지정위식 Normal Stop Type
+정차 Stop or Halt
+정차시간 Dwell Time
+정차시분 Stopping Time
+정차위치초과 Over running a stopping point
+정차장구내 Station Yard
+정차장구역표 Station Boundary Post
+정차장설비 Facilities of Station
+정차장중심표 Station Center Sign 
+정척레일 Standard(or Length) Rail
+정합변성기 Matching Transformer
+정합변성기(UM71용) Matching Unit
+정합변성기가 Matching Transformer Rack
+정현파 Sine Wave
+정현파교류 Sine Wave AC or Sinusoidal Wave AC
+제1종건널목 The 1st Class Level Crossing
+제1종경계 Class A Watch 
+제2종건널목 The Second Grade Level Crossing
+제2종경계 Class B Watch 
+제3궤조 third rail
+제3레일 Contract Rail or Third Rail or Conductor Rail
+제3종건널목 Third Class Railroad Crossing
+제너다이오드 Zener Diode
+제너현상 Zener Phenomena
+제동거리 Braking(or stopping) Distance
+제동곡선 Braking Curve
+제동곡선속도 Breaking Curve Speed
+제동관공기충기 To Fill The Brake Pipe(or Tank)
+제동관호스 Air Brake Hose
+제동권선 Damper Winding
+제동기 Brake
+제동기부분시험 Partial Test of the Brake
+제동레버 Brake Lever
+제동변운전위치 To Set a Brake in Operating Position
+제동변위치 Brake Valve Position
+제동변축 Brake Shaft
+제동시험전호 Brake Test Sign
+제동압력 Brake Pressure
+제동완해 Brake Release
+제동작용 Brake Action
+제동장치 Brake Equipment
+제동장치재충기 Re-Charging a Brake
+제동전호 Brake Signal
+제동체결 To Apply the Brake
+제동통 Brake Cylinder
+제동통레버 Brake-Cylinder Lever
+제동통충기 Filling of Brake Tanks
+제동피드백 Brake Feedback
+제동하중 Braking Load
+제동호스연결기 Brake-Hose Coupling
+제로속도감지 Zero Speed Sensing
+제륜자 Brake Shoe
+제륜자간격 Brake Shoes Clearance
+제륜자두 Brake Shoe Head
+제륜자압력 Brake Shoe Pressure
+제설차 Snow Removing Car
+제어(S)발리스[KVB용] KVB Control(S) balise
+제어간 Control Rod
+제어기관차 Controlling Locomotive
+제어대상인터페이스모듈 Electronic Element Interface Module
+제어소 control rod
+제어유닛 Control Unit
+제어장치(컴퓨터) Control Unit(Computer)
+제어차 Train Control Car
+제어케이블 Control Cable
+제어함 control box
+제한구배 Ruling Grade or Tractive-Capacity- Determining Grade
+제한된수동운전모드 Restricted Mode or Yard Mode
+제한속도(ATS) Limit Speed of Automatic Train Stop
+제한속도끝나는지점까지의거리 Target Distance to the End of Speed Restriction Section
+제한속도시작점까지의거리 Target Distance to the Start of Speed Restriction Section
+제한속도제어[ATP용] ATP Limit Speed Control 
+조가선 Messenger Wire
+조건부쇄정 Conditional Locking
+조도 Illumination
+조립크로싱 Bolted Rigid or Built-Up(or Common) Frog
+조발 Starting ahead of time schedule
+조사쇄정 Check Locking
+조상운전 Operation ahead of time schedule
+조성 Car Arrangement or Classification
+조성선 Organization Line or Train Formation Track
+조성선군 Group of Organization Track
+조성역 Train Formation Station 
+조속기 Governor
+조작레버(표시등부) Control Lever(Attached with Indication Lamp)
+조작반 instrument board
+조작반처리모듈 Panel Processor Module
+조작표시반 Local Control Panel 
+조정변 Adjusting Valve
+조정변축 Regulator Shaft
+조차 Tank Car
+조차능력 Working Capacity of Yard
+조차선 Sorting Line(or Classification Line)
+조차작업 Marshalling Work
+조차장 Shunting(or Marshalling Switching) Yard
+조체선 Car Arrangement Track
+조하운전 Slacktrainoperation,  Operationbehindoftimeschedule
+조합침목 Composite Tie
+종곡선 Vertical Curve
+종단역 Terminal Station
+종단정차장 Terminal Station 
+종렬 Vertical Split Head
+종류변경승차권 change of class voucher
+종별 class
+종속모드 Slave Mode
+종속신호기 Subsidiary Signal
+종지전압 Termination Voltage
+종착역 Terminating Station
+종침목 Longitudinal Sleeper
+종침목궤도 Longitudinal Tie Track
+종합디지탈통신망 integrated service digital network(ISDN)
+종합안전심사 Total safety inspection
+종합열차운전장치 total traffic control system(TTC)
+종합열차운행체제 Total Traffic Control 
+종합정보통신망 Integrated Service Digital Network
+좌굴 Buckling or Sun Kink
+좌굴강도 Buckling Strength
+좌굴방지판 Buckling(or Safety) Cap(for Increasing Lateral) Resistance
+좌굴저항 Resistance to Buckling or Resisting Force Against Buckling
+좌굴하중 Bucking Load
+좌분기기 Left-Head Turnout
+좌석배정 allocation of seats
+좌석운용센타 seat control commander
+좌석이용률 Seat accupancy
+좌석지정 seat reservation
+좌석지정권 seat reservation ticket
+죠와 턴버클 Jaw and Turnbuckle
+주간제어기 Master Controller
+주공기통 Main Air-Reservoir
+주레일 Main Rail
+주물크로싱 Cast Molding Crossing
+주박소 Depot
+주변환장치 Converter/Inverter
+주본선 Main Line or Main Track
+주신호기 Main Signal
+주약침목 Treated Sleeper or Treated Tie
+주의신호 Caution Signal
+주의신호현시 caution position
+주의운전 Cautious Running
+주입침목 Impregnated Tie(or Sleeper)
+주조가선 Main Messenger Wire
+주축 Main(or engine) Shaft
+주파수도약방식 Frequency Hopping Spread Spectrum
+주파수변조 Frequency Modulation
+주파수변환기 Frequency Converter
+주파수분할다중화(FDM)방식 Frequency Division MultiplexSystem
+주파수체배기 Frequency Multiplier
+주행거리계 Odometer
+주행거리계정확성 Odometer Accuracy
+주행거리계참조위치 Odometer Reference Location
+주행거리신뢰구간 Odometric Confidence Interval
+주행거리펄스발생기 Odometer Pulse Generator
+주행선 Running(or Open) Track
+주행장치 Running Gears
+주행저항 Running Resistance or Train Resistance
+주회로차단기 Main circuit breaker
+준비기관사(기장) Preparing engineer
+줄맞춤작업 Lining
+줄의법칙 Joule's Law
+줄틀림 Irregularity in Line or Alignment Defect
+중간역 Intermediate Station
+중간정차장 Intermediate Station 
+중계레일 Compromised Rail
+중계신호기 Repeating Signal
+중계이음매 Compromise Joint
+중대사고 Serious Accident
+중량초과소화물특인 advice of excess parcels
+중력입환 Gravity Shunting
+중력조차장 Gravity Yard
+중련케이블 jumper cable
+중상 serious injury
+중성선 Neutral Line
+중성점퍼[임피던스본드용] Impedance Bond Neutral Jumper 
+중앙급전제어소 central control point
+중앙레벨 Central Level
+중앙비상정지버튼 Central Emergency Stop Button
+중앙장치 central processing unit
+중앙전산기 Main Frame Computer
+중앙전산처리장치 Central Processing Unit
+중앙정보전송장치 Central Data Transmission System 
+중위온도 Middle Temperature or Mean of the Annual Maximum Variation Temperature
+중정비 Heavy maintenance
+증기기관차 Steam(or engine) Locomotive
+증기기중기 Steam Crane
+증기난방 Heating by Steam Circulation
+증기발생기 Steam Generator
+증기변 Steam Valve
+증기분리기 Steam Separator
+증기압력계 Steam Pressure Gauge
+증기철도 Steam Railway
+증폭기 Amplifier 
+지게차 Fork Lift 
+지구지리정보시스템 Global Positioning System(GPS)
+지능형열차제어시스템 Intelligent Train Control System
+지능형열차제어시스템가속도계 Intelligent Train Control System Accelerometer
+지능형열차제어시스템열차 Intelligent Train Control System Train
+지능형열차제어시스템지역제어장치 Intelligent Train Control System Wayside Control Unit
+지능형열차제어시스템확장형분리모듈 Intelligent Train Control System Expanded Isolation Module
+지도격시법 Time Interval Operation on Single Line
+지도식 Pilot System
+지도통신식 Pilot and Telephone Block System
+지도표 Guidance(or Direction) Tablet
+지방열차 Local Train
+지배구배 Maximum Resistance Grade
+지불,지급 payment
+지상근무 ground service
+지상무선장치 Wayside Radio Unit
+지상송신기[ATO용] ATO Marker Coil
+지상승객안내방송 Platform Passenger Announcement
+지상신호방식 Wayside Signal Mode
+지상운영레벨 Wayside Operations Level
+지상자 Automatic Train Stop Transmitter or ATS Transmitter(or Beacon)
+지상자(송신기)선택도(Q) Ground Transmitter Quality  Factor
+지상자시험기 Measurement Instrument of Automatic Train Stop Transmitter
+지상자제어계전기[ATS용] Control Relay of Automatic Train Stop Transmitter
+지상장치[ATS용] Automatic Train Stop Wayside Transmitter
+지상장치시험기[ATC용] Testing Instrument of ATC 
+지선 Branch Line
+지선료 branch line rates
+지시전달표 instruction bulletin
+지역동기화 Local Synchronization
+지역제어 Local Control
+지역제어기 Wayside Control Unit
+지역제어장치진로 Wayside Control Unit Route
+지연승낙 Acceptance of delay
+지연접점 delayed-action contact
+지장경고등 Obstruction Warning Light
+지장물검지센서 Obstruction Detecting Sensor
+지장물검지장치(DI) Detection system of impediment
+지장물검지장치[고속선용] Intrusion Detector
+지접법 Supported Joint
+지정공통승차권 reserved common ticket
+지정된정위치정차 Programmed Position Stop
+지정승차권 Reserved Ticket
+지표철도 Surface Railway
+지하구간 subway, underground block
+지하역 Underground Station
+지하철 Subway or Under Ground Railway
+지하철도구간내 in the block of subway
+직결궤도 Solid Bed Track
+직결도상 Solid Track-Bed
+직렬전송방식 Series Transmitting System 
+직류궤도회로 Direct Current Track Circuit 
+직류전동기 DC Motor
+직류전용전기동차 DC Electric Multiple Units or DC Electric Car
+직접분사 direct injection
+직접확산방식 Direct Sequence Spread Spectrum
+직통열차 Through Train or Non-Stop Train
+직통제동기 Direct-Acting Brake
+진공개폐기 Vacuum Load-breaker Switch
+진공주입(함침) Vacuum Pressure Impregnation
+진단모듈 Diagnosis Module
+진동방지금구 Bracket for Preventing Vibration
+진로 Route
+진로검증 Route Proving
+진로구분쇄정 Sectional Route Locking
+진로레버식 Route Lever System
+진로선별식 Route Selection System
+진로쇄정 Route Locking
+진로연동[ATP용] ATP Route Interlocking
+진로자동설정장치 Automatic Route Control 
+진로적합성데이터 Route Suitability Data
+진로정자식계전연동장치 Route Lever Type Relay Interlocking
+진로표시등 Route Indication Light
+진로해정 Route Release
+진분분기기 Unsymmetrical Split Turnout
+진입/진출목록 Entry/Exit List
+진입지점 Disposition Point
+진행신호 Proceeding signal
+진행정위식 Normal Proceed Type
+진행현시 Proceed Aspect
+짐크로 Jim-Crow
+짐크로우(jimcrow) rail-bending device
+집결수송 block shipment
+집적회로 Integrated Circuit
+집전장치 Pantograph
+집중원방감시장치 Supervisory Control And Data Acquisition
+집중제어반 centralized traffic control panel
+집중제어장치 C.T.C,  Centralized traffic control
+집표 Collection of Ticket
+집표상자 ticket bins for used
+집표소 exit gate
+집표인 cancelling stamp
+집표함 Ticket Box for Used
+짧은노우스레일 Short Nose Rail
+차급 Car Load
+차내경보장치 Cab Warning Device
+차내신호장치 Cab Signal
+차내신호폐색장치 Cab Signal Block System
+차단간고장검지 Failure Monitoring Device of Crossing Gate
+차단공사 Block Works
+차단기 Circuit Breaker
+차동변압기 Differential Transformer
+차동복권 Differential Compound
+차등속도제한 Differential Speed Restriction
+차량 Rolling Stock
+차량기지수용능력 Car Receiving Capacity of Depot
+차량난방관 Heating Pipe
+차량번호자동표시장치 Automatic Car Set Identification
+차량속도범위 Range of Vehicle speeds
+차량위치결정모듈 Fine Positioning Measurement Module
+차량의 적재용량 loading capacity
+차량적재용량 Loading Capacity
+차량접촉한계 Fouling Point or Clearance of Track
+차량접촉한계표 Car Limit Post
+차량접촉한계표지내방 Inside of Clearance Marker
+차량접촉한계표지외방 Outside of Clearance Marker
+차량접촉한계표지의 내외 Inside and Outside Clearance Markers for Rolling Stock Moving Dimensions
+차량정지표지 Car Stop Indicator
+차량최고속도 Car maximum speed
+차량탈선 Vehicle derailment
+차량통로문 Passage door between cars
+차량한계 Car Gauge or Car Clearance
+차량한계와 건축한계 Clearance for Rolling Stock Moving Dimensions and Construction Gauge or Rolling 
+차량ID VOB(Vehicle On Board) Identification
+차륜검지기 Axle Counter
+차륜공전 Wheel spin
+차륜내면거리 Distance Between the Inside Surface of Flanges
+차륜답면 Wheel Tread
+차륜답면과 윤축 Wheel Tread and Wheel Shaft
+차륜막이 Car Stop Scotch Block
+차륜삭정 Wheel tuming
+차륜선반 Car Wheel Lathe
+차륜압입 Pressing Wheels
+차륜외경 Rim Diameter
+차륜지 Car stop, Scotch, Scotch block
+차륜플랜지 Wheel Flange
+차막이 Buffer Stop or Car Stopper
+차막이선 Blind Siding
+차막이표지 Train Protection Mark
+차상무선안테나 VOB(Vehicle On Board) Radio Antenna
+차상무선통신장치 Data Communications Unit
+차상문제어[ATO용] ATO Door Control
+차상선로전환장치 Car Upside Point Device
+차상승객안내방송 On-Board Passenger Announcement
+차상신호[ATC용] ATC Cab Signal 
+차상신호표시유닛(TVM430) Cab Signal Indication Unit
+차상인터페이스장치 On-Board Interface Relay Unit 
+차상자[ATS용] ATS Antenna
+차상장치[ATS용] Automatic Train Stop Cab Device
+차상제어와감시 Vehicle On Board Control and Supervision
+차상제어장치 Vehicle On Board Controller
+차상제어전원 Vehicle On Board Control Power Source
+차상컴퓨터[ATP용] ATP Evaluation unit
+차상표시반[ATP용] ATP Indication Panel 
+차상ATC랙 On Board ATC Rack
+차장 Conductor
+차장율 Conversed vehicle length
+차장차 Conductor Car or Caboose Car
+차적부 rolling stock register
+차적편입계약 rolling stock registration contrack
+차중률 Rate of vehicle weight
+차축 Axle
+차축배열 Wheel Arrangement
+차축온도검지장치 Hot Box Detector
+차폐계수 Screen Coefficient
+착급 cash on dilivery(C.O.D)
+착발역운영비 terminal operating cost
+착역 Destination(or Arrival) Station
+착오신호정보 False Signal Information
+착오전환 Mistake Switching
+착오표시 False Indicator
+착오해정 Mistake Release
+참고위치 Reference Point
+책임사고 Responsible Accident
+처리장치[ATC용] ATC Processing Unit 
+천분율 Permillage or Permill
+천차대 Transfer Table
+철관 Pipe
+철관도차 Pipe Carrier
+철관장치 Pipe Equipment
+철관조정기 Pipe Compensator
+철근콘크리트침목 Reinforced Concrete Sleeper or Reinforced Concrete Tie
+철도 Railroad or Railway
+철도개량 Reform of Railway or Railway Improvement
+철도건널목 Level crossing
+철도건널목표지 Railroad Crossing Marker
+철도계획 Railway Planning
+철도공학 Railway Engineering
+철도교통 Railway transportation
+철도교통사고 Railway accident
+철도방호림 Forest for Defence of Railway
+철도보수 Maintenance of Railway
+철도부설 Construction(or Building) of Railway
+철도부설권 Railway Building Concession or Railway Charter
+철도사업 Railway business
+철도산업 Railway industry
+철도시설 Railway facilities
+철도시설관리자 Railway facilities administrator
+철도시스템 Railway system
+철도안전 Railway security
+철도역 Railroad station
+철도용품 Railroad Entity Supplies
+철도용품수송 Railroad Entity Business Shipment 
+철도운수종사자 Railroad operation staff
+철도운영 Railway operation
+철도운영정보시스템 Korea railroad operating information system
+철도운전면허 driver's license
+철도종사자 Railroad staff
+철도직원 Railroad Employees 
+철도차량사용내구연한 Working esdurance term of vehicle
+철도차량성능시험 Railway vehicle perfomance test
+철도차량의 제작검사 Test for manufacturing process of rolling stick
+철도회원 railroad membership
+철도회원카드 railroad membership card
+철사쇄정 Detector Locking
+철손 Core Loss
+철손전류 Core-loss Current
+철침목 Steel Tie
+첨단간 Front Rod
+첨단레일 Tongue Rail
+첨단점퍼 Point Jumper
+첨단포인트 Split Switch or Point Switch
+체감거리 Decreased Distance
+체계적결함 Systemsatic Fault
+체류표시반 Track Panel
+초기고장 Initial Fault 
+초벌 Primary Painting 
+초음파탐상기 Ultrasonic Flaw Detector or Ultrasonic Rail Tester
+초전도 Superconduction
+초전도방식 Superconduction type
+초전도체 Superconductivity
+초충전 Initial Charging
+초크코일 Choking Coil
+총다지기 Overall(or Continuous Through) Tamping of Ballast
+최고속도 Maximum Speed
+최급구배 Maximum Grade or Steepest Grade
+최대단락저항 prevent shunt of a track circuit
+최대전환력(부하) Maximum Conversion Power
+최대제한속도프로파일 Most Restrictive Speed Profile
+최대축중 Maximum Axial Load
+최대허용속도 Maximum Permissible Speed
+최대허용속도제어[ATP용] ATP Maximum Permissive Speed Control 
+최소곡선반경 Minimum Radius of Curve
+최소구배 Minimum Grade
+최소운전시격 Minimum Headway
+최저운임적용 Application of Lowest (or Cheapest) Tariff
+최종발리스그룹 Last Relevant Balise Group
+최하위교체용부품 Lowest Level Replaceable Unit
+쵸퍼 Chopper
+추돌 Rear-ending
+추병선로전환기 Weighted Point or Switch Stand with Weight
+추전철기 weighted point lever or switch stand with weight
+추진 Propelling
+추진열차 Push Operated Train
+추진운전 Push Operation
+추진이동 Propelling Movement
+축상 Axle Box or Journal Box
+축상간격 Axle-Box Clearance
+축상과열경고장치 Hot Box Warning Device
+축상덮개 Journal Box Cover or Axle Box Cover
+축상라이너 Axle-Box Liner
+축상발열 Axle Box Generate Heat
+축상발열탐지장치 Hot-Box Detector(HBD)
+축상부착 Assembly of Journal Boxes
+축상안내 Axle-Box Guide
+축저널 Axle Journal
+축전지 Cell or Battery
+축전지정격용량 Rated Capacity of Battery
+축전지정격전압 Rated Voltage of Battery
+출구측차단간검지기 Exit Side Crossing Arm Detector
+출력부족 Power Loss
+출력장치 Output Unit
+출발반응등 Starting Signal Repeat Lamp
+출발선 Departure Track
+출발선식별표지 Departure Track Identification Indicator
+출발신호기 Starting Signal
+출발역 Starting Station
+출발예고표시등 Dwell Light for Start Notice
+출발저항 Starting Resistance
+출발전호 Departure Sign
+출입문반감스위치명령 Door Half Switch Command
+출입문자동개폐정차시간표시등 Automatic Gate and Dwell Light
+출입문제어 Door Controller
+출입문좌/우개방명령 Train Door Open Left/Right Command 
+충돌사고 Collsion accident
+취급버튼 Treatment Button or Handling Button
+취소코일 Blow Out Coil
+측면방호 Side Surface Protection
+측선 Siding or Side Track
+치차레일식철도 Notched Railway or Toothed wheel and Rail
+치차비 Gear Ratio
+치차함 Gear Box
+치환 Replace
+친환경철도 Eco rail
+침대권 berth, rail timber
+침목 Sleeper or Tie
+침목간격 Spacing of Sleeper or Tie Spacing
+침목간격재 Guard Timber
+침목계재 Guard Timber 
+침목교환 Tie renewal
+침목교환기 Sleeper Replacer
+침목삭정기 Tie Grinding Machine
+침목작업용기계 Tie Maintenance Equipment
+침목천공기 Tie Borer
+침목충해 Insect Pests Tie
+침목할열 Crack Tie
+카드 card
+카본브러시 Carbon Brush 
+칸델라 Candela 
+캐드 Computer Aided Design 
+캔트 Cant or Super Elevation
+캔트변경 change of cant
+캔트부족량 Permissible Deficiency of Elevation
+캔트설정속도 Governing Speed to Determine Elevation
+캔트체감거리 Gradual-Decrease Distance or Diminishing Distance
+캠축 Cam Shaft
+커널 Kernel
+커맨드 Command 
+커서 Cursor 
+커테너리가선방식 Overhead Contact Line 
+커패시터 Capacitor
+커패시턴스 Capacitance
+커플링유닛 Coupling Unit 
+컨덕턴스 Conductance 
+컨베이어 Conveyor 
+컨테이너 Container 
+컨테이너화물 Container Freight 
+컬러프린터 Color Printer 
+컴파일 Compile 
+컴퓨터바이러스 Computer Virus 
+케이블단자대[ITCS용] Cable Termination Frame for ITCS(Intelligent Traffic Control System)
+케이블드람 cable drum
+케이블심선 cable core
+코드 Code 
+코드궤도회로 Code Track Circuit 
+코드분할다중접속방식 Code Division Multiple Access
+코딩 Coding 
+코로나현상 Corona Phenomenon
+콕크몸체 cock-casing
+콘넥터 connector
+콘덴서 Condenser or Capacitor or Electrostatic Condenser
+콘덴서모터 Capacitor Motor
+콘버터 Converter
+콘버터 Converter 
+콘베어 conveyor
+콘서베이터 Conservator
+콘솔 Console 
+콘솔제어방식 Central Console Mode
+콘크리트트로프 Concrete Trough
+콩코스 Concourse
+콩코스 Concourse
+퀴리온도 Curie Temperature
+퀴리점 Curie Point
+크랭크 Crank
+크랭크축 Crank-Shaft
+크랭크축베어링 Crank Shaft Bearing
+크랭크케이스 Crank Case
+크랭크핀 Crank Pin
+크레인 Crane 
+크로스본드 Cross Bond 
+크로스빔 Cross Beam 
+크로싱 Crossing or Frog
+크로싱각 Crossing Angle
+크로싱결선부 Gap in Frog
+크로싱교점 Crossing Point
+크로싱노우스 Nose of Crossing
+크로싱번호 Crossing Number
+크로싱인후 Throat of Frog
+크로싱전단 Toe of Crossing or Toe of Frog
+크로싱점퍼 Crossing Jumper 
+크로싱후단 Heel of Crossing or Heel of Frog
+클래스1기능 Class 1 Function
+클램프 Clamp
+클램프회로 Clamp Circuit
+클러치(선로전환기) Clutch
+키르히호프의 법칙 Kirchhoff's Law 
+키볼트 Key Bolt
+키워드 Keyword 
+킬로와트 Kilowatt
+킬로와트시 Kilowatt Hour 
+타려발전기 Separately Excited Generator
+타려전동기 Separately Excited Motor
+타력구배 Momentum Grade
+타이머 Timer 
+타이아지륜 Spring Clip or Tyre Clip Spring Ring
+타이패드 Tie Pad
+타이플레이트 Tie Plate
+타행 Coasting
+타행운전 Coasting (operating), Drifting
+탁상제어방식 Console Control Mode 
+탁송 Consignment
+탄성체결 Elastic Fastening or Flexible Fastening
+탄소부라쉬 carbon brush
+탄수차수조 (Water) Tender
+탈선 Derailment or Run off the Rails
+탈선기 derailer
+탈선방지가드레일 Guard Rail to Prevent Derailing
+탈선분기기 Derailing(or Catch) Point
+탈선선로전환기 Derailing Point or Derailing Switch
+태코미터 Tachometer
+탠덤 Tandem
+터널경보장치 Tunnel Alarm Equipment
+터널저항 Tunnel Resistance
+터미널승강장 Terminal Platform
+터미널역 Terminal Station  
+터보과급기 Turbo-Supercharger
+텅레일 Tongue Rail(or Blade)
+텅레일의밀착 Fixing of Point
+테르밋용접 Thermit Welding
+텔레그램 Telegram
+텔퍼 Telpher
+토오베이어 Towveyor
+토적곡선,유토곡선 Mass Curve
+토크백 Talk Back 
+톤킬로 Ton Kilometer or Data Transfer Rate
+통과신호기 Passing signal
+통과역 Through Station
+통과화물 goods(or freight) in transit
+통기구 vent
+통로연결장치 Passage roof, Aisle
+통산거리 Accumulated distance
+통신기반열차제어 Communication Based Train Control
+통신속도 Transmission Speed 
+통신식 Telephone Block System
+통용기간경과승차권 out of date ticket
+통표 Block Tablet
+통표받는걸이 Hanger Taken Block Tablet
+통표수수기 sanding facilities
+통표주는걸이 Hanger Given Block Tablet
+통표폐색식 Tablet Instrument Block system or Tablet Block System
+퇴출지점 Reception Point
+퇴행운전 Backward Operation or Reverse Operation
+투시거리 Visible Distance
+투자율 Magnetic Permeability
+튜닝판넬 Tuning Panel 
+트랙제크 Track Jack
+트랜스폰더 Transponder
+트랜스폰더검지기 Transponder Interrogator
+트랜스폰더검지장치 Transponder Interrogator 
+트랜스폰더안테나 Transponder Antenna
+트랜지스터 Transistor 
+트램 Tram
+트러후 Trough
+트레인라인 Train Line
+트로리 Trolley
+트롤리 Trolley
+트롤리버스 Trolley Bus
+트립모드 Trip Mode
+특급소화물운송 Express Baggage by Express Train
+특대품 Bulky Goods(or Large in Relation to Weight)
+특대화물 Bulky Goods
+특대화물적재화차 Freight Cars for Bulky Goods
+특발 Starting special train
+특별급소화물 Special Express Baggage
+특수강레일 Special Steel Rail
+특수수송 Special Shipment
+특수신호 Special Signal
+특수차 Special Car
+특수화차 Special(Type) Freight Car
+특정운임적용 Irregular Application of a Tariff
+특정전송모듈 Specific Transmission Module
+TMO (T.M.O)Transportation movement office
+틸팅객차 Tilting train
+틸팅시스템 Tilting system
+틸팅열차 Tilting train
+틸팅카 Tilting car
+파고치 Crest Value or Peak Value
+파단 Split Web at Rail End
+파렛트 Pallet
+파렛트수송 Palletized Shipment
+파상마모 Corrugation or Corrugation Wear of Rail
+파상마모측정기 Corrugation Measuring Instrument
+파스콘트로프 Pascon Trough
+파일 File 
+파장 Wave Length 
+파저 Broken Base
+판넬제어방식 Line Dispatcher Mode 
+패러데이법칙 Faraday's Law
+패러데이의법칙 Faraday's Law 
+패러데이효과 Faraday Effect 
+패리티체크 Parity Check 
+패킷 Packet
+팬터내림예고표지 Pantagraph Down Annunciation Indicator
+팬터내림표지 Pantagraph Down Indicator
+팬터마모판 Pantagraph Slipper
+팬토그래프 pantograph
+펄스부호변조 Pulse Code Modulation
+펄스위상변조 Pulse Phase Modulation
+펄스폭변조 Pulse Width Modulation
+페이딩 Fading
+페일세이프 Fail Safe 
+편개분기기 Simple Turnout
+편도승차권 One way ticket
+편마모 Partial Side Wear
+편성 Train
+편적 One Side Load
+평균고장간격 Mean Time Between Failure(MTBF)
+평균고장시간 Mean Time Between Failures
+평균무고장시간 Mean Time Between Failures 
+평균복구시간 Mean Time to Repair
+평균복구시간[RAMS용] Mean Time To Restore 
+평균속도 Average Speed
+평균수리시간 Mean Time To Repair
+평균수리이동시간 Mean Repair Travel Time
+평면교차 Level Crossing
+평면입환 Ordinary Shunting or Shunting with Locomotive
+평저레일 Flat-Bottomed Rail or Tee-Rail
+평판차 Open freight car, Open freight wagon
+평활회로 Smoothing Circuit
+폐색 Block system
+폐색계전기회로 Block Relay Circuit
+폐색공간(거리)간격법 Space Interval System of Block or Space Interval Block system
+폐색구간 Block Section
+폐색구간의병합 Incorporation of Block Section
+폐색구간의분할 Division of Block Section
+폐색기 Block signal
+폐색레버 Block Lever
+폐색방식 Block Method
+폐색시간간격법 Time Interval Block system
+폐색신호기 Block Signal
+폐색장치 Block System
+폐색준용법 Applied Block Method
+폐전로식궤도회로 Closed Type Track Circuit
+폐차 Disabled car
+폐표 discarding ticket
+포스트트립모드 Post Trip Mode
+포인트가드레일 Guard Rail to Point or Switch Guard Rail or Point Protector
+포인트To포인트방식 Point to Point 
+포장불비 lock of packing
+포화증기 Saturated Steam 
+폭음신호 detonator signal
+폴링 Polling 
+폴링입환 Poling Method Shunting
+폴링조차장 Poling Yard
+표시(M)발리스[KVB용] KVB Marker(M) balise
+표시기[ATS용] Indicator of Automatic Train Stop Cab Device or ATS Indicator
+표시장치 Cab Signal Indication Unit(ATC)
+표시제어반[CTC용] Control and Indication Panel
+표시판넬 Line Dispatcher Panel
+표시회로 Indication Circuit
+표정속도 Scheduled speed
+표준구배 Standard Maximum Grade or Ruling Grade
+표준궤간 Standard Gauge
+표준기울기 Standard maximum grade
+표준활하중 Standard Live Load
+표준후렌지 Normal Flange
+표지 Indicator
+표지등 Tail Light
+표지부선로전환기 Switch with Indicator
+표지전철기 switch stand with handle
+표피효과 Skin Effect 
+품질인증 Quality certification
+풍속검지장치 Wind Velocity Detector
+풍손 Windage Loss
+풍압하중 Wind Load 
+풍해 Wind Damage or Storm Damage
+프러그 plug
+프레셔웨이브 Pressure wave
+프레스대차 Pressed-Steel Bogie
+프레인베어링 Plain Bearing
+프렉시반 Flexi-Vam
+프로그램 Program 
+프로세스감시회로 Interval Measure Circuit or Processing Supervision Circuit
+프로토콜 Protocol 
+프로파일 Profile
+플래그 Flag 
+플래시버트용접 Flash Butt Welding
+플랜지웨이 Flange Way 
+플랜지웨이 Flange Way 
+플랫폼정지제어 Platform Stop Control
+플러그 Plug
+플레밍의 오른손법칙 Fleming's Right Hand Rule
+플레밍의 왼손법칙 Fleming's Left Hand Law
+플로피디스크 Floppy Disk 
+피기백 Piggy Back
+피난선 catch siding
+피난측선 Catch Siding or Safety Siding
+피드백 Feedback 
+피뢰기 Arrester 
+피스톤로드 Piston Rod
+피스톤링 Piston Ring
+피스톤변 Piston-Valve(or Distribution)
+피씨엠단국 pulse code modulation
+피에조효과 Piezo Effect
+피트 Ash Pit
+필터특성 Filter Characteristic
+하드디스크 Hard Disk 
+하드웨어 Hardware 
+하본선 Down Bound Main Track
+하부시스템 Sub-System
+하붕 disorderly load condition due to sever impact shake
+하선 Down Bound Track 
+하이브리드차량 Hybrid car
+하행선 Down track, Down line
+하화시간 unloading time allowance
+하화장 unloading yard
+학생정기승차권 student's season ticket
+한국고속철도건설공단 korea high speed rail construction authority
+한류장치 Current Limiting Device
+한시간정격속도 Rated Speed Per an Hour
+한시계전기 Time Relay
+한시해정기 time release
+할인승차권 Reduction Ticket
+할인증 Reduction Voucher
+할입 Trailable and Back Moving
+할증율 Increase Rate
+할출 Trailable
+함침 Impregnation
+합병운전 Uniting two trains into one, Train emergence operation
+합조차 Combination Car
+해결 Uncopling, Release of connected
+해방 Set-Off
+해방자호 The korean liberator
+해상도 Resolution 
+해정속도 Release Speed 
+해커 Hacker 
+핸드레일 Hand Rail
+핸드카 Hand Car
+핸드핼드타이탬퍼 Hand Held Tie Tamper
+핸들부선로전환기표지 Switch Stand with Ratch Handle
+행정 Stroke
+허용속도 Permitted Speed
+허용신호기 Permissive Signal
+허용운전모드 Full Manual Mode
+험프 Hump
+험프입환 Hump Shunting
+험프조차장 Hump Yard
+헤드 Head 
+헤르츠 Hertz 
+현가장치 Suspension
+현계이음매 suspended Joint
+현급 cash payment
+현수철도 Suspended Railway
+현수형경보기 Suspension Type Crossing Signal
+현장교체용부품 Line Replaceable Unit
+현장레벨 Field Level
+현장설비제어컴퓨터STEKOP Interface Module of Digital Input/Output
+현장제어조작반 Local Control Panel  
+현장킬로정 Job Site Kilometer
+현재위치 Current Position
+현접법 Suspended Joint
+현지시간 Local Time
+현차 Cars
+협궤 Narrow-Gauge Line
+협로 By-Pass
+호송인 Convoy man
+호스걸이 Dummy(or Hose) Coupling
+호출기 Interrogator
+호퍼카 Hopper Car
+호핑채널 Hopping Channel
+혼잡도 Degree of congestion
+혼합열차 Mixed Train(Goods and Passenger Traffic)
+홀효과 Hall Effect
+홈붙이레일 Grooved Rail
+홉퍼카 hopper car
+화격자 grate
+화물보관고 storage house of freight
+화물선 Freight Line or Goods Line
+화물설비 Accomodations for Freight Service
+화물역 Freight Station
+화물열차 Freight Train
+화물열차킬로 Freight train/KM
+화물영업선 Freight Service line
+화물영업연장킬로 Freight Service Extension KM
+화물영업킬로 Freight Service KM
+화물운송시스템 Transportation distance of freight
+화물의최대적재중량 Maximum Load Freight 
+화물적재용품 laggings for freight
+화물적재표 manifest
+화물적하선 Loading Track
+화물적하장 Freight Platform
+화물조차장 Freight Shunting Yard
+화물지붕덮개 freight shed
+화물지선 Freight Branch Line
+화물철도 Freight Railway or Goods Railway
+화물취급소 Freight Handling Office
+화물측선 Freight Siding
+화물통로 cart road of drive way
+화물헛간 freight shed(goods depot)
+화실저부함 firebox casing
+화실측판 firebox side sheet
+화주 goods-holder
+화주불명화물 unclaimed artricle(owner unidentified freight)
+화중음 engaged tone
+화차 Freight Car
+화차유치료 cars demurrage
+화차자동조성장치 Automatic Classification Yard or Automatic Classification Equipment
+화차제동 Wagon Braking
+화차조차장 Shunting Yard
+화차차표 wagon lable
+화차킬로 Freight Cars Kilometers
+확인 Confirm
+확인푸시버튼[ATS용] Push Button of Automatic Train Stop or ATS Push button
+환기장치 ventilator fan(coaches)
+환산량수 Rated Cars
+환산중량 Converted rate of weight, Equivalent weight
+환산킬로정 Real Kilometer or Equivalent Kilometer
+환승 Change Train or Transfer of Passenger
+환적 Transshipment or Transship
+활동환 collector ring
+활변 Side-Valve(or Distribution)
+활주 Sliding
+활주방지시스템 Anti-skid system
+회로차단기 circuit-breaker
+회생제동 Regenerative Braking
+회생제동장치 Regenerative Brake 
+회송열차 Deadhead train
+회수권 coupon ticket
+회전대기시간 Search Time 
+회전자 Rotor 
+회전자계 Rotating Field
+회차 Turning Train
+횡압 Lateral Force or Lateral Pressure
+횡와한자 stretcher patients
+횡침목 Cross sectional tie, Sleeper
+후급 Deffered payment
+후급증 deffered payment certificates
+후레임 Frame or Distributing Frame
+후레임구조차체 Frame-Built Body
+후레임끝 Frame Ends
+후렌지윤활장치 Flange Lubricating Device
+후미등 Tail light
+후부보조기관차 Banking Locomotive or Rear Auxiliary Locomotive
+휄트패킹 Felt Packing 
+휘도 Brightness
+휘장 Diaphragm 
+휠미끄럼 Wheel Slip
+휠활주 Wheel Slide
+휴대국 Portable Mobile Station
+휴대화물 Hand Luggage or Hand Baggage
+휴지모드 Sleeping Mode
+휴지차 Retired Rolling Stock
+흡입 Inlet or Intake(or Engine)
+흡입변 Suction Valve
+히스테리시스 Hysteresis
+히스테리시스 손 Hysteresis Loss 
+히스테리시스의 루프 Hysteresis Loop 
+A.T.C Automatic train control drive
+A.T.C 운전 ATC running
+A/D Analogue to Digital
+AAE Automatic Announcment Equipment
+ABB Asea Brown Boberi
+ABS Automatic Block System
+ABS용 보안기 Arrester of ABS
+AC Alternating Current
+ACCT AC Current Transformer
+ACK Acknowledge
+Acknowledge[ATP용] Automatic Train Protection Acknowledge
+ACM Aux Compressor Motor 
+ACMG Governor For "ACM"
+ACSR Aluminium Conductor SteelReinforced
+ACTC Alternating Current Track Circuit
+ADD(A/D) Address
+AF Hight Tension Aux Fuse
+AF Audio Frequency
+AFC Automatic FareCollection System
+AFTC Audio Frequency Track Circuit
+AGT Automatic Guided Transit
+ALS Automatic Line Supervision
+ANSI American National Standards Institue
+ANT Antenna
+APEC Asia-Pacific Economic Cooperation
+ARC Automatic Route Control
+ASCII American Standard Code for Information Interchang
+ASK Amplitude Shift Keying
+ATB Automatic Turn Back
+ATC Automatic Train Control
+ATO Automatic Train Operation
+ATP Automatic Train Protection
+ATS Automatic Train Stop
+AVR Automatic Voltage Requlator
+B/W CRT Black&White Cathode Ray Tube
+BCN NFB For Brake Control
+BD Blocking Diode
+Bit Pattern Bit Pattern 
+BPS Bit Per Second(BPS)
+BT Block Track Ciruit
+BTIU Balise Transmission Interface Unit Balise
+BVN NFB For Braking Circuit
+C.F.S container frieght station
+C.T.C Centralized traffic control
+C/S Change Over Switch
+CAD Computer Aided Design
+CAM Computer Aided Manufacturing
+CAMode Central Automatic Mode
+CC Central Control Computer
+CCITT Consultative Committee International Telegraph & Telephone
+CCM Console Control Mode
+CCR Central Control Room
+CCR Central Control Room
+CCS Central Computer System
+CCTV Closed Circuit Televison
+CD Compact Disk
+CD-ROM Compact Disk Read Only Memory(CD-ROM)
+CDTS Central Data Transmission System
+CFS Container Freight Station(CFS)
+CIP CIP
+Clibing Form Clibing Form
+CMG Compressor Motor Governor
+CMGN NFB For "CMG"
+CMK Compressor Motor Contactor
+CMMode Central Manual Mode
+COSPAS Computer Operation System for Protection Application
+CPEV Polythylene Insulated Poyvinyl Chloride Sheathed Pair Cable for Telephone
+CPU Central Processing Unit
+CPU Card Wayside Control Unit CPU Card
+CRC Cyclic Redundancy Check
+CS Ceiling Speed
+CSC(변전설비집중제어장치) CentralizedSubstation Control
+CT Current transformer
+CTC(열차집중제어장치) Centralized Traffic Control
+CV XLPE Insulated PVC SheathedCable(660V～275KV)
+CVCF Constant Voltage Constant Frequency
+CVV PVC Insulated PVC Sheathed Control Cable
+CVVS PVC Insulated PVC Sheathed Control Cable(S:Shiedle→Coper Tape)
+CY container yard
+D/A Digital to Analog
+D/L Dwell Light
+DBM Database Manger
+DBMS Database Management System
+DC Direct  Current
+DCE Data Circuit Terminating Equipment
+DFR Differntial Relay
+DIB Data Input Board
+DILP Door Indicate Lamp
+DIR Door Interlock Relay
+DiscreteI/OCard Discrete I/O Card(DIO)
+Disturbance Regulation Disturbance Regulation 
+DMA Direct Memory Access
+DMV Door Magenet Valve
+DOB Date Output Board
+DOCS Door Close Switch
+DOLP Door Open Indicator Lamp
+DOOS Door Open Switch
+DOR Door Open Relay
+DPRAM에서의 데이터처리 Dual Port Random Access Memory Process
+DROR Door Re-opening Relay
+DROS Door Re-opening Switch
+DRR Door Relay
+DS Disconnecting Switch
+DTC Date Transmission Controllor
+DTE Data Terminal Equipment
+DTS Data Transmission System
+EBCOS Emergency Brake Cut Out Switch
+EBICAB900시스템(ADtranz) EBICAB 900 System(ADtranz)
+EI(전자연동장치) Electronic Interlocking
+EIA Electronic Industries Association
+EIE Electronic Interlocking Equipment
+EMC Electro Magenetic Compatibility
+EMI Electro Magenetic Interferecne
+EPROM Erasable Programmable Read Only Memory  
+EPS공법 Expanded Polystyrol Construction Method
+ERRI European Rail Research Institute
+ERTMS European Railway Traffic Management System
+ERTMS/ETCS차상장치 ERTMS/ETCS on board equipment
+ESK Extension Supply Contactor
+ETCS European Train Control System
+EV PE Insulated PVC Sheathed Cable (600V)
+EXK Contactor For Pre-Excitation
+FA Full Auto
+FC Filter Condenser
+FDDI Fiber Distributed Data Interface
+FDM Frequency Division Multiplexing
+Ferrodeck Ferrodeck
+FL Filter Reactor
+FM Frequency Modulation 
+FRP Fiber grass Reinforced Plastic
+FSB Full Service Brake
+FSK Frequency Shift Keying
+FTGS궤도회로 Remote fed and Coded Jointless Audio Frequency Track Circuit
+G16 GRS Micro Processor
+GEC-Alstom TGV 제작업체
+GR Gradient
+GSM-R(이동통신) GSM-R(Global system for mobile communications-railways)
+GV PVC Insulated Grounding Wire
+GVT Grounding Voltage Transformer
+HCR Head Control Relay
+HDLC High Level Data Link Control
+HDTV High Density Television 
+HIV Heat-resistant in -door PVC Insulated Wire
+HPF High Pass Filter
+HQCCR Head Quarter CCR
+HSCB High Speed Circuit Breaker
+HZ Hertz
+I.C.D Inland clearance depot
+I/O List Input Output List
+I형 이음매판 Toeless Joint Bar or I-Section Fish Plate
+IC Integrated Circuit
+ICD Inland Clearance Depot 
+ICE Inter City Express
+ID to the OTP[ATP용] Automatic Train Protection ID to the On-board Telegram Processor
+IEC International Electrotechnical Commission
+IEEE Institute of Electrical and Electronic Engineering
+IF Intermediate Frequency
+IM Induction Moter
+IOS International Organization forStandardzation
+IRIS Integrated railway information system
+ISO International Organization for Standardization
+ISO14000S International Organization for Standardization 14000s
+ISO2631 International Organization for Standardization 2631
+Isolation Board Isolation Board 
+IT Insulation Transformer
+ITr Indication Transformer
+ITU International Telecommuication Union
+IV PVC Insulated Wire
+IVC Inverter Control Circuit
+K Electro Magnetic Contactor
+K자크로싱 Center Frog of Crossing
+KECO Korea Electric Power Coperation
+KFX Korea Foreign Exchange
+KHRC Korea High Speed Rail Construction Authority
+Kick Off(순차제어개시) Kick Off
+KIN 600V Grade In-door PVCInsulated Wire
+KIT Korea Institute of Transportationstudies
+KOTI Korea Transport institute
+KROIS Korean RailroadOperating Information System
+KRS Korean Railway Standard
+KRSTC Korea Railroad Signal TechnicalCoperation
+KRTC Korea Railroad TechnicalCoperation
+KS Korean Standard
+KTA Korea Telecommnication Association
+KTX Korea train express
+KYOSAN Kyosan Signal Corporation
+L/S Line/Station Monitor
+L형이음매판 Flange(or Angle) Joint Bar or Angle Splice Plate
+LA Lighting Arrester
+LAN Local Area Network
+LBS Load Breake Switch
+LC공진자 LC Resonator
+LCD Liquid Cryatal Display
+LCP Local Control Panel
+LCX Leakage Coexial Sheath Cable
+LDB Lamp Driver Board
+LDM Line Dispatcher Mode
+LDP Line Dispatcher Panel
+LDTS Local Data Transmission System
+LED Light Emitting Diode
+LED형신호기 LED Type Signal
+LIM Liner Induction Moter
+Line Overview[ATS용] Line Overview(ATS)
+LPF Low Pass Filter
+LPK Lamp Contactor
+LRR Load Reduction Relay
+LRT Light Rail Transit
+LSM Liner Synchronous Moter
+LTr Level crossing Transformer
+LVR Low Voltage Detection Relay
+M Messener Wire
+MAFP모듈 APP(Application) Field Input Processing Module
+Mail Box A Mail Box A 
+MALE모듈 APP(Application) Logical Expression Evaluator
+MANW모듈 APP(Application) Neighbor WCU(Wayside Control Unit) Status Processing Module
+MAOA모듈 APP(Application) Output Assembly Module
+MARC모듈 APP(Application) Route Control Module
+Master Clock Interface Master Clock Interface
+MATS모듈 APP(Application) ATS(Automatic Train Supervision) Processing Module
+MATT모듈 APP(Application) Train Tracking Module
+MAVH모듈 APP(Application) Vehicle Status Processing Module
+MC Master Controller
+MF Main Fuse
+MFSD Multi Functional Speed Display
+MI(기계연동장치) Mechanical Interlocking
+MIS(경영정보시스템) Management Information System
+MMI Man and Machine Interface
+MOWP모듈 OS ATP(Automatic Train Operation) Interrupt Handler Module
+MPPP Multi Purpose PublicProject
+MPS Micro Processing System(MPS) 
+MRC(이동통신) Mobile Radio Communication
+MRPS Main Reservoir Pressure Switch
+MRT Mass Rapid Transit
+MS Magnetic Switch
+MS Main Switch
+N형레일 New Type Rail
+NAPM모듈 APP(Application) Permissive Movement Authority Control Module
+NASW모듈 APP(Application) Switch Supervision and Control Module
+NATM공법 New austrian tunnelling method
+NCT열차추적 Non Communicating Tracked Train Tracking
+NFB No-Fuse Breaker
+NIPPON Nippon Signal Corporation
+Non-Vital 정지점 Non Vital Stop Position
+NS-AM형 전기선로전환기 NS-AM Electric Point Machine(or Switch) or New Type Rail Standard Automatic Magnetic Clutch
+OCR Over Current Relay
+OD조사 Origin and destination survey
+OFF버튼[VOBC용] Vehicle On Board Controller Off Button
+OIS(운용정보시스템) Operating Information System
+ON램프[VOBC용] Vehicle On Board Controller On Lamp
+Optical Link Module Optical Link Module
+OTP 텔레그램송신 On-board Telegram Processor Telegram Transmission
+OTP 텔레그램수신 On-board Telegram Processor Telegram Receive
+OTP Acknowledge On-board Telegram Processor Acknowledge
+OTP Control Command On-board Telegram Processor Control Command
+OTP Interface OTP(On-board Telegram Processor) Interface
+OTP Telegram Type Field On-board Telegram Processor Telegram Type Field
+OTPTxBuffer(ATO)3Bytes On-board Telegram Processor Tx Buffer(ATO) 3 Bytes
+OTPTxBuffer(TI)1Byte On-board Telegram Processor Tx Buffer(T1) 1 Byte 
+OTPTxBuffer(WCU)30Bytes On-board Telegram Processor Tx Buffer(WCU) 30 Bytes 
+OW Out-door PVC Insulated Wire
+PANDS Pantograph Down Switch
+PANPS Pressure Switch For Pantograph
+PB(B) Braking Change Over Switch
+PB(P) Powering Change Over Switch
+PBN NFB For Parking Brake
+PBPS Pressure Switch For Parking Brake
+PBS Parking Brake Switch
+PBS Push Button Switch
+PC침목 Prestressed Concrete Sleeper or Prestressed Concrete Tie
+PCB Polychlorinated Biphenyl
+PCB Printed Circuit Board
+PCM Pulse Code(or Count)Modulation
+PEF Polyethylene Foramed
+PERT Program Evaluation and Review Technique
+PI Platform Indicator
+PLC Programmable Logic Controller
+PLL Phase Locked Loop
+PMA수용 PMA Reception
+PS형레일 Pennsylvania Type Rail
+PSCCR Power Supply Central Cotrol Room
+PSD Platform Screen Door
+PSI Power Supply Instrument
+PSM Precision Stop Marker
+PSO Public service obligation
+PSU Power Supply Unit
+PT Potential Transformer
+PTr Point  Transformer
+PWM Pulse Width Modulation
+Q Quality
+QAM Qudrator Amplitude Modulation
+R.C Railroad Cross(LC : Level Cross, HC : Highway Cross)
+R.C. Route Control
+R.F Radio Frequency
+RAM Random Access Memory
+RC침목 RC Sleeper or Reinforced Concrete Tie
+RCS(E) (Electro) Remote Control System
+RI(전기연동장치=계전연동장치) Relay Interlocking
+RMS Root Mean Square
+ROM Read Only Memory
+ROTECO Korea Rollingstock TechnicalCoperation
+RR(S) (signal) Relay Room
+RS232 Type of serial Interface
+RS-232C Interface RS-232C Interface 
+RS-422A Interface RS-422A Interface 
+RST Reset
+RT(열차전화) Railway Telephone
+RTr Repeater Transformer
+RTU Remote Terminal Unit
+RV(F) Foward Change Over Switch
+RV(R) Reverse Change Over Switch
+RX Receiver
+RXD Received Data
+SBOND S BOND 
+SCADA Supervisory ControlAnd Data AcquisitionSystem
+SCI Serial Communication Interface
+SCSI Small Computer Systems Interface
+Serial Communication Card Wayside Telegram Pre-processor Serial Communication Card
+SG Speed Generator
+SICAS Siemens Computer Aided Signaling
+SIMIS Fail safe Microcomputer System from Siemens
+SIS Strategec Information System
+SNCF Societe Nationale des Chemins de fer.
+SP Sectioning Post
+Speed Profile Speed Profile 
+SS Sub-Station
+SSP Sub Secioning Post
+STELA3(FTGS output board) STELA 3(FTGS Output Board)
+STM(국내)모드 STM(National) Mode
+STM(유럽)모드 STM(European) Mode
+STr Signal Transformer
+STR Starter Relay
+STX Start of Text
+SVV PVC Insulated PVC SheathedSignal Cable
+System Supervision Console System Supervision Console
+T Trolley Wire
+T/G Train Graphic(Monitor)
+TB Talk Back
+TC Track Circuit
+TCR Tail Control Relay
+TD Train Describer
+TDE Train Destination Equipment
+TDI Train Destination Indicator
+Telegram Type Field [ATP용] Automatic Train Protection Telegram Type Field
+Termination Panel Termination Panel 
+TEU Twenty-foot equivalent units
+TGV Train de Grande Vitesse
+THR Thermal Relay
+TIS Train Information System
+TLDS Trackcircuit LevelDetection system
+TMO Transportation Movement Office(TMO)
+TNI Train Number Indicator
+TRS Switch For Train Radio
+TS Target Speed
+TSR Trans siberian railway
+TTC(종합열차운행체제) Total Traffic Control System
+TTC의 기능 Function of Total Traffic Control
+TTr Track circuit Transformer
+TVM430시스템 Transmission Voie Machine 430 System
+TVM430지상장치 TVM430 Wayside Computerized Equipment or TVM430 Ground System
+TVM430차상장치 TVM430 Processing Unit or TVM430 On-Board System
+TWC Train to Wayside Comunication
+Tx Buffer[ATP용] Automatic Train Protection Tx Buffer
+UIC Union International des Chemins de for
+UPS Uninterruptible Power Supply
+UPS(무정전전원공급장치) Uninterruptable PowerSource(Supply)
+US&S Union Switch & Signal
+VAN Value Added Network
+VCT PVC Cabtyre Cable
+VF PVC Insulated Flexible Wire
+VHCM Video Hard Copy Machine
+Vital정지점 Vital Stop Position
+VitalSupervisionCard Supervision Card(VSC)
+VMS Virtual Memory System
+VVVF Variable Voltage Variable Frequency
+WAN Wide Area Network

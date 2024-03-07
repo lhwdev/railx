@@ -1,0 +1,12 @@
+{
+	"parent": "minecraft:block/cube",
+	"textures": {
+		"up": "create:block/signal_box_top",
+		"north": "railx:block/train_network_observer_side",
+		"east": "railx:block/train_network_observer_side",
+		"south": "railx:block/train_network_observer_side",
+		"west": "railx:block/train_network_observer_side",
+		"down": "create:block/train_observer_top",
+		"particle": "create:block/signal_box_top"
+	}
+}

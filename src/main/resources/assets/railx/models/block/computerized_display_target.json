@@ -1,0 +1,121 @@
+{
+	"credit": "Made with Blockbench",
+	"render_type": "minecraft:cutout",
+	"textures": {
+		"0": "railx:block/filtered_detector_front",
+		"1": "create:block/brass_casing",
+		"3": "railx:block/brass_casing_slab",
+		"4": "create:block/redstone_antenna",
+		"particle": "railx:block/filtered_detector_front"
+	},
+	"elements": [
+		{
+			"name": "antenna",
+			"from": [7, 13, 10],
+			"to": [9, 18, 12],
+			"faces": {
+				"north": {"uv": [1, 1, 2, 4], "texture": "#4"},
+				"east": {"uv": [1, 1, 2, 4], "texture": "#4"},
+				"south": {"uv": [1, 1, 2, 4], "texture": "#4"},
+				"west": {"uv": [1, 1, 2, 4], "texture": "#4"},
+				"up": {"uv": [1, 1, 2, 2], "texture": "#4"},
+				"down": {"uv": [1, 9, 2, 10], "texture": "#4"}
+			}
+		},
+		{
+			"name": "dish",
+			"from": [5, 17, 8],
+			"to": [11, 17, 14],
+			"faces": {
+				"north": {"uv": [0, 0, 4, 0], "texture": "#missing"},
+				"east": {"uv": [0, 0, 4, 0], "texture": "#missing"},
+				"south": {"uv": [0, 0, 4, 0], "texture": "#missing"},
+				"west": {"uv": [0, 0, 4, 0], "texture": "#missing"},
+				"up": {"uv": [4, 0, 9, 5], "texture": "#4"},
+				"down": {"uv": [4, 0, 9, 5], "texture": "#4"}
+			}
+		},
+		{
+			"name": "front",
+			"from": [0, 0, 0],
+			"to": [16, 16, 5],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#1"},
+				"east": {"uv": [0, 0, 5, 16], "texture": "#3"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#1"},
+				"west": {"uv": [0, 0, 5, 16], "texture": "#3"},
+				"up": {"uv": [0, 0, 5, 16], "rotation": 90, "texture": "#3"},
+				"down": {"uv": [0, 0, 5, 16], "rotation": 90, "texture": "#3"}
+			}
+		},
+		{
+			"name": "connector",
+			"from": [2, 2, -2],
+			"to": [14, 14, 0],
+			"faces": {
+				"north": {"uv": [0, 0, 10, 10], "texture": "#0"},
+				"east": {"uv": [0, 0, 1, 10], "texture": "#0"},
+				"south": {"uv": [0, 0, 3, 3], "texture": "#0"},
+				"west": {"uv": [0, 0, 1, 10], "texture": "#0"},
+				"up": {"uv": [0, 0, 12, 1], "texture": "#0"},
+				"down": {"uv": [0, 0, 12, 1], "texture": "#0"}
+			}
+		},
+		{
+			"name": "hind",
+			"from": [2, 2, 5],
+			"to": [14, 14, 10],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#1"},
+				"east": {"uv": [0, 0, 5, 16], "texture": "#3"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#1"},
+				"west": {"uv": [0, 0, 5, 16], "texture": "#3"},
+				"up": {"uv": [0, 0, 5, 16], "rotation": 90, "texture": "#3"},
+				"down": {"uv": [0, 0, 5, 16], "rotation": 90, "texture": "#3"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, -145, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, 225, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	},
+	"groups": [
+		0,
+		1,
+		{
+			"name": "VoxelShapes",
+			"origin": [0, 0, 0],
+			"color": 0,
+			"nbt": "{}",
+			"armAnimationEnabled": false,
+			"children": [2, 3, 4]
+		}
+	]
+}

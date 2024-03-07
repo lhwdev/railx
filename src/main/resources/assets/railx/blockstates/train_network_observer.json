@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railx:block/train_network_observer"
+    }
+  }
+}

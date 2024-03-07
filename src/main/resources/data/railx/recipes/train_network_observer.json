@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Y ",
+    " RM",
+    " E "
+  ],
+  "key": {
+    "Y": {
+      "item": "minecraft:ender_eye"
+    },
+    "R": {
+      "item": "create:railway_casing"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "M": {
+      "tag": "computercraft:wired_modem"
+    }
+  },
+  "result": {
+    "item": "railx:train_network_observer"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "itemGroup.railx.tab": "Create: Computing",
+  "railx.display_source.computerized_display_source": "Computer Text",
+  "block.railx.computerized_display_source": "Computerized Display Source",
+  "block.railx.computerized_display_target": "Computerized Display Target",
+  "block.railx.computerized_redstone_link": "Computerized Redstone Link",
+  "block.railx.train_network_observer": "Train Network Observer"
+}

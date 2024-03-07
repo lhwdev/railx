@@ -1,0 +1,392 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
+package com.lhwdev.minecraft.railx.lua.asm
+
+import com.lhwdev.minecraft.railx.api.lua.*
+import com.lhwdev.minecraft.railx.api.lua.annotations.LuaObject
+import com.lhwdev.minecraft.railx.api.lua.annotations.LuaSelf
+import com.lhwdev.minecraft.railx.lua.LuaMemberContext
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Type
+import java.nio.ByteBuffer
+import kotlin.coroutines.Continuation
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.KType
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.jvmErasure
+
+
+/**
+ * ### Spec
+ * - This does not calculate max stack size. Add COMPUTE_MAXS flag.
+ *
+ * ### Example output
+ *
+ * ```kotlin
+ * @LuaObject
+ * class OwnerClass {
+ * 	@LuaFunction
+ * 	fun bridgeMethod(name: String, age: Int, children: List<String> = emptyList()) {}
+ *
+ * 	@LuaFunction
+ * 	fun suspendBridge(delay: Int) {}
+ * }
+ *
+ * class GeneratedOwnerClass(private val owner: OwnerClass) {
+ * 	fun bridgeMethod(arguments: LuaArguments): Any? {
+ * 		var flags = 0
+ * 		val name = arguments.getString(0)
+ * 		val age = arguments.getInt(1)
+ * 		val children = if(arguments.isDefault(2)) {
+ * 			flags = flags or 0x4
+ * 			null
+ * 		} else {
+ * 			val list = arguments.getList(2)
+ * 			while(list.hasNext()) list.add(list.getString())
+ * 			list.build()
+ * 		}
+ * 		return owner.bridgeMethod$default(name, age, children, flags, null)
+ * 	}
+ *
+ * 	suspend fun suspendBridge(arguments: LuaArguments): Any? {
+ * 		val delay = arguments.getInt(0)
+ * 		return owner.suspendBridge(delay)
+ * 	}
+ * }
+ * ```
+ */
+class LuaObjectWriterOld(
+	private val classDescriptor: String,
+	private val ownerType: Type,
+	private val output: ClassVisitor,
+) {
+	companion object {
+		private val OwnerField = "owner"
+		
+		private val MethodDescriptor = "(${descriptor<LuaArguments>()})${descriptor<Any?>()}"
+		private val SuspendMethodDescriptor =
+			"(${descriptor<LuaArguments>()}${descriptor<Continuation<*>>()})${descriptor<Any?>()}"
+	}
+	
+	@PublishedApi
+	internal object Helper {
+		@JvmStatic
+		fun getSelf(): RawLuaTable = LuaMemberContext.current.luaSelf
+		
+		val GetSelf = descriptor(::getSelf)
+		
+		inline fun findArgType(from: Map<Class<*>, MethodDescriptor>, klass: Class<*>) =
+			from[klass]
+		
+		object Args {
+			val isNull = descriptor("isNull", "(I)Z")
+			val isDefault = descriptor("isDefault", "(I)Z")
+			
+			val getEnum = descriptor("getEnum", "(ILjava/lang/Class;)Ljava/lang/Enum;")
+			val deserialize = descriptor("deserialize", "(ILjava/lang/Class;)Ljava/lang/Object;")
+			
+			val argTypes = mapOf(
+				Any::class.java to descriptor("getAny", "(I)Ljava/lang/Object;"),
+				
+				Int::class.java to descriptor("getInt", "(I)I"),
+				Boolean::class.java to descriptor("getBoolean", "(I)Z"),
+				Double::class.java to descriptor("getDouble", "(I)D"),
+				Long::class.java to descriptor("getLong", "(I)L"),
+				
+				String::class.java to descriptor("getString", "(I)Ljava/lang/String;"),
+				ByteBuffer::class.java to descriptor("getBytes", "(I)Ljava/nio/ByteBuffer;"),
+			)
+			
+			private fun descriptor(name: String, descriptor: String) =
+				MethodDescriptor(INVOKEINTERFACE, LuaArguments::class.java.name, name, descriptor, true)
+		}
+		
+		object Arg {
+			val isNull = descriptor("isNull", "()Z")
+			val isDefault = descriptor("isDefault", "()Z")
+			
+			val getList = descriptor("getList", "()${descriptor<LuaListArgument<*>>()}")
+			val getMap = descriptor("getMap", "()${descriptor<LuaMapArgument<*, *>>()}")
+			val getEnum = descriptor("getEnum", "(Ljava/lang/Class;)Ljava/lang/Enum;")
+			val deserialize = descriptor("deserialize", "(Ljava/lang/Class;)Ljava/lang/Object;")
+			
+			val argTypes = mapOf(
+				Any::class.java to descriptor("getAny", "()Ljava/lang/Object;"),
+				
+				Int::class.java to descriptor("getInt", "()I"),
+				Boolean::class.java to descriptor("getBoolean", "()Z"),
+				Double::class.java to descriptor("getDouble", "()D"),
+				Long::class.java to descriptor("getLong", "()L"),
+				
+				String::class.java to descriptor("getString", "()Ljava/lang/String;"),
+				ByteBuffer::class.java to descriptor("getBytes", "()Ljava/nio/ByteBuffer;"),
+			)
+			
+			private fun descriptor(name: String, descriptor: String) =
+				MethodDescriptor(INVOKEINTERFACE, LuaArgument::class.java.name, name, descriptor, true)
+		}
+		
+		object ListArg {
+			val hasNext = descriptor("hasNext", "()Z")
+			val add = descriptor("add", "(Ljava/lang/Object;)V")
+			val build = descriptor("build", "()Ljava/util/List;")
+			
+			private fun descriptor(name: String, descriptor: String) =
+				MethodDescriptor(INVOKEINTERFACE, LuaListArgument::class.java.name, name, descriptor, true)
+		}
+	}
+	
+	
+	init {
+		output.visit(V1_8, ACC_PUBLIC, classDescriptor, null, "java/lang/Object", null)
+		
+		output.visitField(ACC_PRIVATE, OwnerField, ownerType.descriptor, null, null)?.apply {
+			visitEnd()
+		}
+		
+		output.visitMethod(ACC_PUBLIC, "<init>", "(${ownerType.descriptor})V", null, null)?.apply {
+			visitCode()
+			visitVarInsn(ALOAD, 0)
+			visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
+			
+			visitVarInsn(ALOAD, 0)
+			visitVarInsn(ALOAD, 1)
+			visitFieldInsn(PUTFIELD, classDescriptor, OwnerField, ownerType.descriptor)
+			
+			visitMaxs(2, 2)
+			visitEnd()
+		}
+	}
+	
+	fun addMethod(function: KFunction<*>): LuaFunctionDescriptor? = output.visitMethod(
+		ACC_PUBLIC + ACC_FINAL,
+		function.name,
+		if(function.isSuspend) SuspendMethodDescriptor else MethodDescriptor,
+		null,
+		null
+	)?.run {
+		// when isSuspend: fun $name(this: $Class, arguments: LuaArguments, $cont: Continuation): Any?
+		// when !isSuspend: fun $name(this: $Class, arguments: LuaArguments): Any?
+		
+		val hasOptional = function.parameters.any { it.isOptional }
+		val varOffset = if(function.isSuspend) 3 else 2
+		
+		visitCode()
+		if(hasOptional) {
+			visitInsn(ICONST_0)
+			visitVarInsn(ISTORE, varOffset) // var(offset + 2) := flags
+		}
+		
+		for(parameter in function.parameters) {
+			visitMethodParameter(parameter, varOffset)
+		}
+		
+		if(function.isSuspend) {
+			visitVarInsn(ALOAD, 2)
+		}
+		val method = if(hasOptional) {
+			visitVarInsn(ILOAD, 2) // $flags
+			visitInsn(ACONST_NULL) // $marker
+			function.javaDefaultMethod!!
+		} else {
+			function.javaMethod!!
+		}
+		visitMethodInsn(method)
+		visitReturnInsn(method.returnType)
+		
+		visitMaxs(-1, -1)
+		
+		return LuaFunctionDescriptor(name = function.name, isSuspend = function.isSuspend)
+	}
+	
+	private fun MethodVisitor.visitMethodParameter(parameter: KParameter, varOffset: Int) {
+		fun visitLoadArguments() {
+			// Note: `ALOAD 1` corresponds to instance receiver
+			visitVarInsn(ALOAD, 1)
+		}
+		
+		val index = parameter.index
+		
+		// insert instance receiver
+		if(index == 0) {
+			visitFieldInsn(GETFIELD, classDescriptor, OwnerField, ownerType.descriptor)
+			return
+		}
+		
+		val type = parameter.type
+		val typeClass = type.jvmErasure.java
+		
+		val passes = mutableListOf<(visitPrevious: () -> Unit) -> Unit>()
+		
+		if(type.isMarkedNullable) passes += { visitPrevious ->
+			// Note: In case of nullable, generated code: if(arguments.isNull(index)) ... else null
+			// -> asm: aconst_null; (call isNull) ifeq(==0) -> :next; pop; (...) :next
+			// -> crafted so that there are minimal numbers of jump
+			
+			// Note 2: 'nullable', so typeWidth == 1
+			
+			visitInsn(ACONST_NULL) // _ -> $0
+			
+			visitLoadArguments()
+			visitIntInsn(value = index) // stacks so far: 3
+			visitMethodInsn(Helper.Args.isNull) // ... -> $1; arguments$1.getNullable(index$2)
+			
+			val end = Label()
+			visitJumpInsn(IFEQ, end) // if($1 == 0/false) jump :end;
+			// <- (same) [reference]
+			
+			/// (same) [reference]
+			visitFrame(F_SAME, 0, null, 0, null)
+			
+			visitInsn(POP) // $0 -> _
+			
+			visitPrevious() // _ -> $0
+			
+			/// :end (same) [reference]
+			visitLabel(end)
+			visitFrame(F_SAME, 0, null, 0, null)
+		}
+		
+		if(parameter.isOptional) passes += { visitPrevious ->
+			// Note: In case of optional, generated code: if(!arguments.isDefault(index)) { ... } else { flags |= 1 >> index; null }
+			
+			val end = Label()
+			
+			visitLoadArguments()
+			visitLdcInsn(index)
+			visitMethodInsn(Helper.Args.isDefault)
+			
+			val onDefault = Label()
+			visitJumpInsn(IFNE, onDefault) // if($0 != 0/false) jump :onDefault;
+			// <- (same) []
+			
+			/// (same) []
+			visitFrame(F_SAME, 0, null, 0, null)
+			
+			val previousStacks = visitPrevious()
+			visitJumpInsn(GOTO, end)
+			// <- (same) [value: ?*]
+			
+			/// :onDefault (same) []
+			visitLabel(onDefault)
+			visitFrame(F_SAME, 0, null, 0, null)
+			
+			visitVarInsn(ILOAD, varOffset)
+			visitIntInsn(value = 1 shl index)
+			visitInsn(IOR)
+			visitVarInsn(ISTORE, varOffset) // flags = flags or $(1 shl index)
+			
+			visitZeroInsn(typeClass)
+			// <- (same) [value: ?*]
+			
+			/// :end (same) [value: ?*]
+			visitLabel(end)
+			visitFrame(F_SAME, 0, null, 0, null)
+		}
+		
+		return passes
+			.fold(initial = { visitGetArgument(parameter, type, argumentIndex = 1) }) { acc, pass -> { pass(acc) } }
+			.invoke()
+	}
+	
+	private fun MethodVisitor.visitGetArgument(parameter: KParameter, type: KType, argumentIndex: Int) {
+		val index = parameter.index
+		val typeClass = type.jvmErasure.java
+		
+		when {
+			typeClass == LuaArguments::class.java -> {
+				visitVarInsn(ALOAD, argumentIndex)
+			}
+			
+			parameter.hasAnnotation<LuaSelf>() -> {
+				visitMethodInsn(Helper.GetSelf)
+			}
+			
+			typeClass.isEnum -> {
+				visitVarInsn(ALOAD, argumentIndex)
+				visitIntInsn(index)
+				visitLdcInsn(Type.getType(typeClass))
+				visitMethodInsn(Helper.Args.getEnum) // getEnum(this: LuaArguments, index: Int, klass: Class<*>)
+			}
+			
+			List::class.java.isAssignableFrom(typeClass) ->
+				TODO()
+			
+			Map::class.java.isAssignableFrom(typeClass) ->
+				TODO()
+			
+			typeClass.isAnnotationPresent(LuaObject::class.java) ->
+				TODO()
+			
+			else -> {
+				val descriptor = Helper.findArgType(Helper.Args.argTypes, typeClass)
+					?: error("unsupported type $typeClass of parameter ${parameter.name}")
+				
+				visitVarInsn(ALOAD, argumentIndex)
+				visitIntInsn(index)
+				visitMethodInsn(descriptor) // stacks: 1~2
+			}
+		}
+	}
+	
+	private fun MethodVisitor.visitGetArgument(type: KType, argumentIndex: Int) {
+		val typeClass = type.jvmErasure.java
+		
+		when {
+			typeClass.isEnum -> {
+				visitVarInsn(ALOAD, argumentIndex)
+				visitLdcInsn(Type.getType(typeClass))
+				visitMethodInsn(Helper.Arg.getEnum) // getEnum(this: LuaArguments, klass: Class<*>)
+			}
+			
+			List::class.java.isAssignableFrom(typeClass) -> {
+				val elementType = type.arguments[0].type!!
+				
+				visitVarInsn(ALOAD, argumentIndex)
+				visitMethodInsn(Helper.Arg.getList) // getList(this: LuaArguments): LuaListArgument -> $0
+				
+				/// :loopStart (same) [list: LuaListArgument]
+				val loopStart = Label()
+				val loopEnd = Label()
+				visitLabel(loopStart)
+				visitFrame(F_SAME, 0, null, 0, null)
+				
+				visitInsn(DUP)
+				visitMethodInsn(Helper.ListArg.hasNext) // $1 = LuaListArgument.hasNext(this = dup($0))
+				
+				visitJumpInsn(IFEQ, loopEnd) // if(!$1) goto :loopEnd;
+				visitFrame(F_SAME, 0, null, 0, null)
+				// <- (same) [list: LuaListArgument]
+				
+				visitInsn(DUP) // $1
+				
+				visitInsn(DUP) // $2
+				visitGetArgument(elementType, argumentIndex)
+				
+				
+			}
+			
+			Map::class.java.isAssignableFrom(typeClass) ->
+				TODO()
+			
+			typeClass.isAnnotationPresent(LuaObject::class.java) ->
+				TODO()
+			
+			else -> {
+				val descriptor = Helper.findArgType(Helper.Arg.argTypes, typeClass)
+					?: error("unsupported type $typeClass while parsing")
+				
+				visitVarInsn(ALOAD, argumentIndex)
+				visitMethodInsn(descriptor) // stacks: 1~2
+			}
+		}
+	}
+}
+
+
+class LuaFunctionDescriptor(val name: String, val isSuspend: Boolean)

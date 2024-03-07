@@ -1,0 +1,129 @@
+package com.lhwdev.minecraft.railx.lua.asm
+
+import com.lhwdev.asm.toolkit.*
+import com.lhwdev.asm.toolkit.descriptor.MethodDescriptor
+import com.lhwdev.asm.toolkit.descriptor.descriptor
+import com.lhwdev.asm.toolkit.descriptor.method
+import com.lhwdev.asm.toolkit.value.MutableStoredValue
+import com.lhwdev.asm.toolkit.value.bitOr
+import com.lhwdev.asm.toolkit.value.constant
+import com.lhwdev.minecraft.railx.api.lua.LuaArguments
+import com.lhwdev.minecraft.railx.api.lua.RawLuaTable
+import com.lhwdev.minecraft.railx.api.lua.annotations.LuaSelf
+import com.lhwdev.minecraft.railx.lua.LuaMemberContext
+import org.objectweb.asm.Opcodes.*
+import java.nio.ByteBuffer
+import kotlin.coroutines.Continuation
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.jvm.jvmErasure
+
+
+class LuaObjectWriter(
+	private val classDescriptorName: String,
+	private val ownerType: Type,
+	private val output: ClassContext,
+) {
+	@PublishedApi
+	internal object Helper {
+		@JvmStatic
+		fun getSelf(): RawLuaTable = LuaMemberContext.current.luaSelf
+		
+		
+		val GetSelf = descriptor(::getSelf)
+		
+		private object Args {
+			val args = descriptor(LuaArguments::class)
+			
+			val isNull = args.method("isNull", "(I)Z")
+			val isDefault = args.method("isDefault", "(I)Z")
+			
+			val getEnum = args.method("getEnum", "(ILjava/lang/Class;)Ljava/lang/Enum;")
+			val deserialize = args.method("deserialize", "(ILjava/lang/Class;)Ljava/lang/Object;")
+			
+			val argTypes = mapOf(
+				Any::class.java to args.method("getAny", "(I)Ljava/lang/Object;"),
+				
+				Int::class.java to args.method("getInt", "(I)I"),
+				Boolean::class.java to args.method("getBoolean", "(I)Z"),
+				Double::class.java to args.method("getDouble", "(I)D"),
+				Long::class.java to args.method("getLong", "(I)L"),
+				
+				Int::class.javaObjectType to args.method("getInt", "(I)I"),
+				Boolean::class.javaObjectType to args.method("getBoolean", "(I)Z"),
+				Double::class.javaObjectType to args.method("getDouble", "(I)D"),
+				Long::class.javaObjectType to args.method("getLong", "(I)L"),
+				
+				String::class.java to args.method("getString", "(I)Ljava/lang/String;"),
+				ByteBuffer::class.java to args.method("getBytes", "(I)Ljava/nio/ByteBuffer;"),
+			)
+		}
+	}
+	
+	
+	val descriptor = output.define(
+		access = ACC_PUBLIC,
+		name = classDescriptorName,
+		superType = type<Any>(),
+	)
+	
+	private val ownerField = output.addField(access = ACC_PRIVATE, name = "owner", type = type<Any>())!!
+	
+	val constructor = output.addConstructor(access = ACC_PUBLIC) {
+		val owner = parameter<Any?>()
+		
+		body {
+			ownerField.value = owner
+		}
+	}
+	
+	fun addMethod(function: KFunction<*>): MethodDescriptor? = output.addMethod(
+		access = ACC_PUBLIC + ACC_FINAL,
+		name = function.name
+	) {
+		val self = self()
+		val luaArguments = parameter<LuaArguments>()
+		val continuation = if(function.isSuspend) parameter<Continuation<*>>() else null
+		
+		returnValue<Any?>()
+		
+		body {
+			val hasOptional = function.parameters.any { it.isOptional }
+			val defaultFlag = if(hasOptional) variable(0) else null
+			
+			val arguments = mutableListOf<Variable>()
+			
+			for(parameter in function.parameters) {
+				val index = parameter.index
+				val typeClass = parameter.type.jvmErasure.java
+				val argument = variable(Type.getType(typeClass), null)
+				storeMethodParameter(parameter, luaArguments, argument)
+				
+				if(parameter.isOptional) {
+					val flag = defaultFlag!!
+					flag.value = flag.value bitOr  constant(1 shl index)
+				}
+				
+				
+				arguments += argument
+			}
+			
+			if(continuation != null) {
+				push(continuation)
+			}
+		}
+	}
+	
+	context(CodeContext)
+	private fun storeMethodParameter(parameter: KParameter, luaArguments: MutableStoredValue, target: Variable) {
+		val typeClass = parameter.type.jvmErasure.java
+		target.value = when {
+			typeClass == LuaArguments::class.java -> luaArguments
+			
+			parameter.hasAnnotation<LuaSelf>() -> TODO()
+			
+			typeClass.isEnum -> luaArguments.
+		}
+	}
+}

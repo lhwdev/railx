@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GTG",
+    "LBL",
+    " E "
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_casing"
+    },
+    "L": {
+      "item": "create:redstone_link"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "create:golden_sheet"
+    },
+    "T": {
+      "item": "minecraft:redstone_torch"
+    }
+  },
+  "result": {
+    "item": "railx:computerized_redstone_link"
+  }
+}
