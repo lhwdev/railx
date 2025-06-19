@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.lhwdev.minecraft.railx.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "railx.refmap.json",
+  "mixins": [
+    "realisticSpeed.TrainHUDMixin",
+    "realisticSpeed.TrainMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
