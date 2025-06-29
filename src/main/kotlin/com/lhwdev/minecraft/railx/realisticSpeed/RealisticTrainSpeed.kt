@@ -38,6 +38,7 @@ class RealisticTrainSpeed(private val train: Train) {
         val threshold = if(stoppedFor >= 20) 40 else config.updateTickRate.get()
         if (skipCount >= threshold) {
             updateSpeed()
+            skipCount = 0
         }
 
         var speed = previousSpeed + (netAcceleration / 400)
@@ -48,17 +49,34 @@ class RealisticTrainSpeed(private val train: Train) {
         }
 
         if(skipCount != Int.MAX_VALUE) skipCount++
-        if(speed == 0.0 && stoppedFor != Int.MAX_VALUE) stoppedFor++
+        if(speed == 0.0) {
+            if(stoppedFor != Int.MAX_VALUE) stoppedFor++
+        } else {
+            stoppedFor = 0
+        }
 
         return speed
     }
 
-    var netAcceleration = 0.0
-    var netSlowdown = 0.0
+    private var netAcceleration = 0.0
+    private var netSlowdown = 0.0
 
     private var gravitationalAcceleration: Double = 0.0
     private var normalMass: Double = 0.0
     private var mass: Double = 1.0
+
+    fun updateSpeed() {
+        netAcceleration = 0.0
+        netSlowdown = 0.0
+
+        updatePhysicalState()
+
+        handleRollingResistance()
+        handleGravitationalAcceleration()
+        handleBrake()
+        handleCurvatureResistance()
+        handleAirResistance()
+    }
 
     private fun updatePhysicalState() {
         fun calculateBogeyGradient(bogey: CarriageBogey): Double {
@@ -94,17 +112,6 @@ class RealisticTrainSpeed(private val train: Train) {
             normalMass = netNormalMass
             mass = netMass
         }
-    }
-
-    fun updateSpeed() {
-        netAcceleration = 0.0
-        netSlowdown = 0.0
-
-        handleRollingResistance()
-        handleGravitationalAcceleration()
-        handleBrake()
-        handleCurvatureResistance()
-        handleAirResistance()
     }
 
     private fun handleRollingResistance() {

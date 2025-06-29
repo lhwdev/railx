@@ -13,15 +13,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class TrainMixin {
 	@Unique
 	private RealisticTrainSpeed railx$impl;
-	
+
 	@Inject(method = "<init>*", at = @At("RETURN"))
 	private void onConstructed(CallbackInfo ci) {
 		railx$impl = new RealisticTrainSpeed((Train) (Object) this);
 	}
-	
+
 	@Inject(method = "tickPassiveSlowdown", at = @At("HEAD"), cancellable = true)
 	void onTickPassiveSlowdown(CallbackInfo ci) {
 		boolean handled = railx$impl.handleTickSpeed();
-		if(handled) ci.cancel();
+		if (handled) ci.cancel();
+	}
+
+	@Inject(method = "approachTargetSpeed", at = @At("HEAD"), cancellable = true)
+	void onApproachTargetSpeed(float accelerationMod, CallbackInfo ci) {
+		Train train = (Train) (Object) this;
+		if(train.targetSpeed == 0.0 && train.manualTick) ci.cancel();
 	}
 }
