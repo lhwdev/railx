@@ -21,7 +21,7 @@ abstract class FlexiState(
 	
 	fun write(): CompoundTag {
 		val tag = CompoundTag()
-		
+		return tag
 	}
 }
 

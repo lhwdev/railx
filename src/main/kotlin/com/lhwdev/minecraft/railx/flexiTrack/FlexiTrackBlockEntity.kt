@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState
 class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
 	TrackBlockEntity(type, pos, state) {
 	
-	inner class State : FlexiState(FlexiShape.Single(FlexiDirection.FlatDivision.Divisions[0])) {
+	inner class State : FlexiState(FlexiShape.Single(FlexiDirection.Known.Divisions[0])) {
 	
 	}
 	

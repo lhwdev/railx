@@ -5,17 +5,17 @@ import java.util.*
 
 
 class FlexiDirectionProperty(name: String) :
-	Property<FlexiDirection.FlatDivision>(name, FlexiDirection.FlatDivision::class.java) {
-	override fun getName(value: FlexiDirection.FlatDivision): String =
+	Property<FlexiDirection.Known>(name, FlexiDirection.Known::class.java) {
+	override fun getName(value: FlexiDirection.Known): String =
 		value.index.toString()
 	
-	override fun getPossibleValues(): Collection<FlexiDirection.FlatDivision> =
-		FlexiDirection.FlatDivision.Divisions
+	override fun getPossibleValues(): Collection<FlexiDirection.Known> =
+		FlexiDirection.Known.Divisions
 	
-	override fun getValue(value: String): Optional<FlexiDirection.FlatDivision> = try {
+	override fun getValue(value: String): Optional<FlexiDirection.Known> = try {
 		val index = value.toInt()
-		if(index >= 0 && index < FlexiDirection.FlatDivision.DivisionCount) {
-			Optional.of(FlexiDirection.FlatDivision.Divisions[index])
+		if(index >= 0 && index < FlexiDirection.Known.DivisionCount) {
+			Optional.of(FlexiDirection.Known.Divisions[index])
 		} else Optional.empty()
 	} catch(_: NumberFormatException) {
 		Optional.empty()
