@@ -176,3 +176,7 @@ idea {
         downloadJavadoc = true
     }
 }
+
+tasks.configureEach {
+    if(name.startsWith("idea")) notCompatibleWithConfigurationCache("Intellij does not supports")
+}

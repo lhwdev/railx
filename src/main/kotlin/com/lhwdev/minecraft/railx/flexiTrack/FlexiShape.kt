@@ -30,9 +30,12 @@ interface FlexiShape {
 		override val tangents: List<Vec3>
 			get() = listOf(axe.tangent)
 		
+		val tangent: Vec3
+			get() = axe.tangent
+		
 		override val normal: Vec3
 			get() = axe.normal
-		
+	
 		override fun mirror(by: Mirror): Single =
 			Single(axe.mirror(by))
 		
@@ -51,7 +54,7 @@ interface FlexiDirection {
 	fun mirror(by: Mirror): FlexiDirection
 	fun rotate(by: Rotation): FlexiDirection
 	
-	class FlatDivision(val index: Int) : FlexiDirection {
+	class FlatDivision(val index: Int) : FlexiDirection, Comparable<FlatDivision> {
 		companion object {
 			const val DivisionCount = 32
 			val Divisions = (0 until DivisionCount).map { index -> FlatDivision(index) }
@@ -85,5 +88,8 @@ interface FlexiDirection {
 		
 		override fun rotate(by: Rotation): FlexiDirection =
 			Divisions[(2 * DivisionCount + index - by.ordinal * (DivisionCount / 2)) % DivisionCount]
+		
+		override fun compareTo(other: FlatDivision): Int =
+			index - other.index
 	}
 }
