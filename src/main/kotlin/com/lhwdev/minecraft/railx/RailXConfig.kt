@@ -15,7 +15,11 @@ object RailXConfig {
 			val enabled: BooleanValue = builder
 				.comment("Enables trains to have realistic speed")
 				.define("realistic_speed.enabled", true)
-			
+
+			val updateTickRate: IntValue = builder
+				.comment("How often physical values, such as mass, gravitational force, etc. are calculated")
+				.defineInRange("realistic_speed.update_tick_rate", 3, 1, Int.MAX_VALUE)
+
 			val brakeAcceleration: DoubleValue = builder
 				.comment("Define acceleration of brake; braking is disabled if set to 0.")
 				.defineInRange("realistic_speed.brake_acceleration", 1.3, 0.0, 100.0)
