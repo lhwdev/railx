@@ -5,6 +5,10 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "railx.refmap.json",
   "mixins": [
+    "flexiTrack.BlockAccessor",
+    "flexiTrack.LevelMixin",
+    "flexiTrack.TrackBlockEntityAccessor",
+    "flexiTrack.TrackBlockOutlineMixin",
     "realisticSpeed.TrainHUDMixin",
     "realisticSpeed.TrainMixin"
   ],
