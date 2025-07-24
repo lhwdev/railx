@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/railx.main.iml" filepath="$PROJECT_DIR$/.idea/modules/railx.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/railx.test.iml" filepath="$PROJECT_DIR$/.idea/modules/railx.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.iml" filepath="$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.main.iml" filepath="$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.test.iml" filepath="$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/railx.iml" filepath="$PROJECT_DIR$/.idea/modules/railx.iml" />
     </modules>
   </component>
 </project>
