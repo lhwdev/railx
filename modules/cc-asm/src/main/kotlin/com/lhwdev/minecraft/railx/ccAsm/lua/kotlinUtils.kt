@@ -1,6 +1,6 @@
 @file:Suppress("HasPlatformType")
 
-package com.lhwdev.minecraft.railx.ccAdvanced.handler.lua
+package com.lhwdev.minecraft.railx.ccAsm.lua
 
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
@@ -37,9 +37,9 @@ private object ReflectionInternal {
 
 internal val <R> KFunction<R>.defaultJavaMethod: Method?
 	get() = with(ReflectionInternal) {
-		val kCallableImpl = asKCallableImpl.invoke(this) ?: return null
-		val defaultCaller = KCallableImpl_defaultCaller.invoke(kCallableImpl) ?: return null
-		Caller_member.invoke(defaultCaller) as? Method
+		val kCallableImpl = ReflectionInternal.asKCallableImpl.invoke(this@defaultJavaMethod) ?: return null
+		val defaultCaller = ReflectionInternal.KCallableImpl_defaultCaller.invoke(kCallableImpl) ?: return null
+		ReflectionInternal.Caller_member.invoke(defaultCaller) as? Method
 	}
 
 

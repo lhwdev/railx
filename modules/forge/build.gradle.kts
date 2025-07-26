@@ -3,7 +3,7 @@ plugins {
 	id("maven-publish")
 	id("idea")
 	id("net.neoforged.moddev") version "2.0.95"
-	id("org.jetbrains.kotlin.jvm") version "2.0.0"
+	kotlin("jvm")
 }
 
 version = properties["mod_version"] as String
@@ -127,7 +127,7 @@ repositories {
 }
 
 dependencies {
-	implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
+	implementation(project(":cc-asm"))
 	
 	implementation("thedarkcolour:kotlinforforge-neoforge:5.3.0")
 	implementation("com.simibubi.create:create-${properties["minecraft_version"]}:6.0.6-98:slim") {
@@ -138,15 +138,6 @@ dependencies {
 	runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${properties["minecraft_version"]}:1.0.4-27")
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+62")
 	
-	// 1.21.1-1.115.1 does not exist in squiddev maven
-	implementation(files("libs/cc-tweaked-1.21.1-forge-1.115.1.jar"))
-	compileOnly(files("libs/cobalt-0.9.5.jar"))
-	// compileOnly("cc.tweaked:cc-tweaked-1.21-core-api:1.115.1")
-	// compileOnly("cc.tweaked:cc-tweaked-1.21-forge-api:1.115.1")
-	// runtimeOnly("cc.tweaked:cc-tweaked-1.21-forge:1.115.1")
-	// compileOnly("org.squiddev:Cobalt:0.9.6")
-	
-	implementation("org.ow2.asm:asm:9.+")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -165,7 +156,7 @@ var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
 		"mod_authors" to properties["mod_authors"],
 		"mod_description" to properties["mod_description"],
 	).mapValues { (_, v) -> v as String }
-	println(replaceProperties)
+	
 	inputs.properties(replaceProperties)
 	expand(replaceProperties)
 	from("src/main/templates")
@@ -183,8 +174,8 @@ neoForge.ideSyncTask(generateModMetadata)
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
 idea {
 	module {
-		// downloadSources = true
-		// downloadJavadoc = true
+		isDownloadSources = true
+		isDownloadJavadoc = true
 	}
 }
 

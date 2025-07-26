@@ -1,24 +1,23 @@
-package com.lhwdev.minecraft.railx.ccAdvanced.handler.lua
+package com.lhwdev.minecraft.railx.ccAsm.lua
 
-import com.lhwdev.minecraft.railx.ccAdvanced.handler.ComputerApi
-import com.lhwdev.minecraft.railx.ccAdvanced.handler.ComputerApiProxy
-import com.lhwdev.minecraft.railx.ccAdvanced.handler.ComputerState
-import com.lhwdev.minecraft.railx.ccAdvanced.handler.InvokeContext
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
+import com.lhwdev.minecraft.railx.ccAsm.ComputerApi
+import com.lhwdev.minecraft.railx.ccAsm.ComputerApiProxy
+import com.lhwdev.minecraft.railx.ccAsm.ComputerState
+import com.lhwdev.minecraft.railx.ccAsm.InvokeContext
+import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.*
-import org.objectweb.asm.Type
 import org.squiddev.cobalt.Varargs
 import java.lang.reflect.Modifier
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
 
 
 private object C {
 	val state = Type.getDescriptor(ComputerState::class.java)
 	val context = Type.getDescriptor(InvokeContext::class.java)
-	val proxy = Type.getDescriptor(ComputerApiProxy::class.java)
+	val proxy = Type.getType(ComputerApiProxy::class.java)
 	
 	val varargs = Type.getDescriptor(Varargs::class.java)
 	
@@ -29,7 +28,18 @@ private fun proxyName(className: String): String =
 	"$className\$Proxy"
 
 
-private fun ClassVisitor.addFunction(fn: KFunction<*>, context: ProcessContext) {
+fun generateProxyFromApi(from: KClass<*>): ByteArray = ClassWriter(0).apply {
+	visit(V12, ACC_PUBLIC, "${Type.getInternalName(from.java)}\$Proxy", null, C.proxy.internalName, null)
+	
+	from.memberFunctions.forEach { fn ->
+		addFunction(fn)
+	}
+	
+	visitEnd()
+}.toByteArray()
+
+private fun ClassVisitor.addFunction(fn: KFunction<*>) {
+	println(fn.name) /////////////////
 	val argumentCount = fn.parameters.size - 1
 	if(argumentCount > 16) throw IllegalStateException("number of arguments cannot exceed 16")
 	val optionalCount = fn.parameters.count { it.isOptional }

@@ -1,4 +1,4 @@
-val projects = listOf(":forge")
+val projects = listOf(":forge", ":cc-asm")
 
 projects.forEach { name ->
 	include(name)

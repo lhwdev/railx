@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.main.iml" filepath="$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.test.iml" filepath="$PROJECT_DIR$/.idea/modules/modules/forge/com.lhwdev.minecraft.railx.railx.forge.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/railx.iml" filepath="$PROJECT_DIR$/.idea/modules/railx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/modules/cc-asm/railx.cc-asm.test.iml" filepath="$PROJECT_DIR$/.idea/modules/modules/cc-asm/railx.cc-asm.test.iml" />
     </modules>
   </component>
 </project>

@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.ccAdvanced.handler
+package com.lhwdev.minecraft.railx.ccAsm
 
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
