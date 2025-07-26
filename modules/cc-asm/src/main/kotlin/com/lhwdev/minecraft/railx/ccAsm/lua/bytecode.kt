@@ -2,7 +2,6 @@ package com.lhwdev.minecraft.railx.ccAsm.lua
 
 import com.lhwdev.minecraft.railx.ccAsm.ComputerApi
 import com.lhwdev.minecraft.railx.ccAsm.ComputerApiProxy
-import com.lhwdev.minecraft.railx.ccAsm.ComputerState
 import com.lhwdev.minecraft.railx.ccAsm.InvokeContext
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.*
@@ -15,13 +14,10 @@ import kotlin.reflect.jvm.javaMethod
 
 
 private object C {
-	val state = Type.getDescriptor(ComputerState::class.java)
-	val context = Type.getDescriptor(InvokeContext::class.java)
+	val context = Type.getType(InvokeContext::class.java)
 	val proxy = Type.getType(ComputerApiProxy::class.java)
 	
 	val varargs = Type.getDescriptor(Varargs::class.java)
-	
-	val Function = "($context)$varargs"
 }
 
 private fun proxyName(className: String): String =
@@ -32,13 +28,13 @@ fun generateProxyFromApi(from: KClass<*>): ByteArray = ClassWriter(0).apply {
 	visit(V12, ACC_PUBLIC, "${Type.getInternalName(from.java)}\$Proxy", null, C.proxy.internalName, null)
 	
 	from.memberFunctions.forEach { fn ->
-		addFunction(fn)
+		addFunction(from.java, fn)
 	}
 	
 	visitEnd()
 }.toByteArray()
 
-private fun ClassVisitor.addFunction(fn: KFunction<*>) {
+private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 	println(fn.name) /////////////////
 	val argumentCount = fn.parameters.size - 1
 	if(argumentCount > 16) throw IllegalStateException("number of arguments cannot exceed 16")
@@ -53,7 +49,8 @@ private fun ClassVisitor.addFunction(fn: KFunction<*>) {
 	}
 	
 	// Varargs $name(Self self, InvokeContext context) { ... }
-	visitMethod(ACC_PUBLIC + ACC_STATIC, "$${method.name}", C.Function, null, null).apply {
+	val self = Type.getDescriptor(parent)
+	visitMethod(ACC_PUBLIC + ACC_STATIC, "$${method.name}", "($self${C.context})${C.varargs}", null, null).apply {
 		visitCode()
 		
 		val startLabel = Label()
@@ -64,7 +61,7 @@ private fun ClassVisitor.addFunction(fn: KFunction<*>) {
 		val contextIndex = 1
 		
 		fun visitInvokeContextInsn(name: String, descriptor: String) {
-			visitMethodInsn(INVOKEVIRTUAL, C.context, name, descriptor, false)
+			visitMethodInsn(INVOKEVIRTUAL, C.context.internalName, name, descriptor, false)
 		}
 		
 		/// context.argumentsCount(n) / context.argumentsCount(min, max)
@@ -72,11 +69,11 @@ private fun ClassVisitor.addFunction(fn: KFunction<*>) {
 			visitVarInsn(ALOAD, contextIndex)
 			visitIntConstInsn(optionalCount)
 			visitIntConstInsn(fn.parameters.size)
-			visitMethodInsn(INVOKEVIRTUAL, C.context, "argumentsCount", "(II)V", false)
+			visitInvokeContextInsn("argumentsCount", "(II)V")
 		} else {
 			visitVarInsn(ALOAD, contextIndex)
 			visitIntConstInsn(argumentCount)
-			visitMethodInsn(INVOKEVIRTUAL, C.context, "argumentsCount", "(I)V", false)
+			visitInvokeContextInsn("argumentsCount", "(I)V")
 		}
 		
 		val flagsIndex = contextIndex + if(hasOptional) 1 else 0
@@ -177,7 +174,14 @@ private fun ClassVisitor.addFunction(fn: KFunction<*>) {
 				visitFrame(F_SAME1, 0, null, 1, arrayOf(asmType.frame))
 			}
 			visitVarInsn(asmType.getOpcode(ISTORE), localIndex)
-			visitLocalVariable(argument.name, asmType.descriptor, null, startLabel, endLabel, localIndex)
+			visitLocalVariable(
+				parameter.name ?: argument.name,
+				asmType.descriptor,
+				null,
+				startLabel,
+				endLabel,
+				localIndex
+			)
 			localIndex += asmType.size
 		}
 		
@@ -246,11 +250,11 @@ private val BoxedPrimitives: Map<Class<*>, MethodVisitor.() -> Unit> = listOf(
 	Char::class,
 ).associate { type ->
 	val objectType = type.javaObjectType
-	val objectDescriptor = Type.getDescriptor(objectType)
-	val boxDescriptor = "(${Type.getDescriptor(type.java)})$objectDescriptor"
+	val asmObject = Type.getType(objectType)
+	val boxDescriptor = "(${Type.getDescriptor(type.java)})${asmObject.descriptor}"
 	
 	objectType to {
-		visitMethodInsn(INVOKESTATIC, objectDescriptor, "valueOf", boxDescriptor, false)
+		visitMethodInsn(INVOKESTATIC, asmObject.internalName, "valueOf", boxDescriptor, false)
 	}
 }
 

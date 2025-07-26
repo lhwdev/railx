@@ -9,9 +9,8 @@ interface Hello {
 
 fun main() {
 	val bytes = generateProxyFromApi(Hello::class)
-	FileOutputStream("Hello.class").also {
+	FileOutputStream("Hello\$Proxy.class").also {
 		it.write(bytes)
 		it.flush()
-		it.close()
 	}
 }

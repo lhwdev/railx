@@ -14,4 +14,5 @@ dependencies {
 	// compileOnly("cc.tweaked:cc-tweaked-1.21-forge-api:1.115.1")
 	// runtimeOnly("cc.tweaked:cc-tweaked-1.21-forge:1.115.1")
 	// compileOnly("org.squiddev:Cobalt:0.9.6")
+	testImplementation(files("../../libs/cobalt-0.9.5.jar"))
 }
