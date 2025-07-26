@@ -1,10 +1,3 @@
-val projects = listOf(":forge", ":cc-asm")
-
-projects.forEach { name ->
-	include(name)
-	project(name).projectDir = file("modules${name.replace(":", "/")}")
-}
-
 pluginManagement {
 	repositories {
 		gradlePluginPortal()
@@ -14,4 +7,11 @@ pluginManagement {
 
 plugins {
 	id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}
+
+val projects = listOf(":forge", ":cc-asm")
+
+projects.forEach { name ->
+	include(name)
+	project(name).projectDir = file("modules${name.replace(":", "/")}")
 }

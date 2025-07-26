@@ -5,6 +5,7 @@ import com.lhwdev.minecraft.railx.ccAsm.ComputerApiProxy
 import com.lhwdev.minecraft.railx.ccAsm.InvokeContext
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.util.CheckClassAdapter
 import org.squiddev.cobalt.Varargs
 import java.lang.reflect.Modifier
 import kotlin.math.max
@@ -21,25 +22,32 @@ private object C {
 	val varargs = Type.getDescriptor(Varargs::class.java)
 }
 
-private fun proxyName(className: String): String =
-	"$className\$Proxy"
+private fun proxyName(type: Class<*>): String =
+	"${Type.getInternalName(type)}\$Proxy"
 
 
-fun generateProxyFromApi(from: KClass<*>): ByteArray = ClassWriter(0).apply {
-	visit(V12, ACC_PUBLIC, "${Type.getInternalName(from.java)}\$Proxy", null, C.proxy.internalName, null)
+fun generateProxyFromApi(from: KClass<*>): ByteArray {
+	val writer = ClassWriter(0)
+	CheckClassAdapter(writer, true).doGenerateProxyFromApi(from)
 	
-	from.memberFunctions.forEach { fn ->
+	return writer.toByteArray()
+}
+
+private fun ClassVisitor.doGenerateProxyFromApi(from: KClass<*>) {
+	visit(V12, ACC_PUBLIC, proxyName(from.java), null, C.proxy.internalName, null)
+	
+	from.memberFunctions.filter { it.javaMethod?.declaringClass != Any::class.java }.forEach { fn ->
 		addFunction(from.java, fn)
 	}
 	
 	visitEnd()
-}.toByteArray()
+}
 
 private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
-	println(fn.name) /////////////////
-	val argumentCount = fn.parameters.size - 1
+	val parameters = fn.parameters.drop(1)
+	val argumentCount = parameters.size
 	if(argumentCount > 16) throw IllegalStateException("number of arguments cannot exceed 16")
-	val optionalCount = fn.parameters.count { it.isOptional }
+	val optionalCount = parameters.count { it.isOptional }
 	val hasOptional = optionalCount > 0
 	val method = if(hasOptional) {
 		fn.defaultJavaMethod!!.also { check(it.parameterCount == argumentCount + 2) }
@@ -51,7 +59,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 	
 	// Varargs $name(Self self, InvokeContext context) { ... }
 	val self = Type.getDescriptor(parent)
-	visitMethod(ACC_PUBLIC + ACC_STATIC, "$${method.name}", "($self${C.context})${C.varargs}", null, null).apply {
+	visitMethod(ACC_PUBLIC + ACC_STATIC, "$${method.name}", "($self${C.context})${C.varargs}", null, null)?.apply {
 		visitCode()
 		
 		val startLabel = Label()
@@ -61,6 +69,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		val selfIndex = 0
 		val contextIndex = 1
 		
+		
 		fun visitInvokeContextInsn(name: String, descriptor: String) {
 			visitMethodInsn(INVOKEVIRTUAL, C.context.internalName, name, descriptor, false)
 		}
@@ -69,7 +78,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		if(hasOptional) {
 			visitVarInsn(ALOAD, contextIndex)
 			visitIntConstInsn(optionalCount)
-			visitIntConstInsn(fn.parameters.size)
+			visitIntConstInsn(argumentCount)
 			visitInvokeContextInsn("argumentsCount", "(II)V")
 		} else {
 			visitVarInsn(ALOAD, contextIndex)
@@ -88,13 +97,19 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		var localIndex = firstIndex
 		var maxStack = 3
 		
-		for(index in 0..<argumentCount) {
-			val parameter = fn.parameters[index]
+		var previousLocalFlushIndex = 0
+		val localFrames = mutableListOf<Any>()
+		val argumentStartLabels = mutableListOf<Label>()
+		
+		for((index, parameter) in parameters.withIndex()) {
 			val argument = method.parameters[index]
 			val type = argument.type
 			val asmType = Type.getType(type)
 			
+			val argumentStartLabel = Label()
 			val argumentEndLabel = Label()
+			visitLabel(argumentStartLabel)
+			argumentStartLabels += argumentStartLabel
 			
 			// checkIsOptional: same, () -> (resultToStore)
 			if(parameter.isOptional) {
@@ -108,7 +123,8 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				
 				val continueLabel = Label()
 				visitJumpInsn(IFNE, continueLabel)
-				visitFrame(F_SAME, 0, null, 0, null)
+				visitFlushFrameLocals(locals = localFrames.toTypedArray(), delta = index - previousLocalFlushIndex)
+				previousLocalFlushIndex = index
 				
 				/// else <defaultValueOfType> // stack = [] -> [argN]
 				visitDefaultValueOfType(type)
@@ -125,7 +141,8 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				
 				val continueLabel = Label()
 				visitJumpInsn(IFEQ, continueLabel)
-				visitFrame(F_SAME, 0, null, 0, null)
+				visitFlushFrameLocals(locals = localFrames.toTypedArray(), delta = index - previousLocalFlushIndex)
+				previousLocalFlushIndex = index
 				
 				/// else <defaultValueOfType> // stack = [] -> [argN]
 				visitInsn(ACONST_NULL)
@@ -145,7 +162,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 					Byte::class.java -> visitInvokeContextInsn("byte", "(I)B")
 					Short::class.java -> visitInvokeContextInsn("short", "(I)S")
 					Int::class.java -> visitInvokeContextInsn("int", "(I)I")
-					Long::class.java -> visitInvokeContextInsn("long", "(I)L")
+					Long::class.java -> visitInvokeContextInsn("long", "(I)J")
 					Float::class.java -> visitInvokeContextInsn("float", "(I)F")
 					Double::class.java -> visitInvokeContextInsn("double", "(I)D")
 					Char::class.java -> visitInvokeContextInsn("char", "(I)C")
@@ -166,12 +183,12 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				type == List::class.java -> visitInvokeContextInsn("list", "(I)Ljava/util/List;")
 				
 				type.isAnnotationPresent(ComputerApi::class.java) -> {
-					val name = proxyName(Type.getDescriptor(type))
-					visitFieldInsn(GETSTATIC, name, "INSTANCE", name)
+					val name = proxyName(type)
+					visitFieldInsn(GETSTATIC, name, "INSTANCE", "L$name;")
 					visitInvokeContextInsn("apiInterface", "(I${C.proxy})Ljava/lang/Object;")
 				}
 				
-				else -> IllegalStateException("unsupported argument type $type")
+				else -> throw IllegalStateException("unsupported argument type $type for ${index}th parameter of $fn")
 			}
 			
 			if(parameter.isOptional || parameter.type.isMarkedNullable) {
@@ -179,16 +196,11 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				visitFrame(F_SAME1, 0, null, 1, arrayOf(asmType.frame))
 			}
 			visitVarInsn(asmType.getOpcode(ISTORE), localIndex)
-			visitLocalVariable(
-				parameter.name ?: argument.name,
-				asmType.descriptor,
-				null,
-				startLabel,
-				endLabel,
-				localIndex
-			)
+			println("arg[$index] index=$localIndex name=${parameter.name} ?: ${argument.name}")
 			localIndex += asmType.size
+			localFrames += asmType.frame
 		}
+		val maxLocals = localIndex
 		
 		/// self.name(arg1, arg2, ...)
 		visitVarInsn(ALOAD, selfIndex)
@@ -228,12 +240,32 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 			visitVarInsn(ALOAD, contextIndex) // stack = [result, context]
 			visitInsn(SWAP) // stack = [context, result]
 			visitInvokeContextInsn("wrapReturn", "(${asmType.descriptor})${C.varargs}")
-			visitInsn(RETURN)
+			visitInsn(ARETURN)
+		} else {
+			visitInsn(ACONST_NULL)
+			visitInsn(ARETURN)
 		}
 		
 		visitLabel(endLabel)
 		
-		visitMaxs(maxStack, firstIndex + method.parameterCount)
+		visitLocalVariable("self", self, null, startLabel, endLabel, selfIndex)
+		visitLocalVariable("context", C.context.descriptor, null, startLabel, endLabel, contextIndex)
+		
+		localIndex = firstIndex
+		for((index, parameter) in parameters.withIndex()) {
+			val argument = method.parameters[index]
+			visitLocalVariable(
+				parameter.name ?: argument.name,
+				Type.getDescriptor(argument.type),
+				null,
+				argumentStartLabels[index],
+				endLabel,
+				localIndex
+			)
+			localIndex += Type.getType(argument.type).size
+		}
+		
+		visitMaxs(maxStack, maxLocals)
 		visitEnd()
 	}
 }
@@ -286,3 +318,11 @@ private val Type.frame: Any
 		Type.DOUBLE_TYPE -> DOUBLE
 		else -> internalName
 	}
+
+private fun MethodVisitor.visitFlushFrameLocals(locals: Array<Any>, delta: Int, previousStacks: Array<Any> = emptyArray()) {
+	when {
+		delta > 3 || delta < -3 -> visitFrame(F_FULL, locals.size, locals, previousStacks.size, previousStacks)
+		delta > 0 -> visitFrame(F_APPEND, delta, locals.takeLast(delta).toTypedArray(), 0, null)
+		delta < 0 -> visitFrame(F_CHOP, delta, null, previousStacks.size, previousStacks)
+	}
+}

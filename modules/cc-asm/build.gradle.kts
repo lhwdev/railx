@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
 	implementation("org.ow2.asm:asm:9.+")
+	implementation("org.ow2.asm:asm-util:9.+")
 	
 	implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
 	
