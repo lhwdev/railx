@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="test cc-asm" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="MainKt" />
+    <module name="railx.cc-asm.test" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/modules/cc-asm/run" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

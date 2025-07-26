@@ -13,9 +13,6 @@ base {
 	archivesName.set(properties["mod_id"] as String)
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-kotlin.jvmToolchain(21)
-
 neoForge {
 	version = properties["neo_version"] as String
 	

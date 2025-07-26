@@ -14,7 +14,7 @@ private object ReflectionInternal {
 	val lookup = MethodHandles.lookup() // internal class is effectively public in jvm
 	
 	val KCallableImpl = Class.forName("$root.KCallableImpl")
-	val Caller = Class.forName("$root.utils.Caller")
+	val Caller = Class.forName("$root.calls.Caller")
 	
 	val asKCallableImpl = lookup.findStatic(
 		Class.forName("$root.UtilKt"),
@@ -25,13 +25,13 @@ private object ReflectionInternal {
 	val KCallableImpl_defaultCaller = lookup.findVirtual(
 		KCallableImpl,
 		"getDefaultCaller",
-		MethodType.methodType(Caller, KCallableImpl),
+		MethodType.methodType(Caller),
 	)
 	
 	val Caller_member = lookup.findVirtual(
 		Caller,
 		"getMember",
-		MethodType.methodType(Member::class.java, Caller),
+		MethodType.methodType(Member::class.java),
 	)
 }
 

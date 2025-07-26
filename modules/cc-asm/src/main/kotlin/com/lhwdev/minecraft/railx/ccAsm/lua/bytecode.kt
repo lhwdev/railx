@@ -1,12 +1,13 @@
 package com.lhwdev.minecraft.railx.ccAsm.lua
 
 import com.lhwdev.minecraft.railx.ccAsm.ComputerApi
-import com.lhwdev.minecraft.railx.ccAsm.ComputerApiProxy
+import com.lhwdev.minecraft.railx.ccAsm.ComputerApiItem
 import com.lhwdev.minecraft.railx.ccAsm.InvokeContext
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.util.CheckClassAdapter
 import org.squiddev.cobalt.Varargs
+import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.math.max
 import kotlin.reflect.KClass
@@ -15,30 +16,106 @@ import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
 
 
+val ProxyInstanceName = "INSTANCE"
+
+private fun proxyFunctionName(methodName: String): String =
+	"$$methodName"
+
 private object C {
 	val context = Type.getType(InvokeContext::class.java)
-	val proxy = Type.getType(ComputerApiProxy::class.java)
+	val item = Type.getType(ComputerApiItem::class.java)
+	
+	object Item {
+		val obj = Type.getType(ComputerApiItem.Object::class.java)
+		val function = Type.getType(ComputerApiItem.Function::class.java)
+	}
 	
 	val varargs = Type.getDescriptor(Varargs::class.java)
 }
 
-private fun proxyName(type: Class<*>): String =
-	"${Type.getInternalName(type)}\$Proxy"
+private fun proxyType(type: Class<*>): Type =
+	Type.getType("L${Type.getInternalName(type)}\$Proxy;")
 
 
-fun generateProxyFromApi(from: KClass<*>): ByteArray {
+fun generateProxyFromApi(from: KClass<*>): GeneratedProxy {
 	val writer = ClassWriter(0)
 	CheckClassAdapter(writer, true).doGenerateProxyFromApi(from)
 	
-	return writer.toByteArray()
+	return GeneratedProxy(
+		name = "${from.java.name}\$Proxy",
+		bytes = writer.toByteArray()
+	)
 }
 
+class GeneratedProxy(val name: String, val bytes: ByteArray)
+
 private fun ClassVisitor.doGenerateProxyFromApi(from: KClass<*>) {
-	visit(V12, ACC_PUBLIC, proxyName(from.java), null, C.proxy.internalName, null)
+	val proxyClass = proxyType(from.java)
 	
-	from.memberFunctions.filter { it.javaMethod?.declaringClass != Any::class.java }.forEach { fn ->
+	val functionTargets = from.memberFunctions.filter { it.javaMethod?.declaringClass != Any::class.java }
+	
+	visit(V12, ACC_PUBLIC, proxyClass.internalName, null, C.Item.obj.internalName, null)
+	
+	visitField(ACC_PUBLIC + ACC_STATIC, ProxyInstanceName, proxyClass.descriptor, null, null)
+	
+	visitField(ACC_PRIVATE, "items", "Ljava/util/List;", "Ljava/util/List<${C.item}>;", null)
+	
+	visitMethod(ACC_PRIVATE, "<init>", "()V", null, null)?.apply {
+		visitCode()
+		visitVarInsn(ALOAD, 0)
+		visitMethodInsn(INVOKESPECIAL, C.Item.obj.internalName, "<init>", "()V", false)
+		
+		visitIntConstInsn(functionTargets.size)
+		visitTypeInsn(ANEWARRAY, C.item.internalName)
+		
+		val proxyFunctionDescriptor = "($proxyClass${C.context})${C.varargs}"
+		for(fn in functionTargets) {
+			visitInsn(DUP) // +array -> aastore
+			visitInsn() // +index -> aastore
+			
+			visitTypeInsn(NEW, C.Item.function.internalName)
+			visitInsn(DUP)
+			visitLdcInsn(fn.name)
+			visitLdcInsn(
+				Handle(
+					H_INVOKESTATIC,
+					proxyClass.internalName,
+					proxyFunctionName(fn.javaMethod!!.name),
+					proxyFunctionDescriptor,
+					false
+				)
+			)
+			visitMethodInsn(
+				INVOKESPECIAL,
+				C.Item.function.internalName,
+				"<init>",
+				"(Ljava/lang/String;Ljava/lang/invoke/MethodHandle;)V",
+				false
+			) // +value -> aastore
+			
+			visitInsn(AASTORE)
+		}
+		
+		visitInsn(RETURN)
+		visitMaxs(1, 1)
+		visitEnd()
+	}
+	
+	visitMethod(ACC_STATIC, "<clinit>", "()V", null, null)?.apply {
+		visitCode()
+		visitTypeInsn(NEW, proxyClass.internalName)
+		visitInsn(DUP)
+		visitMethodInsn(INVOKESPECIAL, proxyClass.internalName, "<init>", "()V", false)
+		visitFieldInsn(PUTSTATIC, proxyClass.internalName, ProxyInstanceName, proxyClass.descriptor)
+		visitInsn(RETURN)
+		visitMaxs(2, 0)
+		visitEnd()
+	}
+	
+	functionTargets.forEach { fn ->
 		addFunction(from.java, fn)
 	}
+	
 	
 	visitEnd()
 }
@@ -49,17 +126,59 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 	if(argumentCount > 16) throw IllegalStateException("number of arguments cannot exceed 16")
 	val optionalCount = parameters.count { it.isOptional }
 	val hasOptional = optionalCount > 0
-	val method = if(hasOptional) {
-		fn.defaultJavaMethod!!.also { check(it.parameterCount == argumentCount + 2) }
-	} else fn.javaMethod!!
 	
-	if(Modifier.isStatic(method.modifiers)) {
+	val originalMethod: Method
+	val method: Method
+	val methodArgumentIndex: Int
+	if(hasOptional) {
+		// Some description around default function: These are all possible shapes.
+		// 1. class FileKt { static void hello(a: Int = 3); static void hello$default(a, flags, marker) }
+		// 2. abstract? class Abc { abstract void hello(a: Int = 3); void hello$default(a, flags, marker) }
+		// 3. interface Def { void hello(a: Int = 3); public static class DefaultImpls { static void hello$default(self: Def, a, flags, marker) } }
+		var default = fn.defaultJavaMethod
+		originalMethod = fn.javaMethod!!
+		// // uncomment if KT-36854 is fixed: https://youtrack.jetbrains.com/issue/KT-36854
+		// //   - KotlinReflectionInternalError on invoking callBy on interface member with default argument value
+		// //   - I wonder why they didn't fix such an easy thingy
+		// if(!Modifier.isStatic(original.modifiers) && Modifier.isStatic(method.modifiers)) {
+		// 	check(method.parameterCount == original.parameterCount + 3) { "unexpected default method shape; kotlin version updated" }
+		// 	check(
+		// 		method.parameterTypes.contentEquals(
+		// 			arrayOf(parent, *original.parameterTypes, Int::class.java, Any::class.java)
+		// 		)
+		// 	) { "unexpected default method shape; kotlin version updated" }
+		// 	1
+		// } else {
+		// 	0
+		// }
+		if(default == null) {
+			check(parent.isInterface)
+			default = Class.forName("${parent.name}\$DefaultImpls")
+				.getDeclaredMethod(
+					"${originalMethod.name}\$default",
+					parent, *originalMethod.parameterTypes, Int::class.java, Any::class.java
+				)
+			methodArgumentIndex = 1
+		} else {
+			methodArgumentIndex = 0
+		}
+		method = default
+		
+	} else {
+		method = fn.javaMethod!!
+		originalMethod = method
+		methodArgumentIndex = 0
+	}
+	
+	if(Modifier.isStatic(originalMethod.modifiers)) {
 		throw IllegalStateException("expected non-static kotlin function")
 	}
 	
 	// Varargs $name(Self self, InvokeContext context) { ... }
 	val self = Type.getDescriptor(parent)
-	visitMethod(ACC_PUBLIC + ACC_STATIC, "$${method.name}", "($self${C.context})${C.varargs}", null, null)?.apply {
+	val proxyFunctionName = proxyFunctionName(method.name)
+	val proxyFunctionDescriptor = "($self${C.context})${C.varargs}"
+	visitMethod(ACC_PUBLIC + ACC_STATIC, proxyFunctionName, proxyFunctionDescriptor, null, null)?.apply {
 		visitCode()
 		
 		val startLabel = Label()
@@ -86,11 +205,13 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 			visitInvokeContextInsn("argumentsCount", "(I)V")
 		}
 		
+		val defineFlagLabel = Label()
 		val flagsIndex = contextIndex + if(hasOptional) 1 else 0
 		if(hasOptional) { /// var flags = 0
 			visitInsn(ICONST_0)
 			visitVarInsn(ISTORE, flagsIndex)
-			visitLocalVariable("flags", "I", null, startLabel, endLabel, flagsIndex)
+			visitLabel(defineFlagLabel)
+			visitFrame(F_APPEND, 1, arrayOf(INTEGER), 0, null)
 		}
 		
 		val firstIndex = flagsIndex + 1
@@ -99,17 +220,14 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		
 		var previousLocalFlushIndex = 0
 		val localFrames = mutableListOf<Any>()
-		val argumentStartLabels = mutableListOf<Label>()
+		val argumentEndLabels = mutableListOf<Label>()
 		
 		for((index, parameter) in parameters.withIndex()) {
-			val argument = method.parameters[index]
+			val argument = method.parameters[methodArgumentIndex + index]
 			val type = argument.type
 			val asmType = Type.getType(type)
 			
-			val argumentStartLabel = Label()
 			val argumentEndLabel = Label()
-			visitLabel(argumentStartLabel)
-			argumentStartLabels += argumentStartLabel
 			
 			// checkIsOptional: same, () -> (resultToStore)
 			if(parameter.isOptional) {
@@ -118,7 +236,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				//          :continue push (parse value); :argumentEnd store
 				visitVarInsn(ALOAD, contextIndex)
 				visitIntConstInsn(index)
-				visitInsn(if(parameter.type.isMarkedNullable) 1 else 0)
+				visitIntConstInsn(if(parameter.type.isMarkedNullable) 1 else 0)
 				visitInvokeContextInsn("hasOptional", "(IZ)Z")
 				
 				val continueLabel = Label()
@@ -156,8 +274,9 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 			visitVarInsn(ALOAD, contextIndex)
 			visitIntConstInsn(index)
 			
-			fun getPrimitive() {
-				when(type) {
+			when {
+				/// context.<type>(index)
+				type.isPrimitive -> when(type) {
 					Boolean::class.java -> visitInvokeContextInsn("boolean", "(I)Z")
 					Byte::class.java -> visitInvokeContextInsn("byte", "(I)B")
 					Short::class.java -> visitInvokeContextInsn("short", "(I)S")
@@ -166,16 +285,21 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 					Float::class.java -> visitInvokeContextInsn("float", "(I)F")
 					Double::class.java -> visitInvokeContextInsn("double", "(I)D")
 					Char::class.java -> visitInvokeContextInsn("char", "(I)C")
-					else -> NoWhenBranchMatchedException("unknown primitive type $type")
+					else -> throw NoWhenBranchMatchedException("unknown primitive type $type")
 				}
-			}
-			
-			when {
-				/// context.<type>(index)
-				type.isPrimitive -> getPrimitive()
 				
 				type in BoxedPrimitives.keys -> {
-					getPrimitive()
+					when(type) {
+						Boolean::class.javaObjectType -> visitInvokeContextInsn("boolean", "(I)Z")
+						Byte::class.javaObjectType -> visitInvokeContextInsn("byte", "(I)B")
+						Short::class.javaObjectType -> visitInvokeContextInsn("short", "(I)S")
+						Int::class.javaObjectType -> visitInvokeContextInsn("int", "(I)I")
+						Long::class.javaObjectType -> visitInvokeContextInsn("long", "(I)J")
+						Float::class.javaObjectType -> visitInvokeContextInsn("float", "(I)F")
+						Double::class.javaObjectType -> visitInvokeContextInsn("double", "(I)D")
+						Char::class.javaObjectType -> visitInvokeContextInsn("char", "(I)C")
+						else -> throw NoWhenBranchMatchedException("unknown primitive type $type")
+					}
 					BoxedPrimitives[type]!!()
 				}
 				
@@ -183,9 +307,9 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				type == List::class.java -> visitInvokeContextInsn("list", "(I)Ljava/util/List;")
 				
 				type.isAnnotationPresent(ComputerApi::class.java) -> {
-					val name = proxyName(type)
-					visitFieldInsn(GETSTATIC, name, "INSTANCE", "L$name;")
-					visitInvokeContextInsn("apiInterface", "(I${C.proxy})Ljava/lang/Object;")
+					val argType = proxyType(type)
+					visitFieldInsn(GETSTATIC, argType.internalName, ProxyInstanceName, argType.descriptor)
+					visitInvokeContextInsn("apiInterface", "(I${C.Item.obj})Ljava/lang/Object;")
 				}
 				
 				else -> throw IllegalStateException("unsupported argument type $type for ${index}th parameter of $fn")
@@ -196,9 +320,12 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				visitFrame(F_SAME1, 0, null, 1, arrayOf(asmType.frame))
 			}
 			visitVarInsn(asmType.getOpcode(ISTORE), localIndex)
-			println("arg[$index] index=$localIndex name=${parameter.name} ?: ${argument.name}")
 			localIndex += asmType.size
 			localFrames += asmType.frame
+			
+			val localScopeStartLabel = Label()
+			visitLabel(localScopeStartLabel)
+			argumentEndLabels += localScopeStartLabel
 		}
 		val maxLocals = localIndex
 		
@@ -207,7 +334,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		
 		localIndex = firstIndex
 		for(index in 0 until argumentCount) { // argN
-			val type = method.parameterTypes[index]
+			val type = method.parameterTypes[methodArgumentIndex + index]
 			val asmType = Type.getType(type)
 			visitVarInsn(asmType.getOpcode(ILOAD), localIndex)
 			localIndex += asmType.size
@@ -222,6 +349,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		}
 		
 		val invokeInsn = when {
+			Modifier.isStatic(method.modifiers) -> INVOKESTATIC
 			method.declaringClass.isInterface -> INVOKEINTERFACE
 			else -> INVOKEVIRTUAL
 		}
@@ -250,15 +378,16 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		
 		visitLocalVariable("self", self, null, startLabel, endLabel, selfIndex)
 		visitLocalVariable("context", C.context.descriptor, null, startLabel, endLabel, contextIndex)
+		if(hasOptional) visitLocalVariable("flags", "I", null, defineFlagLabel, endLabel, flagsIndex)
 		
 		localIndex = firstIndex
 		for((index, parameter) in parameters.withIndex()) {
-			val argument = method.parameters[index]
+			val argument = method.parameters[methodArgumentIndex + index]
 			visitLocalVariable(
 				parameter.name ?: argument.name,
 				Type.getDescriptor(argument.type),
 				null,
-				argumentStartLabels[index],
+				argumentEndLabels[index],
 				endLabel,
 				localIndex
 			)
@@ -279,6 +408,8 @@ private fun MethodVisitor.visitIntConstInsn(value: Int) {
 		3 -> visitInsn(ICONST_3)
 		4 -> visitInsn(ICONST_4)
 		5 -> visitInsn(ICONST_5)
+		in 0..Byte.MAX_VALUE -> visitIntInsn(BIPUSH, value)
+		in 0..Short.MAX_VALUE -> visitIntInsn(BIPUSH, value)
 		else -> visitLdcInsn(value)
 	}
 }
@@ -319,7 +450,11 @@ private val Type.frame: Any
 		else -> internalName
 	}
 
-private fun MethodVisitor.visitFlushFrameLocals(locals: Array<Any>, delta: Int, previousStacks: Array<Any> = emptyArray()) {
+private fun MethodVisitor.visitFlushFrameLocals(
+	locals: Array<Any>,
+	delta: Int,
+	previousStacks: Array<Any> = emptyArray(),
+) {
 	when {
 		delta > 3 || delta < -3 -> visitFrame(F_FULL, locals.size, locals, previousStacks.size, previousStacks)
 		delta > 0 -> visitFrame(F_APPEND, delta, locals.takeLast(delta).toTypedArray(), 0, null)
