@@ -7,6 +7,7 @@ import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.*
 import org.squiddev.cobalt.Varargs
 import java.lang.reflect.Modifier
+import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.memberFunctions
@@ -85,6 +86,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		
 		val firstIndex = flagsIndex + 1
 		var localIndex = firstIndex
+		var maxStack = 3
 		
 		for(index in 0..<argumentCount) {
 			val parameter = fn.parameters[index]
@@ -160,6 +162,9 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 					BoxedPrimitives[type]!!()
 				}
 				
+				type == String::class.java -> visitInvokeContextInsn("string", "(I)Ljava/lang/String;")
+				type == List::class.java -> visitInvokeContextInsn("list", "(I)Ljava/util/List;")
+				
 				type.isAnnotationPresent(ComputerApi::class.java) -> {
 					val name = proxyName(Type.getDescriptor(type))
 					visitFieldInsn(GETSTATIC, name, "INSTANCE", name)
@@ -199,6 +204,9 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		if(hasOptional) {
 			visitVarInsn(ILOAD, flagsIndex) // flags
 			visitInsn(ACONST_NULL) // marker
+			maxStack = max(maxStack, 1 + (localIndex - firstIndex) + 2) // self + args + optional
+		} else {
+			maxStack = max(maxStack, 1 + (localIndex - firstIndex))
 		}
 		
 		val invokeInsn = when {
@@ -225,7 +233,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		
 		visitLabel(endLabel)
 		
-		visitMaxs(1, firstIndex + method.parameterCount)
+		visitMaxs(maxStack, firstIndex + method.parameterCount)
 		visitEnd()
 	}
 }
