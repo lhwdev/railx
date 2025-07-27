@@ -88,7 +88,9 @@ class FlexiTrackBlock(
 	init {
 		val stateDefinition = StateDefinition.Builder<Block, BlockState>(this).let { builder ->
 			createBlockStateDefinition(builder)
-			builder.create(Block::defaultBlockState, ::FlexiBlockState)
+			builder.create(Block::defaultBlockState) { block, values, propertiesCodec ->
+				FlexiBlockState(block, values, propertiesCodec, FlexiShape.Empty)
+			}
 		}
 		@Suppress("CAST_NEVER_SUCCEEDS")
 		(this as BlockAccessor).setStateDefinition(stateDefinition)
@@ -99,6 +101,9 @@ class FlexiTrackBlock(
 				.setValue(Waterlogged, false)
 		)
 	}
+	
+	private val BlockState.flexi: FlexiBlockState
+		get() = this as FlexiBlockState
 	
 	override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
 		super.createBlockStateDefinition(builder.add(/* BaseDirection,  */Waterlogged))
@@ -341,10 +346,10 @@ class FlexiTrackBlock(
 		FlexiTrackBlockEntity::class.java
 	
 	override fun getUpNormal(world: BlockGetter, pos: BlockPos, state: BlockState): Vec3 =
-		flexiShape(world, pos).normal
+		state.flexi.shape.normal
 	
 	override fun getTrackAxes(world: BlockGetter, pos: BlockPos, state: BlockState): List<Vec3> =
-		flexiShape(world, pos).tangents
+		state.flexi.shape.tangents
 	
 	override fun getCurveStart(world: BlockGetter, pos: BlockPos, state: BlockState, axis: Vec3): Vec3 {
 		val vertical = axis.y != 0.0
@@ -375,10 +380,10 @@ class FlexiTrackBlock(
 		existing
 	
 	override fun rotate(state: BlockState, rotation: Rotation): BlockState =
-		(state as FlexiBlockState).mapShape { it.rotate(rotation) }
+		state.flexi.mapShape { it.rotate(rotation) }
 	
 	override fun mirror(state: BlockState, mirror: Mirror): BlockState =
-		(state as FlexiBlockState).mapShape { it.mirror(mirror) }
+		state.flexi.mapShape { it.mirror(mirror) }
 	
 	override fun getBogeyAnchor(world: BlockGetter, pos: BlockPos, state: BlockState): BlockState =
 		CreateBlocks.SMALL_BOGEY.defaultState

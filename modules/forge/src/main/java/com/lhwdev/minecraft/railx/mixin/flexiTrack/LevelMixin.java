@@ -20,10 +20,10 @@ public class LevelMixin {
 	)
 	BlockState onSetBlock(BlockState state, BlockPos pos) {
 		Level level = (Level) (Object) this;
-		if(state instanceof FlexiBlockState flexiState) {
-			return flexiState.setStateOnLevel(level, pos);
-		} else {
+//		if(state instanceof FlexiBlockState flexiState) {
+//			return flexiState.setStateOnLevel(level, pos);
+//		} else {
 			return state;
-		}
+//		}
 	}
 }

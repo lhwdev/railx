@@ -7,7 +7,7 @@
   "mixins": [
     "ccAdvanced.CarriageMixin",
     "flexiTrack.BlockAccessor",
-    "flexiTrack.LevelMixin",
+    "flexiTrack.GameDataMixin",
     "flexiTrack.TrackBlockEntityAccessor",
     "flexiTrack.TrackBlockOutlineMixin",
     "realisticSpeed.TrainHUDMixin",
