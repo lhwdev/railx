@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.utils.floorMod
 import com.lhwdev.minecraft.railx.utils.isNormalized
 import com.lhwdev.minecraft.railx.utils.mirror
 import com.lhwdev.minecraft.railx.utils.rotate
@@ -60,7 +61,7 @@ interface FlexiDirection {
 			val Divisions = (0 until DivisionCount).map { index -> Known(index) }
 			
 			fun roundFromAngle(radian: Double): Known {
-				val index = DivisionCount * (radian % PI) / PI
+				val index = DivisionCount * (radian floorMod PI) / PI
 				return Divisions[index.roundToInt() % DivisionCount]
 			}
 			

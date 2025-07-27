@@ -5,8 +5,10 @@ import com.lhwdev.minecraft.railx.registry.AllBlocks
 import com.lhwdev.minecraft.railx.registry.AllCreativeModeTabs
 import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.AllTags
+import com.lhwdev.minecraft.railx.registry.RailXRegistry
 import net.minecraft.resources.ResourceLocation
 import net.neoforged.api.distmarker.Dist
+import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.ModContainer
 import net.neoforged.fml.common.Mod
 import net.neoforged.fml.config.ModConfig
@@ -22,7 +24,7 @@ import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
  * An example for blocks is in the `blocks` package of this mod.
  */
 @Mod(RailX.Id)
-class RailX(container: ModContainer) {
+class RailX(container: ModContainer, bus: IEventBus) {
 	companion object {
 		const val Id = "railx"
 		
@@ -43,6 +45,7 @@ class RailX(container: ModContainer) {
 		}
 		
 		// ensures initialization of registry
+		RailXRegistry.registerEventListeners(bus)
 		AllTags
 		AllBlocks
 		AllBlockEntityTypes

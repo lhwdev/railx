@@ -3,10 +3,6 @@ package com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver
 import com.simibubi.create.content.trains.entity.Train
 import net.minecraft.nbt.CompoundTag
 import org.apache.commons.io.input.ReaderInputStream
-import org.squiddev.cobalt.LuaState
-import org.squiddev.cobalt.LuaTable
-import org.squiddev.cobalt.compiler.LoadState
-import org.squiddev.cobalt.function.Dispatch
 import java.io.StringReader
 
 
@@ -29,11 +25,12 @@ open class AdvancedRule {
 
 
 class AdvancedLuaRule : AdvancedRule() {
-	val state = LuaState()
+	// val state = LuaState()
 	
 	fun test(train: Train): Boolean {
-		val env = LuaTable()
-		val expression = LoadState.load(state, ReaderInputStream.builder().setReader(StringReader(code)).get(), "", env)
-		return Dispatch.call(state, expression).toBoolean()
+		// val env = LuaTable()
+		// val expression = LoadState.load(state, ReaderInputStream.builder().setReader(StringReader(code)).get(), "", env)
+		// return Dispatch.call(state, expression).toBoolean()
+		return false
 	}
 }

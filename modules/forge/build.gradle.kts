@@ -6,52 +6,62 @@ plugins {
 	kotlin("jvm")
 }
 
-version = properties["mod_version"] as String
-group = properties["mod_group_id"] as String
+val modId = "railx"
+val neoVersion = "21.1.179"
+
+version = "1.0-SNAPSHOT"
 
 base {
-	archivesName.set(properties["mod_id"] as String)
+	archivesName = modId
 }
 
 neoForge {
-	version = properties["neo_version"] as String
+	version = neoVersion
 	
 	parchment {
-		mappingsVersion.set(properties["parchment_mappings_version"] as String)
-		minecraftVersion.set(properties["parchment_minecraft_version"] as String)
+		mappingsVersion = "2024.11.17"
+		minecraftVersion = libs.versions.minecraft
+	}
+	
+	mods {
+		register(modId) {
+			sourceSet(sourceSets.main.get())
+		}
+	}
+	
+	accessTransformers {
+		file("src/main/resources/META-INF/accesstransformer.cfg")
 	}
 	
 	runs {
 		register("client") {
 			client()
-			
-			systemProperty("neoforge.enabledGameTestNamespaces", properties["mod_id"] as String)
+			systemProperty("neoforge.enabledGameTestNamespaces", modId)
 		}
 		
 		register("server") {
 			server()
-			
 			programArgument("--nogui")
-			systemProperty("neoforge.enabledGameTestNamespaces", properties["mod_id"] as String)
+			systemProperty("neoforge.enabledGameTestNamespaces", modId)
 		}
 		
 		register("gameTestServer") {
 			type = "gameTestServer"
-			systemProperty("neoforge.enabledGameTestNamespaces", properties["mod_id"] as String)
+			systemProperty("neoforge.enabledGameTestNamespaces", modId)
 		}
 		
 		register("data") {
 			data()
 			
 			// example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-			gameDirectory.set(project.file("run-data"))
+			gameDirectory = project.file("run-data")
 			
 			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
 			programArguments.addAll(
-				"--mod", properties["mod_id"] as String,
+				"--mod", modId,
 				"--all",
-				"--output", file("src/generated/resources/").getAbsolutePath(),
-				"--existing", file("src/main/resources/").getAbsolutePath()
+				"--output", file("src/generated/resources/").absolutePath,
+				"--existing", file("src/main/resources/").absolutePath
 			)
 		}
 		
@@ -64,12 +74,6 @@ neoForge {
 			systemProperty("forge.logging.markers", "REGISTRIES")
 			
 			logLevel = org.slf4j.event.Level.DEBUG
-		}
-	}
-	
-	mods {
-		register(properties["mod_id"] as String) {
-			sourceSet(sourceSets.main.get())
 		}
 	}
 }
@@ -127,32 +131,43 @@ dependencies {
 	implementation(project(":cc-asm"))
 	
 	implementation("thedarkcolour:kotlinforforge-neoforge:5.3.0")
-	implementation("com.simibubi.create:create-${properties["minecraft_version"]}:6.0.6-98:slim") {
+	implementation("com.simibubi.create:create-${libs.versions.minecraft.get()}:6.0.6-98:slim") {
 		isTransitive = false
 	}
-	implementation("net.createmod.ponder:Ponder-NeoForge-${properties["minecraft_version"]}:1.0.56")
-	compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${properties["minecraft_version"]}:1.0.4-27")
-	runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${properties["minecraft_version"]}:1.0.4-27")
+	implementation("net.createmod.ponder:Ponder-NeoForge-${libs.versions.minecraft.get()}:1.0.56")
+	compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4-27")
+	runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${libs.versions.minecraft.get()}:1.0.4-27")
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+62")
 	
+}
+
+file("build/mod_output_path.txt").let { output ->
+	val jar: Jar by tasks
+	if(output.exists()) {
+		val copyModJarToServer by tasks.registering(Copy::class) {
+			from(jar)
+			into(output.readText().trim())
+		}
+		jar.finalizedBy(copyModJarToServer)
+	}
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {
 	var replaceProperties = mapOf(
-		"minecraft_version" to properties["minecraft_version"],
-		"minecraft_version_range" to properties["minecraft_version_range"],
-		"neo_version" to properties["neo_version"],
-		"neo_version_range" to properties["neo_version_range"],
-		"loader_version_range" to properties["loader_version_range"],
-		"mod_id" to properties["mod_id"],
-		"mod_name" to properties["mod_name"],
-		"mod_license" to properties["mod_license"],
-		"mod_version" to properties["mod_version"],
-		"mod_authors" to properties["mod_authors"],
-		"mod_description" to properties["mod_description"],
-	).mapValues { (_, v) -> v as String }
+		"minecraft_version" to libs.versions.minecraft.get(),
+		"minecraft_version_range" to "[1.21.1,1.22)",
+		"neo_version" to neoVersion,
+		"neo_version_range" to "[21,)",
+		"loader_version_range" to "[5.3,)",
+		"mod_id" to modId,
+		"mod_name" to "RailX",
+		"mod_license" to "All Rights Reserved",
+		"mod_version" to "$version",
+		"mod_authors" to "lhwdev",
+		"mod_description" to "This is good mod",
+	)
 	
 	inputs.properties(replaceProperties)
 	expand(replaceProperties)

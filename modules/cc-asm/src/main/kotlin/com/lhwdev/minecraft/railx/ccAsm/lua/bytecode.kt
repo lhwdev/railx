@@ -69,9 +69,9 @@ private fun ClassVisitor.doGenerateProxyFromApi(from: KClass<*>) {
 		visitTypeInsn(ANEWARRAY, C.item.internalName)
 		
 		val proxyFunctionDescriptor = "($proxyClass${C.context})${C.varargs}"
-		for(fn in functionTargets) {
+		for((index, fn) in functionTargets.withIndex()) {
 			visitInsn(DUP) // +array -> aastore
-			visitInsn() // +index -> aastore
+			visitIntConstInsn(index) // +index -> aastore
 			
 			visitTypeInsn(NEW, C.Item.function.internalName)
 			visitInsn(DUP)

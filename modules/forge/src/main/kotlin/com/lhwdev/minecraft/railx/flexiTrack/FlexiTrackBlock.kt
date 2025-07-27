@@ -78,11 +78,11 @@ class FlexiTrackBlock(
 		// val BaseDirection = FlexiDirectionProperty.create("direction")
 		val Waterlogged: BooleanProperty = TrackBlock.WATERLOGGED
 		
-		fun blockEntity(world: BlockGetter, pos: BlockPos): FlexiTrackBlockEntity =
-			world.getBlockEntity(pos) as FlexiTrackBlockEntity
+		fun blockEntity(world: BlockGetter, pos: BlockPos): FlexiTrackBlockEntity? =
+			world.getBlockEntity(pos) as? FlexiTrackBlockEntity
 		
 		fun flexiShape(world: BlockGetter, pos: BlockPos): FlexiShape =
-			blockEntity(world, pos).shape
+			(world.getBlockEntity(pos) as? FlexiTrackBlockEntity)?.shape ?: FlexiShape.Empty
 	}
 	
 	init {
@@ -94,7 +94,7 @@ class FlexiTrackBlock(
 		(this as BlockAccessor).setStateDefinition(stateDefinition)
 		
 		registerDefaultState(
-			defaultBlockState()
+			stateDefinition.possibleStates[0]
 				// .setValue(BaseDirection, FlexiDirection.Known.Divisions[0])
 				.setValue(Waterlogged, false)
 		)
@@ -319,10 +319,10 @@ class FlexiTrackBlock(
 		world: BlockGetter,
 		pos: BlockPos,
 		collisionContext: CollisionContext,
-	): VoxelShape = blockEntity(world, pos).voxelShape()
+	): VoxelShape = blockEntity(world, pos)?.voxelShape() ?: Shapes.empty()
 	
 	override fun getInteractionShape(state: BlockState, world: BlockGetter, pos: BlockPos): VoxelShape =
-		blockEntity(world, pos).voxelShape()
+		blockEntity(world, pos)?.voxelShape() ?: Shapes.empty()
 	
 	override fun getCollisionShape(
 		state: BlockState,

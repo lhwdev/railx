@@ -98,9 +98,11 @@ class CarriageMetadata {
 	fun getEntryOrNull(key: String): Tag? =
 		data.get(key)
 	
+	@JvmName("getEntryTyped")
 	inline fun <reified T : Tag> getEntry(key: String): T =
 		getEntry(key) as T
 	
+	@JvmName("getEntryOrNullTyped")
 	inline fun <reified T : Tag> getEntryOrNull(key: String): T? =
 		getEntry(key) as? T
 	

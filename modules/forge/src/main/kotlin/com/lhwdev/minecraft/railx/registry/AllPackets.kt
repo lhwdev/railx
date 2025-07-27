@@ -33,16 +33,28 @@ enum class AllPackets(val base: RailXPacket<*>) : BasePacketPayload.PacketTypePr
 abstract class RailXPacket<T : BasePacketPayload> {
 	abstract val streamCodec: StreamCodec<in RegistryFriendlyByteBuf, T>
 	
-	open val name: String
-		get() = typeClass.name
+	val typeClass: Class<T> = calculateTypeClass()
+	val name: String = calculateName()
 	
-	open val typeClass: Class<T> = typeClassNoCache
+	protected open fun calculateTypeClass(): Class<T> =
+		@Suppress("UNCHECKED_CAST") (this::class.java.enclosingClass as Class<T>)
 	
-	protected open val typeClassNoCache: Class<T>
-		get() = @Suppress("UNCHECKED_CAST") (this::class.java.enclosingClass as Class<T>)
+	protected open fun calculateName(): String = typeClass.simpleName.let { name ->
+		val length = if(name.endsWith("Packet")) name.length - 6 else name.length
+		buildString {
+			for(index in 0..<length) {
+				val char = name[index]
+				if(char.isUpperCase() && isNotEmpty()) {
+					append('_')
+				}
+				append(char.lowercaseChar())
+			}
+		}
+	}
+	
 	
 	val type = CatnipPacketRegistry.PacketType(
-		CustomPacketPayload.Type(RailX.asResource(typeClass.name)),
+		CustomPacketPayload.Type(RailX.asResource(name)),
 		typeClass,
 		streamCodec,
 	)

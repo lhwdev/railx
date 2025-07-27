@@ -32,6 +32,23 @@ sealed interface FlexiShape {
 	fun write(): CompoundTag
 	
 	
+	object Empty : FlexiShape {
+		override val axes: List<FlexiDirection>
+			get() = emptyList()
+		override val normal: Vec3
+			get() = Vec3(0.0,1.0,0.0)
+		
+		override fun mirror(by: Mirror): Empty = this
+		
+		override fun rotate(by: Rotation): Empty = this
+		
+		override fun rotateKnown(by: Int): Empty = this
+		
+		override fun write(): CompoundTag = CompoundTag().also { tag ->
+			tag.putByte("Type", 0x0)
+		}
+	}
+	
 	class Single(val axis: FlexiDirection) : FlexiShape {
 		companion object {
 			fun read(tag: CompoundTag): Single = Single(
@@ -71,7 +88,7 @@ sealed interface FlexiShape {
 			Single(axis.rotateKnown(by))
 		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
-			tag.putByte("Type", 0x0)
+			tag.putByte("Type", 0x1)
 			tag.put("Axis", if(axis is FlexiDirection.Known) axis.writeInt() else axis.write())
 		}
 	}
@@ -135,7 +152,8 @@ sealed interface FlexiShape {
 	
 	companion object {
 		fun read(tag: CompoundTag): FlexiShape = when(tag.getByte("Type")) {
-			0x0.toByte() -> Single.read(tag)
+			0x0.toByte() -> Empty
+			0x1.toByte() -> Single.read(tag)
 			0x10.toByte() -> Impl.read(tag)
 			else -> TODO()
 		}

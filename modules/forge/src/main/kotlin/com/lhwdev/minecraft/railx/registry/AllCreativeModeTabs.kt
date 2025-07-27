@@ -35,11 +35,11 @@ object AllCreativeModeTabs {
 				AllTags.Features.FlexiTrack.block,
 			)
 			RailXRegistry.allBlocks
-				.sortedBy {
-					val tag = it.tags().asSequence().firstOrNull { it.location.path.startsWith("feature.") }
+				.sortedBy { block ->
+					val tag = block.tags().asSequence().firstOrNull { it.location.path.startsWith("feature.") }
 					features.indexOf(tag)
 				}
-				.forEach { output.accept(it.asStack()) }
+				// .forEach { output.accept(it.asStack()) }
 		}
 	}
 }

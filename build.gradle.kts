@@ -1,20 +1,26 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
-	kotlin("jvm") version "2.0.0" apply false
+	kotlin("jvm") version libs.versions.kotlin apply false
 }
 
 subprojects {
+	group = "com.lhwdev.minecraft.railx"
+	
 	repositories {
 		mavenCentral()
 	}
 	
-	extensions.apply {
-		configureIf<JavaPluginExtension>("java") {
-			toolchain.languageVersion = JavaLanguageVersion.of(21)
-		}
-		configureIf<KotlinJvmProjectExtension>("kotlin") {
-			jvmToolchain(21)
+	afterEvaluate {
+		extensions.apply {
+			val javaVersion = 21
+			
+			configureIf<JavaPluginExtension>("java") {
+				toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
+			}
+			configureIf<KotlinJvmProjectExtension>("kotlin") {
+				jvmToolchain(javaVersion)
+			}
 		}
 	}
 }
