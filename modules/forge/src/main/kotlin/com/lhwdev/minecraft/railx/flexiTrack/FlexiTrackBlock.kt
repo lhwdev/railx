@@ -89,7 +89,7 @@ class FlexiTrackBlock(
 		val stateDefinition = StateDefinition.Builder<Block, BlockState>(this).let { builder ->
 			createBlockStateDefinition(builder)
 			builder.create(Block::defaultBlockState) { block, values, propertiesCodec ->
-				FlexiBlockState(block, values, propertiesCodec, FlexiShape.Empty)
+				FlexiBlockState(block, values, propertiesCodec, FlexiShape.Empty, null)
 			}
 		}
 		@Suppress("CAST_NEVER_SUCCEEDS")
