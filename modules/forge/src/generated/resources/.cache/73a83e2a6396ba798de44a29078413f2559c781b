@@ -1,0 +1,15 @@
+// 1.21.1	2025-08-11T21:54:43.2398064	Registrate Provider for railx [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (enchantments), Tags (blocks), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
+af012031a75f6d72bdecd9b5ac26ddc95acdf870 assets/railx/blockstates/advanced_track_observer.json
+b576b9f81e8fe50233f7f550d7effb3a5077f0c3 assets/railx/blockstates/flexi_track.json
+72852894d1ce8a8826d02e94bd06011b0230263f assets/railx/lang/en_ud.json
+a086bce9892944960f8cfbd6f29693402c387cc2 assets/railx/lang/en_us.json
+0d07fdd9bbc57ab9d8f1eb45f5810870068c922b assets/railx/models/item/advanced_track_observer.json
+4683ab824d93cd96a82143eb9c62c9777f278f18 assets/railx/models/item/flexi_track.json
+5cbc766cee5cfc2d35f62b0c3cff28eac024e12c data/create/tags/block/girdable_tracks.json
+5cbc766cee5cfc2d35f62b0c3cff28eac024e12c data/create/tags/block/tracks.json
+5cbc766cee5cfc2d35f62b0c3cff28eac024e12c data/create/tags/item/tracks.json
+5cbc766cee5cfc2d35f62b0c3cff28eac024e12c data/c/tags/block/relocation_not_supported.json
+3c3505f7711aca84d44016dc6b06595b5628cf17 data/minecraft/tags/block/mineable/pickaxe.json
+0cdf0c9c5cb7ff2b4358c7cadc5666fa2cdba23e data/railx/loot_table/blocks/advanced_track_observer.json
+16df45a8d730cc2251b9d64a6ddf559170aef787 data/railx/loot_table/blocks/flexi_track.json
+5cbc766cee5cfc2d35f62b0c3cff28eac024e12c data/railx/tags/block/feature.flexi_track.json

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "railx:block/advanced_track_observer/block"
+    },
+    "powered=true": {
+      "model": "railx:block/advanced_track_observer/block_powered"
+    }
+  }
+}
