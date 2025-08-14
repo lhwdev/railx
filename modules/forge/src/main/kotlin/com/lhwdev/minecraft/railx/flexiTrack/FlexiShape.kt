@@ -10,6 +10,7 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import kotlin.math.PI
 
 
@@ -18,6 +19,7 @@ val FlexiShape.isJunction
 
 sealed interface FlexiShape {
 	val axes: List<FlexiDirection>
+	val axesCount: Int get() = axes.size
 	val axis1: FlexiDirection get() = axes[0]
 	val axis2: FlexiDirection? get() = axes.getOrNull(1)
 	
@@ -31,22 +33,31 @@ sealed interface FlexiShape {
 	
 	fun write(): CompoundTag
 	
+	fun insert(direction: FlexiDirection): FlexiShape
+	
 	
 	object Empty : FlexiShape {
 		override val axes: List<FlexiDirection>
-			get() = emptyList()
+			get() = listOf(FlexiDirection.Zero)
+		override val axesCount: Int
+			get() = 1
+		override val axis1: FlexiDirection
+			get() = FlexiDirection.Zero
 		override val normal: Vec3
-			get() = Vec3(0.0,1.0,0.0)
+			get() = Vec3(0.0, 1.0, 0.0)
 		
 		override fun mirror(by: Mirror): Empty = this
-		
 		override fun rotate(by: Rotation): Empty = this
-		
 		override fun rotateKnown(by: Int): Empty = this
+		
+		override fun insert(direction: FlexiDirection): Single =
+			Single(direction)
 		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
 			tag.putByte("Type", 0x0)
 		}
+		
+		override fun toString(): String = "FlexiShape.Empty"
 	}
 	
 	class Single(val axis: FlexiDirection) : FlexiShape {
@@ -64,6 +75,8 @@ sealed interface FlexiShape {
 		
 		override val axes: List<FlexiDirection>
 			get() = listOf(axis)
+		override val axesCount: Int
+			get() = 1
 		override val axis1: FlexiDirection
 			get() = axis
 		override val axis2: FlexiDirection?
@@ -87,75 +100,140 @@ sealed interface FlexiShape {
 		override fun rotateKnown(by: Int): Single =
 			Single(axis.rotateKnown(by))
 		
+		override fun insert(direction: FlexiDirection): FlexiShape {
+			if(!checkInsert(direction)) return this
+			return Impl(listOf(axis, direction))
+		}
+		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
 			tag.putByte("Type", 0x1)
 			tag.put("Axis", if(axis is FlexiDirection.Known) axis.writeInt() else axis.write())
 		}
+		
+		override fun toString(): String = "FlexiShape.Single($axis)"
 	}
 	
-	class Impl(
+	class NormalizedImpl(
 		val flatAxes: List<FlexiDirection.Flat>,
 		override val normal: Vec3,
 		override val axes: List<FlexiDirection.Normalized> = flatAxes.map { it.applyNormal(normal) },
 	) : FlexiShape {
 		companion object {
-			fun read(tag: CompoundTag): Impl = Impl(
-				flatAxes = (tag.getCompound("FlatAxes") as ListTag).let { axesTag ->
-					if(axesTag.first() is NumericTag) {
-						axesTag.map { FlexiDirection.Known.readInt(it as NumericTag) }
-					} else {
-						axesTag.map { FlexiDirection.read(it as CompoundTag) as FlexiDirection.Flat }
-					}
-				},
+			fun read(tag: CompoundTag): NormalizedImpl = NormalizedImpl(
+				flatAxes = readDirectionList(tag.get("FlatAxes") as ListTag),
 				normal = VecHelper.readNBT(tag.getList("Normal", Tag.TAG_DOUBLE.toInt())),
 			)
 		}
 		
-		override fun mirror(by: Mirror): Impl {
+		init {
+			require(flatAxes.isNotEmpty()) { "flatAxes is empty" }
+			require(flatAxes.size == axes.size) { "flatAxes.size != axes.size" }
+		}
+		
+		override fun mirror(by: Mirror): NormalizedImpl {
 			val flat = flatAxes.map { it.mirror(by) }
 			val normal = by.mirror(normal)
-			return Impl(flat, normal, axes.mapIndexed { index, axis ->
+			return NormalizedImpl(flat, normal, axes.mapIndexed { index, axis ->
 				FlexiDirection.NormalizedImpl(flat[index], normal, by.mirror(axis.tangent))
 			})
 		}
 		
-		override fun rotate(by: Rotation): Impl {
+		override fun rotate(by: Rotation): NormalizedImpl {
 			val flat = flatAxes.map { it.rotate(by) }
 			val normal = by.rotate(normal)
-			return Impl(flat, normal, axes.mapIndexed { index, axis ->
+			return NormalizedImpl(flat, normal, axes.mapIndexed { index, axis ->
 				FlexiDirection.NormalizedImpl(flat[index], normal, by.rotate(axis.tangent))
 			})
 		}
 		
-		override fun rotateKnown(by: Int): Impl {
+		override fun rotateKnown(by: Int): NormalizedImpl {
 			val angle = by.toFloat() / FlexiDirection.Known.DivisionCount * PI.toFloat()
 			val flat = flatAxes.map { it.rotateKnown(by) }
 			val normal = normal.yRot(angle)
-			return Impl(flat, normal, axes.mapIndexed { index, axis ->
+			return NormalizedImpl(flat, normal, axes.mapIndexed { index, axis ->
 				FlexiDirection.NormalizedImpl(flat[index], normal, axis.tangent.yRot(angle))
 			})
 		}
 		
+		override fun insert(direction: FlexiDirection): FlexiShape {
+			if(!checkInsert(direction)) return this
+			return Impl(axes + direction)
+		}
+		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
 			tag.putByte("Type", 0x10)
-			tag.put("FlatAxes", ListTag().also { list ->
-				val result = if(flatAxes.all { it is FlexiDirection.Known }) {
-					flatAxes.map { (it as FlexiDirection.Known).writeInt() }
-				} else {
-					flatAxes.map { it.write() }
-				}
-				list.addAll(result)
-			})
+			tag.put("FlatAxes", writeDirectionList(flatAxes))
 			tag.put("Normal", VecHelper.writeNBT(normal))
+		}
+		
+		override fun toString(): String = "FlexiShape.Impl($axes)"
+	}
+	
+	class Impl(override val axes: List<FlexiDirection>) : FlexiShape {
+		companion object {
+			fun read(tag: CompoundTag): Impl =
+				Impl(axes = readDirectionList(tag.getList("Axes", Tag.TAG_COMPOUND.toInt())))
+		}
+		
+		init {
+			require(axes.isNotEmpty()) { "axes is empty" }
+		}
+		
+		override val normal: Vec3
+			get() = axes[0].normal
+		
+		override fun mirror(by: Mirror): Impl = Impl(axes.map { it.mirror(by) })
+		override fun rotate(by: Rotation): Impl = Impl(axes.map { it.rotate(by) })
+		override fun rotateKnown(by: Int): Impl = Impl(axes.map { it.rotateKnown(by) })
+		
+		override fun write(): CompoundTag = CompoundTag().also { tag ->
+			tag.putByte("Type", 0x11)
+			tag.put("Axes", writeDirectionList(axes))
+		}
+		
+		override fun insert(direction: FlexiDirection): FlexiShape {
+			if(!checkInsert(direction)) return this
+			return Impl(axes + direction)
 		}
 	}
 	
 	companion object {
+		fun from(axes: List<FlexiDirection.Flat>): FlexiShape = when(axes.size) {
+			0 -> Empty
+			1 -> Single(axes[0])
+			else -> NormalizedImpl(axes, normal = Empty.normal)
+		}
+		
 		fun read(tag: CompoundTag): FlexiShape = when(tag.getByte("Type")) {
 			0x0.toByte() -> Empty
 			0x1.toByte() -> Single.read(tag)
-			0x10.toByte() -> Impl.read(tag)
+			0x10.toByte() -> NormalizedImpl.read(tag)
+			0x11.toByte() -> Impl.read(tag)
 			else -> TODO()
 		}
 	}
+}
+
+private fun FlexiShape.checkInsert(direction: FlexiDirection): Boolean {
+	if((normal - direction.normal).lengthSqr() > 1.0e-10) {
+		throw IllegalArgumentException("direction.normal != normal")
+	}
+	return axes.none { it closeTo direction }
+}
+
+private fun readDirectionList(tag: ListTag) = tag.let { axesTag ->
+	if(axesTag.first() is NumericTag) {
+		axesTag.map { FlexiDirection.Known.readInt(it as NumericTag) }
+	} else {
+		axesTag.map { FlexiDirection.read(it as CompoundTag) as FlexiDirection.Flat }
+	}
+}
+
+private fun writeDirectionList(axes: List<FlexiDirection>): ListTag = ListTag().also { list ->
+	val result = if(axes.all { it is FlexiDirection.Known }) {
+		axes.map { (it as FlexiDirection.Known).writeInt() }
+	} else {
+		axes.map { it.write() }
+	}
+	list.addAll(result)
 }

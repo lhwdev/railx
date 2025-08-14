@@ -22,7 +22,6 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import dev.engine_room.flywheel.lib.transform.Affine
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap
 import net.createmod.catnip.data.Iterate
-import net.createmod.catnip.math.VecHelper
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -45,6 +44,8 @@ import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
@@ -58,16 +59,26 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraft.world.ticks.LevelTickAccess
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
-import kotlin.math.atan2
 import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks
+
+
+private val Properties_offsetFunction = Properties::class.java.getDeclaredField("offsetFunction")
+	.also { it.isAccessible = true }
+
+private fun Properties.offsetFunction(fn: BlockBehaviour.OffsetFunction): Properties {
+	Properties_offsetFunction.set(this, fn)
+	return this
+}
 
 
 class FlexiTrackBlock(
 	properties: Properties,
 	@get:JvmName("getMaterialKt")
-	val material: TrackMaterial,
-) : Block(properties),
+	val material: FlexiTrackMaterial,
+) : Block(
+	properties.offsetFunction { state, level, pos -> blockEntity(level, pos)?.offset ?: Vec3.ZERO }
+),
 	IBE<FlexiTrackBlockEntity>,
 	IWrenchable,
 	ITrackBlock,
@@ -76,20 +87,23 @@ class FlexiTrackBlock(
 	IHaveBigOutline {
 	companion object {
 		// val BaseDirection = FlexiDirectionProperty.create("direction")
-		val Waterlogged: BooleanProperty = TrackBlock.WATERLOGGED
+		val Waterlogged: BooleanProperty = ProperWaterloggedBlock.WATERLOGGED
 		
 		fun blockEntity(world: BlockGetter, pos: BlockPos): FlexiTrackBlockEntity? =
 			world.getBlockEntity(pos) as? FlexiTrackBlockEntity
 		
+		fun flexiState(world: BlockGetter, pos: BlockPos): FlexiState =
+			blockEntity(world, pos)?.state ?: FlexiState.Base
+		
 		fun flexiShape(world: BlockGetter, pos: BlockPos): FlexiShape =
-			(world.getBlockEntity(pos) as? FlexiTrackBlockEntity)?.shape ?: FlexiShape.Empty
+			flexiState(world, pos).shape
 	}
 	
 	init {
 		val stateDefinition = StateDefinition.Builder<Block, BlockState>(this).let { builder ->
 			createBlockStateDefinition(builder)
 			builder.create(Block::defaultBlockState) { block, values, propertiesCodec ->
-				FlexiBlockState(block, values, propertiesCodec, FlexiShape.Empty, null)
+				FlexiBlockState.create(block as FlexiTrackBlock, values, propertiesCodec)
 			}
 		}
 		@Suppress("CAST_NEVER_SUCCEEDS")
@@ -110,29 +124,18 @@ class FlexiTrackBlock(
 	}
 	
 	
+	val normalBlock: TrackBlock
+		get() = CreateBlocks.TRACK.get()
+	
 	override fun getBlockPathType(state: BlockState, level: BlockGetter, pos: BlockPos, mob: Mob?): PathType =
 		PathType.RAIL
 	
 	override fun getFluidState(state: BlockState): FluidState =
 		fluidState(state)
 	
-	override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
-		val stateForPlacement = withWater(super.getStateForPlacement(context), context)
-			as FlexiBlockState
-		val player = context.player
-		if(player == null) return stateForPlacement
-		
-		var lookAngle = player.lookAngle.multiply(1.0, 0.0, 1.0)
-		if(Mth.equal(lookAngle.length(), 0.0)) {
-			lookAngle = VecHelper.rotate(Vec3(0.0, 0.0, 1.0), -player.yRot.toDouble(), Direction.Axis.Y)
-		}
-		
-		return stateForPlacement.setShape(
-			FlexiShape.Single(
-				FlexiDirection.Known.roundFromAngle(atan2(lookAngle.z, lookAngle.x))
-			)
-		)
-	}
+	/** Note that track rotation is taken care by FlexiTrackBlockItem. */
+	override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
+		withWater(super.getStateForPlacement(context), context)
 	
 	override fun getPistonPushReaction(pState: BlockState): PushReaction =
 		PushReaction.BLOCK
@@ -199,7 +202,6 @@ class FlexiTrackBlock(
 		linear: Boolean,
 		connectedTo: TrackNodeLocation?,
 	): Collection<DiscoveredLocation> {
-		val list: Collection<DiscoveredLocation>
 		val world = if(connectedTo != null && worldIn is ServerLevel) {
 			worldIn.server.getLevel(connectedTo.dimension)!!
 		} else {
@@ -210,29 +212,30 @@ class FlexiTrackBlock(
 		if(blockEntity !is FlexiTrackBlockEntity) return emptyList()
 		
 		val shape = blockEntity.shape
-		if(shape.axes.size > 1) {
-			list = mutableListOf()
-			val center = Vec3.atBottomCenterOf(pos)
-				.add(0.0, getElevationAtCenter(world, pos, state), 0.0)
-			
-			for(axis in shape.axes) {
-				for(fromCenter in Iterate.trueAndFalse) ITrackBlock.addToListIfConnected(
-					connectedTo,
-					list,
-					{ d, b ->
-						axis.tangent.scale((if(b) 0.0 else if(fromCenter) -d else d))
-							.add(center)
-					},
-					{ b -> shape.normal },
-					{ b -> if(world is Level) world.dimension() else Level.OVERWORLD },
-					{ v -> 0 },
-					axis.tangent,
-					null,
-					{ b, v -> ITrackBlock.getMaterialSimple(world, v) })
-			}
-		} else list = super.getConnected(world, pos, state, linear, connectedTo)
+		val center = Vec3.atBottomCenterOf(pos)
+			.add(0.0, getElevationAtCenter(world, pos, state), 0.0)
 		
-		if(linear) return list
+		val list = mutableListOf<DiscoveredLocation>()
+		for(axis in shape.axes) {
+			for(fromCenter in Iterate.trueAndFalse) ITrackBlock.addToListIfConnected(
+				connectedTo,
+				list,
+				{ d, b ->
+					axis.tangent.scale((if(b) 0.0 else if(fromCenter) -d else d))
+						.add(center)
+				},
+				{ b -> shape.normal },
+				{ b -> if(world is Level) world.dimension() else Level.OVERWORLD },
+				{ v -> 0 },
+				axis.tangent,
+				null,
+				{ b, v -> ITrackBlock.getMaterialSimple(world, v) }
+			)
+		}
+		
+		if(linear) {
+			return list
+		}
 		
 		val connections = blockEntity.connections
 		connections.forEach { (_, bc) ->
@@ -346,17 +349,14 @@ class FlexiTrackBlock(
 		FlexiTrackBlockEntity::class.java
 	
 	override fun getUpNormal(world: BlockGetter, pos: BlockPos, state: BlockState): Vec3 =
-		state.flexi.shape.normal
+		flexiShape(world, pos).normal
 	
 	override fun getTrackAxes(world: BlockGetter, pos: BlockPos, state: BlockState): List<Vec3> =
-		state.flexi.shape.tangents
+		flexiShape(world, pos).tangents
 	
-	override fun getCurveStart(world: BlockGetter, pos: BlockPos, state: BlockState, axis: Vec3): Vec3 {
-		val vertical = axis.y != 0.0
-		return VecHelper.getCenterOf(pos)
-			.add(0.0, (if(vertical) 0f else -.5f).toDouble(), 0.0)
+	override fun getCurveStart(world: BlockGetter, pos: BlockPos, state: BlockState, axis: Vec3): Vec3 =
+		Vec3.atBottomCenterOf(pos)
 			.add(axis.scale(.5))
-	}
 	
 	override fun onWrenched(state: BlockState, context: UseOnContext): InteractionResult =
 		InteractionResult.SUCCESS
@@ -518,7 +518,7 @@ class FlexiTrackBlock(
 		return ItemRequirement(ItemUseType.CONSUME, stacks)
 	}
 	
-	override fun getMaterial(): TrackMaterial = material
+	override fun getMaterial(): FlexiTrackMaterial = material
 	
 	class RenderProperties : ReducedDestroyEffects(), MultiPosDestructionHandler {
 		override fun getExtraPositions(

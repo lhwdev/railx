@@ -3,6 +3,8 @@ package com.lhwdev.minecraft.railx.registry
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
+import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Block
 
 
@@ -22,3 +24,11 @@ object AllTags {
 	
 	private fun commonTag(name: String) = CommonTag(Registry.location(name))
 }
+
+@Suppress("DEPRECATION")
+fun TagKey<Block>.matches(block: Block): Boolean =
+	block.builtInRegistryHolder().`is`(this)
+
+fun TagKey<Block>.matches(stack: ItemStack): Boolean =
+	(stack.item as? BlockItem)?.let { matches(it.block) } ?: false
+

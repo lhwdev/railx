@@ -3,6 +3,8 @@ package com.lhwdev.minecraft.railx.registry
 import com.lhwdev.minecraft.railx.RailX
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.tterrag.registrate.util.entry.BlockEntry
+import com.tterrag.registrate.util.entry.RegistryEntry
+import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 
@@ -18,4 +20,12 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	val allBlocks: List<BlockEntry<*>>
 		@Suppress("UNCHECKED_CAST")
 		get() = getAll(Registries.BLOCK) as List<BlockEntry<*>>
+	
+	
+	fun <T> dataComponentType(
+		name: String,
+		block: DataComponentType.Builder<T>.() -> Unit,
+	): RegistryEntry<DataComponentType<*>, DataComponentType<T>> =
+		generic(name, Registries.DATA_COMPONENT_TYPE) { DataComponentType.builder<T>().apply(block).build() }
+			.register()
 }

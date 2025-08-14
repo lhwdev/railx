@@ -1,3 +1,5 @@
+rootProject.name = "railx"
+
 pluginManagement {
 	repositories {
 		gradlePluginPortal()

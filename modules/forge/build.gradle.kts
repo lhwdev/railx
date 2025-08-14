@@ -52,16 +52,20 @@ neoForge {
 		
 		register("data") {
 			data()
+			this.loadedMods
 			
 			// example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
 			gameDirectory = project.file("run-data")
 			
 			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+			val existingMods = listOf("create")
+			
 			programArguments.addAll(
 				"--mod", modId,
 				"--all",
 				"--output", file("src/generated/resources/").absolutePath,
-				"--existing", file("src/main/resources/").absolutePath
+				"--existing", file("src/main/resources/").absolutePath,
+				*existingMods.flatMap { listOf("--existing-mod", it) }.toTypedArray(),
 			)
 		}
 		

@@ -1,26 +1,25 @@
 package com.lhwdev.minecraft.railx.registry
 
-import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackModel
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.simibubi.create.AllDisplaySources
 import com.simibubi.create.Create
 import com.simibubi.create.api.behaviour.display.DisplaySource
-import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.content.trains.track.TrackTargetingBlockItem
 import com.simibubi.create.foundation.data.AssetLookup
 import com.simibubi.create.foundation.data.BlockStateGen
-import com.simibubi.create.foundation.data.ModelGen
 import com.simibubi.create.foundation.data.SharedProperties
 import com.tterrag.registrate.util.entry.BlockEntry
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.material.MapColor
 import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions
 import java.util.function.Supplier
-import com.simibubi.create.AllTags.AllBlockTags as CreateBlockTags
+import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
+import com.simibubi.create.AllTags as CreateTags
 
 
 object AllBlocks {
@@ -39,11 +38,14 @@ object AllBlocks {
 		.transform(DisplaySource.displaySource(AllDisplaySources.OBSERVED_TRAIN_NAME))
 		.lang("Advanced Track Observer")
 		.item(TrackTargetingBlockItem.ofType(AdvancedTrackObserverPoint.ObserverEdgePointType))
-		.transform(ModelGen.customItemModel())
+		.model { c, p -> p.blockItem(c, "/block") }
+		.build()
 		.register()
 	
+	
+	@Suppress("DEPRECATION", "removal")
 	val FlexiTrack: BlockEntry<FlexiTrackBlock> = Registry
-		.block("flexi_track") { FlexiTrackBlock(it, TrackMaterial.ANDESITE) }
+		.block("flexi_track") { FlexiTrackBlock(it, FlexiTrackMaterial.Andesite) }
 		.initialProperties(SharedProperties::stone)
 		.properties {
 			it.mapColor(MapColor.METAL)
@@ -52,18 +54,19 @@ object AllBlocks {
 				.noOcclusion()
 				.forceSolidOn()
 		}
+		.blockstate { c, p -> p.simpleBlock(c.entry, p.models().withExistingParent(c.name, p.mcLoc("block/air"))) }
+		.addLayer { Supplier { RenderType.cutoutMipped() } }
 		.clientExtension { -> Supplier { FlexiTrackBlock.RenderProperties() as IClientBlockExtensions } }
-		// .onRegister(CreateRegistrate.blockModel { NonNullFunction { FlexiTrackModel(it) } })
-		.blockstate(FlexiTrackModel::registerBlockState)
 		.tag(AllTags.Features.FlexiTrack.block)
-		.tag(CreateBlockTags.TRACKS.tag)
+		.tag(CreateTags.AllBlockTags.TRACKS.tag)
 		.tag(BlockTags.MINEABLE_WITH_PICKAXE)
-		.tag(CreateBlockTags.RELOCATION_NOT_SUPPORTED.tag)
-		.tag(CreateBlockTags.TRACKS.tag)
-		.tag(CreateBlockTags.GIRDABLE_TRACKS.tag)
+		.tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
+		.tag(CreateTags.AllBlockTags.TRACKS.tag)
+		.tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 		.lang("Train Track")
 		.item(::FlexiTrackBlockItem)
-		.model { c, p -> p.generated(c, Create.asResource("item/${c.name}")) }
+		.tag(CreateTags.AllItemTags.TRACKS.tag)
+		.model { c, p -> p.generated(c, Create.asResource("item/track")) }
 		.build()
 		.register()
 	

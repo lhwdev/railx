@@ -1,5 +1,13 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.lhwdev.minecraft.railx.utils
 
+
+inline fun Int.pow2(): Int =
+	this * this
+
+inline infix fun Int.floorMod(by: Int): Int =
+	Math.floorMod(this, by)
 
 infix fun Double.floorMod(by: Double): Double {
 	val r = this % by

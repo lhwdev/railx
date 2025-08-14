@@ -1,11 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack.mixin
 
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiShape
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVoxelShapes
-import com.lhwdev.minecraft.railx.flexiTrack.isJunction
+import com.lhwdev.minecraft.railx.flexiTrack.*
 import com.simibubi.create.AllTags
-import com.simibubi.create.content.trains.track.TrackBlockEntity
 import com.simibubi.create.content.trains.track.TrackBlockOutline
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.minecraft.client.Minecraft
@@ -22,10 +18,10 @@ object TrackBlockOutlineHelper {
 		val level = mc.level!!
 		val target = event.target
 		val pos = target.blockPos
-		val state = level.getBlockState(pos)
+		val blockEntity = level.getBlockEntity(pos)
 		
-		if(state.block !is FlexiTrackBlock) return false
 		if(!level.worldBorder.isWithinBounds(pos)) return true
+		if(blockEntity !is FlexiTrackBlockEntity) return false
 		
 		val vb = event.multiBufferSource.getBuffer(RenderType.lines())
 		val camPos = event.camera.position
@@ -36,9 +32,8 @@ object TrackBlockOutlineHelper {
 		ms.translate(pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z)
 		
 		val holdingTrack = AllTags.AllBlockTags.TRACKS.matches(mc.player!!.mainHandItem)
-		val shape = FlexiTrackBlock.flexiShape(level, pos)
-		val canConnectFrom = !shape.isJunction
-			&& !((level.getBlockEntity(pos) as? TrackBlockEntity)?.isTilted ?: false)
+		val shape = blockEntity.shape
+		val canConnectFrom = !shape.isJunction && !blockEntity.isTilted
 		
 		walkShapes(
 			shape = shape,
@@ -54,18 +49,24 @@ object TrackBlockOutlineHelper {
 	}
 	
 	fun walkShapes(shape: FlexiShape, msr: TransformStack<*>, renderer: (VoxelShape) -> Unit) {
+		// According to Rodrigues' rotation formula, when normal = (x, y, z), k = (a, 0, c),
+		// (x,y,z)=(0,1,0)cos + k*(0,1,0)sin + ky k (1-cos)
+		//        =(0,1,0)cos + (-c,0,a)sin
+		//        =(-c sin, cos, a sin)
+		// conclusion: cos=y, sin=sqrt(1-y^2), c=-x/sin, a=z/sin
+		// k = (z, 0, -x) / sqrt(1-y^2)
+		val normal = shape.normal
+		val sin = sqrt(1.0 - normal.y * normal.y)
+		msr.rotate(
+			atan2(sin, normal.y).toFloat(),
+			(normal.z / sin).toFloat(),
+			0f,
+			(-normal.x / sin).toFloat(),
+		)
+		
 		for(axis in shape.axes) {
 			msr.pushPose()
-			// when normal = (x, y, z),
-			// k = (z, 0, -x) / sqrt(1-y^2)
-			val normal = axis.normal
-			val sin = sqrt(1.0 - normal.y * normal.y)
-			msr.rotateCentered(
-				atan2(normal.y, sin).toFloat(),
-				(normal.z * sin).toFloat(),
-				0f,
-				(-normal.x * sin).toFloat(),
-			)
+			msr.rotateYCentered(axis.tangentAngle.toFloat())
 			renderer(FlexiTrackVoxelShapes.base)
 			msr.popPose()
 		}

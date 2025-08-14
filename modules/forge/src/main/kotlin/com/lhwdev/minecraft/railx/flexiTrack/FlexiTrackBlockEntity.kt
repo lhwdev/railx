@@ -10,19 +10,53 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.VoxelShape
 
 
 class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
 	TrackBlockEntity(type, pos, state), TransformableBlockEntity, IMergeableBE {
 	
-	internal var shape: FlexiShape = FlexiShape.Empty
+	var state: FlexiState = if(state is FlexiBlockState.Update) {
+		notifyUpdate()
+		state.mapState(FlexiState.Base)
+	} else {
+		FlexiState.Base
+	}
 	
-	private val state: FlexiBlockState
-		get() = blockState as FlexiBlockState
+	val shape: FlexiShape
+		get() = state.shape
+	
+	val offset: Vec3
+		get() = state.offset
+	
+	override fun getBlockState(): FlexiBlockState =
+		super.getBlockState() as FlexiBlockState
 	
 	private var voxelShapeCache: VoxelShape? = null
 	
+	
+	@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+	override fun setBlockState(blockState: BlockState) {
+		super.setBlockState(blockState)
+		
+		if(blockState is FlexiBlockState.Update) {
+			updateState(blockState.mapState(state))
+		}
+	}
+	
+	fun overlayShape(direction: FlexiDirection): FlexiState {
+		val state = state
+		val shape = state.shape
+		if(direction in shape.axes) return state
+		return state.copy(shape = shape.insert(direction))
+	}
+	
+	fun updateState(newState: FlexiState) {
+		if(state == newState) return
+		state = newState
+		notifyUpdate()
+	}
 	
 	fun voxelShape(): VoxelShape = voxelShapeCache ?: run {
 		FlexiTrackVoxelShapes.of(shape)
@@ -36,29 +70,17 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	
 	override fun write(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
 		super.write(tag, registries, clientPacket)
-		tag.put("FlexiShape", shape.write())
+		tag.put("FlexiState", state.write())
 	}
 	
 	override fun read(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
 		if(tag.contains("BoundLocation")) return
 		super.read(tag, registries, clientPacket)
 		
-		shape = FlexiShape.read(tag.getCompound("FlexiState"))
-		level?.setBlockSilently(blockPos, state.setShape(shape))
+		state = FlexiState.read(tag.getCompound("FlexiState"))
 	}
 	
 	override fun bind(boundDimension: ResourceKey<Level>, boundLocation: BlockPos) {
 		throw IllegalStateException("cannot bind flexi track into portal")
 	}
-}
-
-// Note: maybe somewhat fragile; doesn't need to call any listener / do not update anything other than shape
-private fun Level.setBlockSilently(pos: BlockPos, state: BlockState) {
-	val chunk = getChunkAt(pos)
-	val section = chunk.getSection(chunk.getSectionIndex(pos.y))
-	
-	val j = pos.x and 15
-	val k: Int = pos.y and 15
-	val l = pos.z and 15
-	section.setBlockState(j, k, l, state)
 }

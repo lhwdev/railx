@@ -21,7 +21,10 @@ private fun Vec3.normalAsRotation(): Vec3 = Vec3(
 )
 
 object FlexiTrackVoxelShapes {
+	val collision = Block.box(0.0, 0.0, 0.0, 16.0, 2.0, 16.0)
+	
 	val base = Block.box(0.0, 0.0, -14.0, 16.0, 4.0, 30.0)
+	// val base = Block.box(0.0, 0.0, -28.0, 32.0, 8.0, 60.0)
 	
 	private val knownCache = arrayOfNulls<VoxelShape>(FlexiDirection.Known.DivisionCount)
 	
@@ -31,6 +34,7 @@ object FlexiTrackVoxelShapes {
 	}
 	
 	fun of(direction: FlexiDirection): VoxelShape = when(direction) {
+		FlexiDirection.Zero -> Shapes.empty()
 		is FlexiDirection.Known -> known(direction)
 		else -> createShape(direction.normal.normalAsRotation())
 	}

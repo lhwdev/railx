@@ -32,11 +32,11 @@ object RailXConfig {
 			val enabled: BooleanValue = builder
 				.comment("Enables trains to have realistic speed")
 				.define("realistic_speed.enabled", true)
-
+			
 			val updateTickRate: IntValue = builder
 				.comment("How often physical values, such as mass, gravitational force, etc. are calculated")
 				.defineInRange("realistic_speed.update_tick_rate", 3, 1, Int.MAX_VALUE)
-
+			
 			val brakeAcceleration: DoubleValue = builder
 				.comment("Define acceleration of brake; braking is disabled if set to 0.")
 				.defineInRange("realistic_speed.brake_acceleration", 1.3, 0.0, 100.0)
@@ -66,6 +66,14 @@ object RailXConfig {
 			val enabled: BooleanValue = builder
 				.comment("You can create train track block with any angle you want.")
 				.define("flexi_trak.enabled", true)
+			
+			val blend: BooleanValue = builder
+				.comment(
+					"flexi tracks are treated as same as normal create train tracks. Cannot get flexi_track " +
+						"item, but all features of flexi track is available to normal train tracks. If disabled, new " +
+						"recipe for flexi_track is added."
+				)
+				.define("flexi_trak.blend", false)
 		}
 		
 		val spec = builder.build()

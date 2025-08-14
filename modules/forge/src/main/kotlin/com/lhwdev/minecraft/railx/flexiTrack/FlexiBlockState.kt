@@ -4,43 +4,70 @@ import com.mojang.serialization.MapCodec
 import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackShape
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap
-import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.Property
 
 
-// private fun FlexiBlockState.withBlockEntity(fn: (be: FlexiTrackBlockEntity) -> Unit): FlexiBlockState =
-// 	onSet { level, pos, state ->
-// 		val be = level.getBlockEntity(pos) as FlexiTrackBlockEntity
-// 		fn(be)
-// 		this
-// 	}
-//
-// fun FlexiBlockState.setShape(shape: FlexiShape): FlexiBlockState =
-// 	withBlockEntity { it.shape = shape }
-//
-// fun FlexiBlockState.mapShape(fn: (FlexiShape) -> FlexiShape) =
-// 	withBlockEntity { it.shape = fn(it.shape) }
+inline fun FlexiBlockState.mapState(crossinline fn: (FlexiState) -> FlexiState): FlexiBlockState = when(this) {
+	is FlexiBlockState.Base -> FlexiBlockState.Update(base = this, stateFn = { fn(it) })
+	is FlexiBlockState.Update -> FlexiBlockState.Update(base, stateFn = { fn(stateFn(it)) })
+}
+
+fun FlexiBlockState.setShape(shape: FlexiShape): FlexiBlockState =
+	mapState { it.copy(shape = shape) }
 
 inline fun FlexiBlockState.mapShape(crossinline fn: (FlexiShape) -> FlexiShape): FlexiBlockState =
-	setShape(fn(shape))
+	mapState { it.copy(shape = fn(it.shape)) }
 
 
-class FlexiBlockState(
-	block: Block,
+/**
+ * **Only exists for `Block.rotate()` and `Block.mirror()`...**
+ */
+sealed class FlexiBlockState(
+	block: FlexiTrackBlock,
 	values: Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
 	propertiesCodec: MapCodec<BlockState>,
-	val shape: FlexiShape,
-	val base: FlexiBlockState?
 ) : BlockState(block, values, propertiesCodec) {
-	@PublishedApi
-	internal fun setShape(shape: FlexiShape): FlexiBlockState = FlexiBlockState(
-		block = block,
-		values = values as Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
-		propertiesCodec = propertiesCodec,
-		shape = shape,
-		base = base ?: this,
-	)
+	companion object {
+		fun create(
+			block: FlexiTrackBlock,
+			values: Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+			propertiesCodec: MapCodec<BlockState>,
+		): FlexiBlockState = Base(block, values, propertiesCodec)
+	}
+	
+	abstract val base: Base
+	
+	open fun mapState(previous: FlexiState): FlexiState = previous
+	
+	class Base internal constructor(
+		block: FlexiTrackBlock,
+		values: Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+		propertiesCodec: MapCodec<BlockState>,
+	) : FlexiBlockState(block, values, propertiesCodec) {
+		override val base: Base
+			get() = this
+	}
+	
+	class Update(override val base: Base, val stateFn: (FlexiState) -> FlexiState) : FlexiBlockState(
+		block = base.block,
+		values = base.values as Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+		propertiesCodec = base.propertiesCodec,
+	) {
+		override fun mapState(previous: FlexiState): FlexiState =
+			stateFn(previous)
+		
+		override fun equals(other: Any?): Boolean = when {
+			this === other -> true
+			other !is Update -> false
+			else -> base == other.base && stateFn == other.stateFn
+		}
+		
+		override fun hashCode(): Int =
+			base.hashCode() * 31 + stateFn.hashCode()
+	}
+	
+	override fun getBlock(): FlexiTrackBlock = super.getBlock() as FlexiTrackBlock
 	
 	@Suppress("UNCHECKED_CAST")
 	override fun <T : Comparable<T>> getValue(property: Property<T>): T = when(property) {
@@ -53,57 +80,8 @@ class FlexiBlockState(
 	override fun <T : Comparable<T>, V : T> setValue(
 		property: Property<T>, value: V,
 	): FlexiBlockState = when(property) {
-		TrackBlock.HAS_BE -> this
+		TrackBlock.HAS_BE -> this.also { Error("set HAS_BE").printStackTrace() }
 		
 		else -> super.setValue(property, value)
 	} as FlexiBlockState
-	
-	override fun equals(other: Any?): Boolean = when {
-		this === other -> true
-		other !is FlexiBlockState -> false
-		else -> shape == other.shape && values === other.values
-	}
-	
-	override fun hashCode(): Int = shape.hashCode() * 31 + values.hashCode()
 }
-//
-// class FlexiBlockState(
-// 	block: Block,
-// 	values: Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
-// 	propertiesCodec: MapCodec<BlockState>,
-// 	private val onSetFn: ((level: LevelReader, pos: BlockPos, state: FlexiBlockState) -> FlexiBlockState)? = null,
-// ) : BlockState(block, values, propertiesCodec) {
-// 	fun onSet(mapping: (level: LevelReader, pos: BlockPos, state: FlexiBlockState) -> FlexiBlockState): FlexiBlockState =
-// 		FlexiBlockState(
-// 			block = block,
-// 			values = values as Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
-// 			propertiesCodec = propertiesCodec,
-// 			onSetFn = if(onSetFn == null) {
-// 				mapping
-// 			} else {
-// 				{ level, pos, state -> mapping(level, pos, onSetFn(level, pos, state)) }
-// 			},
-// 		)
-//
-// 	fun setStateOnLevel(level: LevelReader, pos: BlockPos): BlockState = if(onSetFn == null) {
-// 		this
-// 	} else {
-// 		onSetFn(level, pos, this)
-// 	}
-//
-// 	@Suppress("UNCHECKED_CAST")
-// 	override fun <T : Comparable<T>> getValue(property: Property<T>): T = when(property) {
-// 		TrackBlock.HAS_BE -> false.also { Error("HAS_BE access").printStackTrace() }
-// 		TrackBlock.SHAPE -> TrackShape.NONE.also { Error("SHAPE access").printStackTrace() }
-//
-// 		else -> super.getValue(property)
-// 	} as T
-//
-// 	override fun <T : Comparable<T>, V : T> setValue(
-// 		property: Property<T>, value: V,
-// 	): FlexiBlockState = when(property) {
-// 		TrackBlock.HAS_BE -> this
-//
-// 		else -> super.setValue(property, value)
-// 	} as FlexiBlockState
-// }

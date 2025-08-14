@@ -1,9 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.utils.floorMod
-import com.lhwdev.minecraft.railx.utils.isNormalized
-import com.lhwdev.minecraft.railx.utils.mirror
-import com.lhwdev.minecraft.railx.utils.rotate
+import com.lhwdev.minecraft.railx.utils.*
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.IntTag
@@ -12,24 +9,52 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.roundToInt
-import kotlin.math.sin
+import kotlin.math.*
+
 
 interface FlexiDirection {
+	/*
+	* 2d integer representation of tangent, if available.
+	*  Uses same coordinate system as minecraft; as y increases, it moves to south.
+	*/
 	class Tangent2(val x: Int, val y: Int)
 	
 	val tangent: Vec3
 	val tangent2: Tangent2?
 	val normal: Vec3
 	
+	infix fun closeTo(other: FlexiDirection): Boolean =
+		tangent closeTo other.tangent && normal closeTo other.tangent
+	
 	fun mirror(by: Mirror): FlexiDirection
 	
 	fun rotate(by: Rotation): FlexiDirection
+	
+	/** rotates direction clockwise; which means index **decreases**. */
 	fun rotateKnown(by: Int): FlexiDirection
 	
 	fun write(): CompoundTag
+	
+	object Zero : FlexiDirection {
+		override val tangent: Vec3
+			get() = Vec3.ZERO
+		
+		override val tangent2: Tangent2?
+			get() = null
+		
+		override val normal: Vec3
+			get() = Vec3(0.0, 1.0, 0.0)
+		
+		override fun mirror(by: Mirror): Zero = this
+		override fun rotate(by: Rotation): Zero = this
+		override fun rotateKnown(by: Int): Zero = this
+		
+		override fun write(): CompoundTag = CompoundTag().also { tag ->
+			tag.putByte("Type", 0x0)
+		}
+		
+		override fun toString(): String = "FlexiDirection.Zero"
+	}
 	
 	abstract class Flat : Normalized {
 		override val base: Flat
@@ -55,24 +80,26 @@ interface FlexiDirection {
 	}
 	
 	
+	// As index increases, tangent goes counter-clockwise, starting from (1, 0).
+	// BE AWARE THAT ANGLE IS CLOCKWISE OMG
 	class Known(val index: Int) : Flat(), Normalized, Comparable<Known> {
 		companion object {
 			const val DivisionCount = 32
 			val Divisions = (0 until DivisionCount).map { index -> Known(index) }
 			
-			fun roundFromAngle(radian: Double): Known {
-				val index = DivisionCount * (radian floorMod PI) / PI
+			fun roundFrom(radian: Double): Known {
+				val index = DivisionCount * (-radian floorMod PI) / PI
 				return Divisions[index.roundToInt() % DivisionCount]
 			}
+			
+			fun roundFrom(vector: Vec3): Known =
+				roundFrom(radian = atan2(-vector.z, vector.x))
 			
 			fun from(index: Int): Known {
 				check(index >= 0) { "index < 0" }
 				check(index < DivisionCount) { "index >= DivisionCount" }
 				return Divisions[index]
 			}
-			
-			fun readInline(tag: CompoundTag, key: String): Known =
-				from(tag.getInt(key))
 			
 			fun read(tag: CompoundTag): Known =
 				from(tag.getInt("Index"))
@@ -99,6 +126,11 @@ interface FlexiDirection {
 				null
 			}
 		
+		override fun closeTo(other: FlexiDirection): Boolean {
+			if(other is Known) return index == other.index
+			return super<Flat>.closeTo(other)
+		}
+		
 		override fun mirror(by: Mirror): Known = when(by) {
 			Mirror.NONE -> this
 			Mirror.LEFT_RIGHT -> Divisions[(DivisionCount - index) % DivisionCount]
@@ -109,7 +141,7 @@ interface FlexiDirection {
 			Divisions[(2 * DivisionCount + index - by.ordinal * (DivisionCount / 2)) % DivisionCount]
 		
 		override fun rotateKnown(by: Int): Known =
-			Divisions[Math.floorMod(index, by)]
+			Divisions[(index - by) floorMod DivisionCount]
 		
 		override fun compareTo(other: Known): Int =
 			index - other.index
@@ -117,16 +149,14 @@ interface FlexiDirection {
 		operator fun minus(other: Known): Int =
 			index - other.index
 		
-		fun writeInline(tag: CompoundTag, key: String) {
-			tag.putInt(key, index)
-		}
-		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
-			tag.putByte("Type", 0x0)
+			tag.putByte("Type", 0x1)
 			tag.putInt("Index", index)
 		}
 		
 		fun writeInt(): Tag = IntTag.valueOf(index)
+		
+		override fun toString(): String = "FlexiDirection.Known(index=$index)"
 	}
 	
 	class NormalizedImpl(
@@ -166,7 +196,10 @@ interface FlexiDirection {
 	) : Normalized {
 		companion object {
 			fun read(tag: CompoundTag): NormalizedImpl = NormalizedImpl(
-				base = FlexiDirection.read(tag.getCompound("Base")) as Flat,
+				base = tag.get("Base").let { base ->
+					if(base is NumericTag) Known.readInt(base)
+					FlexiDirection.read(base as CompoundTag) as Flat
+				},
 				normal = VecHelper.readNBT(tag.getList("Normal", Tag.TAG_DOUBLE.toInt()))
 			)
 		}
@@ -189,17 +222,24 @@ interface FlexiDirection {
 		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
 			tag.putByte("Type", 0x10)
-			tag.put("Base", base.write())
+			tag.put("Base", if(base is Known) base.writeInt() else base.write())
 			tag.put("Normal", VecHelper.writeNBT(normal))
 		}
+		
+		override fun toString(): String = "FlexiDirection.NormalizedImpl(base=$base, normal=$normal)"
 	}
 	
 	
 	companion object {
 		fun read(tag: CompoundTag): FlexiDirection = when(tag.getByte("Type").toInt()) {
-			0x0 -> Known.read(tag)
+			0x0 -> Zero
+			0x1 -> Known.read(tag)
 			0x10 -> NormalizedImpl.read(tag)
-			else -> TODO()
+			else -> error("unexpected type ${tag.getByte("Type")}")
 		}
 	}
 }
+
+
+val FlexiDirection.tangentAngle: Double
+	get() = tangent2?.let { atan2(-it.y.toDouble(), it.x.toDouble()) } ?: atan2(-tangent.z, tangent.x)

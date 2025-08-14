@@ -1,11 +1,7 @@
 package com.lhwdev.minecraft.railx
 
-import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
-import com.lhwdev.minecraft.railx.registry.AllBlocks
-import com.lhwdev.minecraft.railx.registry.AllCreativeModeTabs
-import com.lhwdev.minecraft.railx.registry.AllPackets
-import com.lhwdev.minecraft.railx.registry.AllTags
-import com.lhwdev.minecraft.railx.registry.RailXRegistry
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrak
+import com.lhwdev.minecraft.railx.registry.*
 import net.minecraft.resources.ResourceLocation
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.bus.api.IEventBus
@@ -51,5 +47,8 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		AllBlockEntityTypes
 		AllCreativeModeTabs
 		AllPackets.register()
+		AllDataComponents.register()
+		
+		FlexiTrak.initialize()
 	}
 }
