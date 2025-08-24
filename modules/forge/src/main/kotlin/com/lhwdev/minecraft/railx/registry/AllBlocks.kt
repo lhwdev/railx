@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.material.MapColor
-import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions
 import java.util.function.Supplier
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
 import com.simibubi.create.AllTags as CreateTags
@@ -53,17 +52,23 @@ object AllBlocks {
 				.sound(SoundType.METAL)
 				.noOcclusion()
 				.forceSolidOn()
+				.dynamicShape()
 		}
-		.blockstate { c, p -> p.simpleBlock(c.entry, p.models().withExistingParent(c.name, p.mcLoc("block/air"))) }
+		.blockstate { c, p ->
+			p.simpleBlock(
+				c.entry,
+				p.models().withExistingParent(c.name, Create.asResource("block/track/x_ortho"))
+			)
+		}
 		.addLayer { Supplier { RenderType.cutoutMipped() } }
-		.clientExtension { -> Supplier { FlexiTrackBlock.RenderProperties() as IClientBlockExtensions } }
+		.clientExtension { -> Supplier { FlexiTrackBlock.RenderProperties() } }
 		.tag(AllTags.Features.FlexiTrack.block)
 		.tag(CreateTags.AllBlockTags.TRACKS.tag)
 		.tag(BlockTags.MINEABLE_WITH_PICKAXE)
 		.tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
 		.tag(CreateTags.AllBlockTags.TRACKS.tag)
 		.tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
-		.lang("Train Track")
+		.lang("Flexi Train Track")
 		.item(::FlexiTrackBlockItem)
 		.tag(CreateTags.AllItemTags.TRACKS.tag)
 		.model { c, p -> p.generated(c, Create.asResource("item/track")) }

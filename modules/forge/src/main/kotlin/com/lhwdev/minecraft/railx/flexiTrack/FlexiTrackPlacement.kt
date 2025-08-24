@@ -517,18 +517,20 @@ object FlexiTrackPlacement {
 			},
 			player.offhandItem
 		)
-		
-		if(info.valid) player.displayClientMessage(
-			CreateLang.translateDirect("track.valid_connection")
-				.withStyle(ChatFormatting.GREEN), true
-		)
-		else info.error?.let { error ->
+		val error = info.error
+		if(error != null){
 			player.displayClientMessage(
 				error.message
 					.withStyle(/* if(error == "track.second_point") ChatFormatting.WHITE else */ ChatFormatting.RED),
 				true
 			)
+		} else {
+			player.displayClientMessage(
+				CreateLang.translateDirect("track.valid_connection")
+					.withStyle(ChatFormatting.GREEN), true
+			)
 		}
+		
 		
 		var hints: Couple<MutableList<BlockPos>>? = hints
 		if(bhr.direction == Direction.UP) {

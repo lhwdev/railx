@@ -1,8 +1,10 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.utils.addOneTimeListener
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
+import com.tterrag.registrate.util.OneTimeEventReceiver
 import dev.engine_room.flywheel.lib.visualization.VisualizationHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
@@ -13,8 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.VoxelShape
-import net.neoforged.api.distmarker.Dist
-import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
+import net.neoforged.neoforge.client.event.RenderFrameEvent
 
 
 class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
@@ -39,7 +40,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	override fun getBlockState(): FlexiBlockState =
 		super.getBlockState() as FlexiBlockState
 	
-	private var voxelShapeCache: VoxelShape? = null
+	private var voxelShapeCache: Pair<FlexiShape, VoxelShape>? = null
 	
 	
 	@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
@@ -65,9 +66,8 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		notifyUpdate()
 	}
 	
-	fun voxelShape(): VoxelShape = voxelShapeCache ?: run {
-		FlexiTrackVoxelShapes.of(shape)
-	}.also { voxelShapeCache = it }
+	fun voxelShape(): VoxelShape = voxelShapeCache?.let { cache -> cache.second.takeIf { cache.first == shape } }
+		?: FlexiTrackVoxelShapes.of(shape).also { voxelShapeCache = shape to it }
 	
 	// override fun getModelData(): ModelData = ModelData.builder()
 	// 	.also { if(isTilted) it.with(TrackBlockEntityTilt.ASCENDING_PROPERTY, tilt.smoothingAngle.get()) }
@@ -85,7 +85,6 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		super.read(tag, registries, clientPacket)
 		
 		state = FlexiState.read(tag.getCompound("FlexiState"))
-		runWhenOn(Dist.CLIENT) { VisualizationHelper.queueUpdate(this) }
 	}
 	
 	override fun bind(boundDimension: ResourceKey<Level>, boundLocation: BlockPos) {

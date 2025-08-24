@@ -17,12 +17,13 @@ import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.block.IHaveBigOutline
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import com.simibubi.create.foundation.block.render.MultiPosDestructionHandler
-import com.simibubi.create.foundation.block.render.ReducedDestroyEffects
 import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import dev.engine_room.flywheel.lib.transform.Affine
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap
 import net.createmod.catnip.data.Iterate
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.client.particle.ParticleEngine
+import net.minecraft.client.particle.TerrainParticle
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -41,6 +42,7 @@ import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Mirror
+import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -59,7 +61,9 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraft.world.ticks.LevelTickAccess
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
+import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
+import kotlin.math.max
 import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks
 
@@ -127,6 +131,9 @@ class FlexiTrackBlock(
 	
 	val normalBlock: TrackBlock
 		get() = CreateBlocks.TRACK.get()
+	
+	override fun getRenderShape(state: BlockState): RenderShape =
+		RenderShape.INVISIBLE
 	
 	override fun getBlockPathType(state: BlockState, level: BlockGetter, pos: BlockPos, mob: Mob?): PathType =
 		PathType.RAIL
@@ -514,7 +521,52 @@ class FlexiTrackBlock(
 	
 	override fun getMaterial(): FlexiTrackMaterial = material
 	
-	class RenderProperties : ReducedDestroyEffects(), MultiPosDestructionHandler {
+	class RenderProperties : IClientBlockExtensions, MultiPosDestructionHandler {
+		override fun addDestroyEffects(
+			state: BlockState,
+			worldIn: Level,
+			pos: BlockPos,
+			manager: ParticleEngine,
+		): Boolean {
+			if(worldIn !is ClientLevel) return true
+			val shape = state.getShape(worldIn, pos)
+			var amtBoxes = 0
+			shape.forAllBoxes { _, _, _, _, _, _ -> amtBoxes++ }
+			val chance = 1.0 / amtBoxes
+			
+			if(state.isAir) return true
+			
+			val particleState = (state.block as FlexiTrackBlock).normalBlock.defaultBlockState()
+			shape.forAllBoxes { x1, y1, z1, x2, y2, z2 ->
+				val w = x2 - x1
+				val h = y2 - y1
+				val l = z2 - z1
+				val xParts = max(2, Mth.ceil(min(1.0, w) * 4))
+				val yParts = max(2, Mth.ceil(min(1.0, h) * 4))
+				val zParts = max(2, Mth.ceil(min(1.0, l) * 4))
+				for(xIndex in 0..<xParts) {
+					for(yIndex in 0..<yParts) {
+						for(zIndex in 0..<zParts) {
+							if(worldIn.random.nextDouble() > chance) continue
+							
+							val d4 = (xIndex + .5) / xParts
+							val d5 = (yIndex + .5) / yParts
+							val d6 = (zIndex + .5) / zParts
+							val x = pos.x + d4 * w + x1
+							val y = pos.y + d5 * h + y1
+							val z = pos.z + d6 * l + z1
+							
+							manager.add(
+								TerrainParticle(worldIn, x, y, z, d4 - 0.5, d5 - 0.5, d6 - 0.5, particleState, pos)
+									.updateSprite(particleState, pos)
+							)
+						}
+					}
+				}
+			}
+			return true
+		}
+		
 		override fun getExtraPositions(
 			level: ClientLevel,
 			pos: BlockPos,

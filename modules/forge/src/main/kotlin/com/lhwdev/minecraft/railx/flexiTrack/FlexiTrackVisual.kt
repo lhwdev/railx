@@ -21,18 +21,25 @@ class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEnti
 	
 	private var blockVisual: BlockVisual? = null
 	
+	init {
+		blockVisual = BlockVisual()
+	}
+	
+	
+	private fun deleteFlexiTrack() {
+		blockVisual?.delete()
+		blockVisual = null
+	}
 	
 	override fun _delete() {
 		super._delete()
-		blockVisual?.delete()
-		blockVisual = null
-		println("railx:visual delete blockVisual")
+		deleteFlexiTrack()
 	}
 	
 	override fun update(pt: Float) {
 		super.update(pt)
+		deleteFlexiTrack()
 		blockVisual = BlockVisual()
-		println("railx:visual update blockVisual")
 	}
 	
 	override fun updateLight(partialTick: Float) {
