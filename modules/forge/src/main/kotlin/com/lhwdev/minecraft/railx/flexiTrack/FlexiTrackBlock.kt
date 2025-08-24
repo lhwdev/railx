@@ -536,6 +536,7 @@ class FlexiTrackBlock(
 			
 			if(state.isAir) return true
 			
+			// TODO: rotate shape
 			val particleState = (state.block as FlexiTrackBlock).normalBlock.defaultBlockState()
 			shape.forAllBoxes { x1, y1, z1, x2, y2, z2 ->
 				val w = x2 - x1

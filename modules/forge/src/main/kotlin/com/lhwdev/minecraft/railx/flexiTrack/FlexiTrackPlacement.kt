@@ -496,7 +496,10 @@ object FlexiTrackPlacement {
 		if(hitState.block !is ITrackBlock) return
 		
 		// Handled by create TrackPlacement.clientTick
-		if(blockItem !is FlexiTrackBlockItem && hitState.block !is FlexiTrackBlock) return
+		if(blockItem !is FlexiTrackBlockItem) {
+			val from = stack.get(CreateDataComponents.TRACK_CONNECTING_FROM) ?: return
+			if(level.getBlockState(from.pos).block !is FlexiTrackBlock) return
+		}
 		defaultHandle.cancel()
 		
 		extraTipWarmup = restoreWarmup

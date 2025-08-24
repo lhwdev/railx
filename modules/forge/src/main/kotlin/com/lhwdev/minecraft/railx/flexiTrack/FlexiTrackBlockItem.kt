@@ -31,9 +31,8 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 		var pos = pContext.clickedPos
 		val level = pContext.level
 		var state = level.getBlockState(pos)
-		val player = pContext.player
+		val player = pContext.player ?: return super.useOn(pContext)
 		
-		if(player == null) return super.useOn(pContext)
 		if(pContext.hand == InteractionHand.OFF_HAND) return super.useOn(pContext)
 		
 		val lookAngle = player.lookAngle

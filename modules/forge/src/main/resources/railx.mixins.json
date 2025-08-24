@@ -12,6 +12,7 @@
     "flexiTrack.GameDataMixin",
     "flexiTrack.PlacementInfoAccessor",
     "flexiTrack.TrackBlockEntityAccessor",
+    "flexiTrack.TrackBlockItemMixin",
     "flexiTrack.TrackBlockOutlineMixin",
     "flexiTrack.TrackPlacementMixin",
     "realisticSpeed.TrainHUDMixin",
