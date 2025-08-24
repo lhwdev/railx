@@ -28,6 +28,7 @@ object RailXConfig {
 				.defineInRange("carriage_metadata.entry_max_size", 512, 0, Int.MAX_VALUE)
 		}
 		
+		
 		inner class RealisticSpeed {
 			val enabled: BooleanValue = builder
 				.comment("Enables trains to have realistic speed")
@@ -47,11 +48,15 @@ object RailXConfig {
 			
 			val startingResistance: DoubleValue = builder
 				.comment("Starting rolling resistance per block")
-				.defineInRange("realistic_speed.starting_resistance", 0.007, 0.0, 1.0)
+				.defineInRange("realistic_speed.starting_resistance", 0.03, 0.0, 1.0)
 			
 			val gradientTrainAcceleration: DoubleValue = builder
 				.comment("How trains are accelerated according to gradient; works as gravitational constant")
-				.defineInRange("realistic_speed.gradient.acceleration", 0.1, 0.0, 100.0)
+				.defineInRange("realistic_speed.gradient_acceleration", 0.1, 0.0, 100.0)
+			
+			val curvatureResistance: DoubleValue = builder
+				.comment("Factor for curvature resistance of train. 1 for default; 0 to disable.")
+				.defineInRange("realistic_speed.curvature_resistance", 1.0, 0.0, 100.0)
 			
 			val airResistance: EnumValue<AirResistanceLogic> = builder
 				.comment("Whether to enable air resistance")
@@ -67,13 +72,17 @@ object RailXConfig {
 				.comment("You can create train track block with any angle you want.")
 				.define("flexi_trak.enabled", true)
 			
-			val blend: BooleanValue = builder
-				.comment(
-					"flexi tracks are treated as same as normal create train tracks. Cannot get flexi_track " +
-						"item, but all features of flexi track is available to normal train tracks. If disabled, new " +
-						"recipe for flexi_track is added."
-				)
-				.define("flexi_trak.blend", false)
+			// val blend: BooleanValue = builder
+			// 	.comment(
+			// 		"flexi tracks are treated as same as normal create train tracks. Cannot get flexi_track " +
+			// 			"item, but all features of flexi track is available to normal train tracks. If disabled, new " +
+			// 			"recipe for flexi_track is added."
+			// 	)
+			// 	.define("flexi_trak.blend", false)
+			
+			val maxRadius = builder
+				.comment("Max radius at which flexi tracks can be placed.")
+				.defineInRange("flexi_trak.max_radius", 32, 5, 1000)
 		}
 		
 		val spec = builder.build()

@@ -1,14 +1,12 @@
 package com.lhwdev.minecraft.railx.ccAsm.lua
 
-import com.lhwdev.minecraft.railx.ccAsm.ComputerApi
-import com.lhwdev.minecraft.railx.ccAsm.ComputerApiItem
-import com.lhwdev.minecraft.railx.ccAsm.InvokeContext
+import com.lhwdev.minecraft.railx.ccAsm.*
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Type
 import org.objectweb.asm.util.CheckClassAdapter
 import org.squiddev.cobalt.Varargs
-import java.lang.reflect.Method
-import java.lang.reflect.Modifier
+import java.lang.reflect.*
 import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -24,13 +22,22 @@ private fun proxyFunctionName(methodName: String): String =
 private object C {
 	val context = Type.getType(InvokeContext::class.java)
 	val item = Type.getType(ComputerApiItem::class.java)
+	val runtime = Type.getType(ComputerApiRuntime::class.java)
 	
-	object Item {
-		val obj = Type.getType(ComputerApiItem.Object::class.java)
-		val function = Type.getType(ComputerApiItem.Function::class.java)
+	object Parse {
+		val parseList = Type.getType(ParseContext.ParseList::class.java)
 	}
 	
-	val varargs = Type.getDescriptor(Varargs::class.java)
+	object Item {
+		val named = Type.getType(ComputerApiItem.Named::class.java)
+		val function = Type.getType(ComputerApiItem.Function::class.java)
+		val obj = Type.getType(ComputerApiItem.Object::class.java)
+	}
+	
+	val varargs = Type.getType(Varargs::class.java)
+	
+	val notNull = Type.getType(org.jetbrains.annotations.NotNull::class.java)
+	val nullable = Type.getType(org.jetbrains.annotations.Nullable::class.java)
 }
 
 private fun proxyType(type: Class<*>): Type =
@@ -50,25 +57,35 @@ fun generateProxyFromApi(from: KClass<*>): GeneratedProxy {
 class GeneratedProxy(val name: String, val bytes: ByteArray)
 
 private fun ClassVisitor.doGenerateProxyFromApi(from: KClass<*>) {
+	val originalClass = Type.getType(from.java)
 	val proxyClass = proxyType(from.java)
 	
 	val functionTargets = from.memberFunctions.filter { it.javaMethod?.declaringClass != Any::class.java }
 	
 	visit(V12, ACC_PUBLIC, proxyClass.internalName, null, C.Item.obj.internalName, null)
+	visitSource("?", "whoosh")
 	
-	visitField(ACC_PUBLIC + ACC_STATIC, ProxyInstanceName, proxyClass.descriptor, null, null)
+	visitField(ACC_PUBLIC + ACC_STATIC, ProxyInstanceName, proxyClass.descriptor, null, null)?.apply {
+		visitAnnotation(C.notNull.descriptor, false)
+		visitEnd()
+	}
 	
-	visitField(ACC_PRIVATE, "items", "Ljava/util/List;", "Ljava/util/List<${C.item}>;", null)
+	visitField(ACC_PRIVATE, "items", "Ljava/util/List;", "Ljava/util/List<${C.Item.named}>;", null)?.apply {
+		visitAnnotation(C.notNull.descriptor, false)
+		visitEnd()
+	}
 	
 	visitMethod(ACC_PRIVATE, "<init>", "()V", null, null)?.apply {
 		visitCode()
 		visitVarInsn(ALOAD, 0)
 		visitMethodInsn(INVOKESPECIAL, C.Item.obj.internalName, "<init>", "()V", false)
 		
-		visitIntConstInsn(functionTargets.size)
-		visitTypeInsn(ANEWARRAY, C.item.internalName)
+		visitVarInsn(ALOAD, 0) // this -> putfield
 		
-		val proxyFunctionDescriptor = "($proxyClass${C.context})${C.varargs}"
+		visitIntConstInsn(functionTargets.size)
+		visitTypeInsn(ANEWARRAY, C.Item.named.internalName)
+		
+		val proxyFunctionDescriptor = "($originalClass${C.context})${C.varargs}"
 		for((index, fn) in functionTargets.withIndex()) {
 			visitInsn(DUP) // +array -> aastore
 			visitIntConstInsn(index) // +index -> aastore
@@ -96,19 +113,54 @@ private fun ClassVisitor.doGenerateProxyFromApi(from: KClass<*>) {
 			visitInsn(AASTORE)
 		}
 		
+		visitMethodInsn(
+			INVOKESTATIC,
+			C.runtime.internalName,
+			"namedApiItems",
+			"([${C.Item.named})Ljava/util/List;",
+			false
+		) // -> putfield
+		
+		visitFieldInsn(PUTFIELD, proxyClass.internalName, "items", "Ljava/util/List;")
+		
 		visitInsn(RETURN)
-		visitMaxs(1, 1)
+		visitMaxs(8, 1) // Arr [Arr Ind I.F [I.F name handle]]
 		visitEnd()
 	}
 	
 	visitMethod(ACC_STATIC, "<clinit>", "()V", null, null)?.apply {
 		visitCode()
+		
 		visitTypeInsn(NEW, proxyClass.internalName)
 		visitInsn(DUP)
 		visitMethodInsn(INVOKESPECIAL, proxyClass.internalName, "<init>", "()V", false)
 		visitFieldInsn(PUTSTATIC, proxyClass.internalName, ProxyInstanceName, proxyClass.descriptor)
+		
 		visitInsn(RETURN)
 		visitMaxs(2, 0)
+		visitEnd()
+	}
+	
+	visitMethod(ACC_PUBLIC, "getType", "()Ljava/lang/Class;", "()Ljava/lang/Class<${originalClass}>;", null)?.apply {
+		visitAnnotation("Ljava/lang/Override;", false)
+		visitAnnotation(C.notNull.descriptor, false)
+		
+		visitCode()
+		visitLdcInsn(originalClass)
+		visitInsn(ARETURN)
+		visitMaxs(1, 1)
+		visitEnd()
+	}
+	
+	visitMethod(ACC_PUBLIC, "getItems", "()Ljava/util/List;", "()Ljava/util/List<${C.Item.named}>;", null)?.apply {
+		visitAnnotation("Ljava/lang/Override;", false)
+		visitAnnotation(C.notNull.descriptor, false)
+		
+		visitCode()
+		visitVarInsn(ALOAD, 0)
+		visitFieldInsn(GETFIELD, proxyClass.internalName, "items", "Ljava/util/List;")
+		visitInsn(ARETURN)
+		visitMaxs(1, 1)
 		visitEnd()
 	}
 	
@@ -176,9 +228,13 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 	
 	// Varargs $name(Self self, InvokeContext context) { ... }
 	val self = Type.getDescriptor(parent)
-	val proxyFunctionName = proxyFunctionName(method.name)
+	val proxyFunctionName = proxyFunctionName(originalMethod.name)
 	val proxyFunctionDescriptor = "($self${C.context})${C.varargs}"
 	visitMethod(ACC_PUBLIC + ACC_STATIC, proxyFunctionName, proxyFunctionDescriptor, null, null)?.apply {
+		visitParameterAnnotation(0, C.notNull.descriptor, false)
+		visitParameterAnnotation(1, C.notNull.descriptor, false)
+		visitAnnotation(C.notNull.descriptor, false)
+		
 		visitCode()
 		
 		val startLabel = Label()
@@ -217,6 +273,7 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		val firstIndex = flagsIndex + 1
 		var localIndex = firstIndex
 		var maxStack = 3
+		var maxLocals = 0
 		
 		var previousLocalFlushIndex = 0
 		val localFrames = mutableListOf<Any>()
@@ -231,20 +288,24 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 			
 			// checkIsOptional: same, () -> (resultToStore)
 			if(parameter.isOptional) {
-				/// if(context.hasOptional(index, nullable)) <...> else <defaultValueOfType>
+				/// if(context.hasOptional(index, nullable)) <...> else { flags |= <0x1 shl index>; <defaultValueOfType> }
 				//  - into: if hasOptional -> :continue; push <defaultValueOfType>; goto -> :argumentEnd;
 				//          :continue push (parse value); :argumentEnd store
 				visitVarInsn(ALOAD, contextIndex)
-				visitIntConstInsn(index)
 				visitIntConstInsn(if(parameter.type.isMarkedNullable) 1 else 0)
-				visitInvokeContextInsn("hasOptional", "(IZ)Z")
+				visitInvokeContextInsn("hasOptional", "(Z)Z")
 				
 				val continueLabel = Label()
 				visitJumpInsn(IFNE, continueLabel)
 				visitFlushFrameLocals(locals = localFrames.toTypedArray(), delta = index - previousLocalFlushIndex)
 				previousLocalFlushIndex = index
 				
-				/// else <defaultValueOfType> // stack = [] -> [argN]
+				/// else { flags |= <0x1 shl index>; <defaultValueOfType> } // stack = [] -> [argN]
+				visitVarInsn(ILOAD, flagsIndex)
+				visitIntConstInsn(0x1 shl index)
+				visitInsn(IOR)
+				visitVarInsn(ISTORE, flagsIndex)
+				
 				visitDefaultValueOfType(type)
 				visitJumpInsn(GOTO, argumentEndLabel)
 				
@@ -252,10 +313,9 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				visitLabel(continueLabel) // stack = [] -> [argN]
 				visitFrame(F_SAME, 0, null, 0, null)
 			} else if(parameter.type.isMarkedNullable) {
-				/// if(context.isNull(index)) null else <...>
+				/// if(context.isNull()) null else <...>
 				visitVarInsn(ALOAD, contextIndex)
-				visitIntConstInsn(index)
-				visitInvokeContextInsn("isNull", "(I)Z")
+				visitInvokeContextInsn("isNull", "()Z")
 				
 				val continueLabel = Label()
 				visitJumpInsn(IFEQ, continueLabel)
@@ -271,49 +331,169 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 				visitFrame(F_SAME, 0, null, 0, null)
 			}
 			
-			visitVarInsn(ALOAD, contextIndex)
-			visitIntConstInsn(index)
-			
-			when {
-				/// context.<type>(index)
-				type.isPrimitive -> when(type) {
-					Boolean::class.java -> visitInvokeContextInsn("boolean", "(I)Z")
-					Byte::class.java -> visitInvokeContextInsn("byte", "(I)B")
-					Short::class.java -> visitInvokeContextInsn("short", "(I)S")
-					Int::class.java -> visitInvokeContextInsn("int", "(I)I")
-					Long::class.java -> visitInvokeContextInsn("long", "(I)J")
-					Float::class.java -> visitInvokeContextInsn("float", "(I)F")
-					Double::class.java -> visitInvokeContextInsn("double", "(I)D")
-					Char::class.java -> visitInvokeContextInsn("char", "(I)C")
-					else -> throw NoWhenBranchMatchedException("unknown primitive type $type")
+			// stack = [context] -> [result]
+			fun parseValue(
+				contextIndex: Int,
+				type: Class<*>,
+				parameterized: () -> java.lang.reflect.Type,
+				stack: Int,
+				local: Int,
+			) {
+				fun updateStack(add: Int) {
+					maxStack = max(maxStack, stack + add)
 				}
 				
-				type in BoxedPrimitives.keys -> {
-					when(type) {
-						Boolean::class.javaObjectType -> visitInvokeContextInsn("boolean", "(I)Z")
-						Byte::class.javaObjectType -> visitInvokeContextInsn("byte", "(I)B")
-						Short::class.javaObjectType -> visitInvokeContextInsn("short", "(I)S")
-						Int::class.javaObjectType -> visitInvokeContextInsn("int", "(I)I")
-						Long::class.javaObjectType -> visitInvokeContextInsn("long", "(I)J")
-						Float::class.javaObjectType -> visitInvokeContextInsn("float", "(I)F")
-						Double::class.javaObjectType -> visitInvokeContextInsn("double", "(I)D")
-						Char::class.javaObjectType -> visitInvokeContextInsn("char", "(I)C")
-						else -> throw NoWhenBranchMatchedException("unknown primitive type $type")
+				fun updateLocal(add: Int) {
+					maxLocals = max(maxLocals, local + add)
+				}
+				updateStack(1)
+				updateLocal(0)
+				
+				// stack = [parseList] -> []
+				fun parseListLike(
+					index: Int,
+					container: Class<*>,
+					createContainer: () -> Unit,
+					parseItem: (contextIndex: Int, itemType: java.lang.reflect.Type) -> Unit,
+				) {
+					val containerName = container.simpleName
+					
+					val signature = parameterized()
+					check(signature is ParameterizedType && signature.rawType == container) {
+						"parameters[$index]: should declare like '$containerName<T>'"
 					}
-					BoxedPrimitives[type]!!()
+					
+					val innerType = signature.actualTypeArguments.single()
+					
+					visitFlushFrameLocals(
+						locals = localFrames.toTypedArray(),
+						delta = index - previousLocalFlushIndex
+					)
+					previousLocalFlushIndex = index
+					
+					val containerIndex = index
+					val parseListIndex = index + 1
+					
+					createContainer()
+					visitVarInsn(ASTORE, containerIndex)
+					
+					visitVarInsn(ALOAD, contextIndex)
+					visitInvokeContextInsn("list", "()${C.Parse.parseList}")
+					visitVarInsn(ASTORE, parseListIndex)
+					
+					visitFrame(F_APPEND, 2, arrayOf("Ljava/util/List;", C.Parse.parseList.descriptor), 0, null)
+					
+					/// <- while(list.hasNext()) parseItem(list)
+					/// :parse
+					val parseLabel = Label()
+					val breakLabel = Label()
+					visitLabel(parseLabel)
+					visitFrame(F_SAME, 0, null, 0, null)
+					
+					/// if(!list.hasNext()) goto :breakLabel
+					visitVarInsn(ALOAD, parseListIndex)
+					visitMethodInsn(INVOKEVIRTUAL, C.Parse.parseList.internalName, "hasNext", "()Z", false)
+					visitJumpInsn(IFEQ, breakLabel)
+					
+					visitVarInsn(ALOAD, containerIndex)
+					parseItem(contextIndex, innerType)
+					visitJumpInsn(GOTO, parseLabel)
+					
+					visitLabel(breakLabel)
+					visitLocalVariable(
+						"\$list_${parseListIndex}",
+						C.Parse.parseList.descriptor,
+						null,
+						parseLabel,
+						breakLabel,
+						parseListIndex
+					)
+					visitFrame(F_CHOP, 2, null, 0, null)
 				}
 				
-				type == String::class.java -> visitInvokeContextInsn("string", "(I)Ljava/lang/String;")
-				type == List::class.java -> visitInvokeContextInsn("list", "(I)Ljava/util/List;")
-				
-				type.isAnnotationPresent(ComputerApi::class.java) -> {
-					val argType = proxyType(type)
-					visitFieldInsn(GETSTATIC, argType.internalName, ProxyInstanceName, argType.descriptor)
-					visitInvokeContextInsn("apiInterface", "(I${C.Item.obj})Ljava/lang/Object;")
+				when {
+					/// context.<type>()
+					type.isPrimitive -> {
+						visitVarInsn(ALOAD, contextIndex)
+						when(type) {
+							Boolean::class.java -> visitInvokeContextInsn("boolean", "()Z")
+							Byte::class.java -> visitInvokeContextInsn("byte", "()B")
+							Short::class.java -> visitInvokeContextInsn("short", "()S")
+							Int::class.java -> visitInvokeContextInsn("int", "()I")
+							Long::class.java -> visitInvokeContextInsn("long", "()J")
+							Float::class.java -> visitInvokeContextInsn("float", "()F")
+							Double::class.java -> visitInvokeContextInsn("double", "()D")
+							Char::class.java -> visitInvokeContextInsn("char", "()C")
+							else -> throw NoWhenBranchMatchedException("unknown primitive type $type")
+						}
+					}
+					
+					type in Boxers.keys -> {
+						visitVarInsn(ALOAD, contextIndex)
+						when(type) {
+							Boolean::class.javaObjectType -> visitInvokeContextInsn("boolean", "()Z")
+							Byte::class.javaObjectType -> visitInvokeContextInsn("byte", "()B")
+							Short::class.javaObjectType -> visitInvokeContextInsn("short", "()S")
+							Int::class.javaObjectType -> visitInvokeContextInsn("int", "()I")
+							Long::class.javaObjectType -> visitInvokeContextInsn("long", "()J")
+							Float::class.javaObjectType -> visitInvokeContextInsn("float", "()F")
+							Double::class.javaObjectType -> visitInvokeContextInsn("double", "()D")
+							Char::class.javaObjectType -> visitInvokeContextInsn("char", "()C")
+							else -> throw NoWhenBranchMatchedException("unknown primitive type $type")
+						}
+						Boxers[type]!!.box(this)
+					}
+					
+					type == String::class.java -> {
+						visitVarInsn(ALOAD, contextIndex)
+						visitInvokeContextInsn("string", "()Ljava/lang/String;")
+					}
+					
+					type == List::class.java -> {
+						parseListLike(
+							index = localIndex,
+							container = List::class.java,
+							createContainer = {
+								visitMethodInsn(
+									INVOKESTATIC,
+									C.runtime.internalName,
+									"list",
+									"()Ljava/util/List;",
+									false
+								)
+							},
+							parseItem = { contextIndex, itemType ->
+								parseValue(
+									contextIndex,
+									itemType.toClass(),
+									parameterized = { itemType },
+									stack = stack + 1,
+									local = local + 2
+								)
+								visitMethodInsn(INVOKEVIRTUAL, "java/util/List", "add", "(Ljava/lang/Object;)Z", false)
+								visitInsn(POP)
+							},
+						)
+					}
+					
+					type.isAnnotationPresent(ComputerApi::class.java) -> {
+						visitVarInsn(ALOAD, contextIndex)
+						val argType = proxyType(type)
+						visitFieldInsn(GETSTATIC, argType.internalName, ProxyInstanceName, argType.descriptor)
+						visitInvokeContextInsn("apiInterface", "(${C.Item.obj})Ljava/lang/Object;")
+					}
+					
+					else -> throw IllegalStateException("unsupported argument type $type for ${index}th parameter of $fn")
 				}
-				
-				else -> throw IllegalStateException("unsupported argument type $type for ${index}th parameter of $fn")
 			}
+			
+			parseValue(
+				contextIndex,
+				type,
+				parameterized = { argument.parameterizedType },
+				stack = 0,
+				local = localIndex
+			)
 			
 			if(parameter.isOptional || parameter.type.isMarkedNullable) {
 				visitLabel(argumentEndLabel)
@@ -327,7 +507,21 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 			visitLabel(localScopeStartLabel)
 			argumentEndLabels += localScopeStartLabel
 		}
-		val maxLocals = localIndex
+		visitFlushFrameLocals(locals = localFrames.toTypedArray(), delta = parameters.size - previousLocalFlushIndex)
+		previousLocalFlushIndex = parameters.size
+		maxLocals = max(maxLocals, localIndex)
+		
+		val afterSkipCurrentLabel = Label()
+		visitVarInsn(ALOAD, contextIndex)
+		visitInvokeContextInsn("skipCurrent", "()${C.varargs}")
+		
+		visitInsn(DUP)
+		visitJumpInsn(IFNULL, afterSkipCurrentLabel)
+		visitInsn(ARETURN)
+		
+		visitLabel(afterSkipCurrentLabel)
+		visitFrame(F_SAME1, 0, null, 1, arrayOf(C.varargs.internalName))
+		visitInsn(POP)
 		
 		/// self.name(arg1, arg2, ...)
 		visitVarInsn(ALOAD, selfIndex)
@@ -363,14 +557,16 @@ private fun ClassVisitor.addFunction(parent: Class<*>, fn: KFunction<*>) {
 		
 		if(method.returnType != Void.TYPE) {
 			/// context.wrapReturn(result)
-			val type = method.returnType.let { if(it.isPrimitive) it else Any::class.java }
-			val asmType = Type.getType(type)
 			visitVarInsn(ALOAD, contextIndex) // stack = [result, context]
 			visitInsn(SWAP) // stack = [context, result]
-			visitInvokeContextInsn("wrapReturn", "(${asmType.descriptor})${C.varargs}")
+			if(method.returnType.isPrimitive) {
+				Boxers[method.returnType]!!.box(this)
+			}
+			visitInvokeContextInsn("wrapReturn", "(Ljava/lang/Object;)${C.varargs}")
 			visitInsn(ARETURN)
 		} else {
-			visitInsn(ACONST_NULL)
+			visitVarInsn(ALOAD, contextIndex)
+			visitInvokeContextInsn("wrapReturnVoid", "()${C.varargs}")
 			visitInsn(ARETURN)
 		}
 		
@@ -408,24 +604,47 @@ private fun MethodVisitor.visitIntConstInsn(value: Int) {
 		3 -> visitInsn(ICONST_3)
 		4 -> visitInsn(ICONST_4)
 		5 -> visitInsn(ICONST_5)
-		in 0..Byte.MAX_VALUE -> visitIntInsn(BIPUSH, value)
-		in 0..Short.MAX_VALUE -> visitIntInsn(BIPUSH, value)
+		in Byte.MIN_VALUE..Byte.MAX_VALUE -> visitIntInsn(BIPUSH, value)
+		in Short.MIN_VALUE..Short.MAX_VALUE -> visitIntInsn(BIPUSH, value)
 		else -> visitLdcInsn(value)
 	}
 }
 
-private val BoxedPrimitives: Map<Class<*>, MethodVisitor.() -> Unit> = listOf(
-	Boolean::class,
-	Byte::class, Short::class, Int::class, Long::class,
-	Float::class, Double::class,
-	Char::class,
-).associate { type ->
-	val objectType = type.javaObjectType
-	val asmObject = Type.getType(objectType)
-	val boxDescriptor = "(${Type.getDescriptor(type.java)})${asmObject.descriptor}"
-	
-	objectType to {
-		visitMethodInsn(INVOKESTATIC, asmObject.internalName, "valueOf", boxDescriptor, false)
+private abstract class Boxer {
+	abstract fun box(visitor: MethodVisitor)
+	abstract fun unbox(visitor: MethodVisitor)
+}
+
+private val Boxers = buildMap {
+	listOf(
+		Boolean::class,
+		Byte::class, Short::class, Int::class, Long::class,
+		Float::class, Double::class,
+		Char::class,
+	).forEach { type ->
+		val java = type.java
+		val objectType = type.javaObjectType
+		val asmObject = Type.getType(objectType)
+		val boxDescriptor = "(${Type.getDescriptor(java)})${asmObject.descriptor}"
+		
+		val boxer = object : Boxer() {
+			override fun box(visitor: MethodVisitor) {
+				visitor.visitMethodInsn(INVOKESTATIC, asmObject.internalName, "valueOf", boxDescriptor, false)
+			}
+			
+			override fun unbox(visitor: MethodVisitor) {
+				visitor.visitMethodInsn(
+					INVOKEVIRTUAL,
+					asmObject.internalName,
+					"${java.name}Value",
+					"()${Type.getDescriptor(java)}",
+					false
+				)
+			}
+		}
+		
+		put(type.java, boxer)
+		put(objectType, boxer)
 	}
 }
 
@@ -458,6 +677,20 @@ private fun MethodVisitor.visitFlushFrameLocals(
 	when {
 		delta > 3 || delta < -3 -> visitFrame(F_FULL, locals.size, locals, previousStacks.size, previousStacks)
 		delta > 0 -> visitFrame(F_APPEND, delta, locals.takeLast(delta).toTypedArray(), 0, null)
-		delta < 0 -> visitFrame(F_CHOP, delta, null, previousStacks.size, previousStacks)
+		delta < 0 -> visitFrame(F_CHOP, delta, null, 0, null)
+		else -> visitFrame(F_SAME, 0, null, 0, null)
 	}
+}
+
+private fun java.lang.reflect.Type.toClass(): Class<*> = when(this) {
+	is Class<*> -> this
+	is GenericArrayType -> genericComponentType.toClass().arrayType()
+	is ParameterizedType -> rawType.toClass()
+	is WildcardType -> Any::class.java
+	is TypeVariable<*> -> {
+		val boundClass = bounds.map { it.toClass() }
+		boundClass.firstOrNull { !it.isInterface } ?: boundClass.firstOrNull() ?: Any::class.java
+	}
+	
+	else -> error("?")
 }

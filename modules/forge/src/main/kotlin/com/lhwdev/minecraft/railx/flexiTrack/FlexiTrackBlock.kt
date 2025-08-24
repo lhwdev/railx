@@ -59,6 +59,7 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraft.world.ticks.LevelTickAccess
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
 import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks
 
@@ -217,20 +218,10 @@ class FlexiTrackBlock(
 		
 		val list = mutableListOf<DiscoveredLocation>()
 		for(axis in shape.axes) {
-			for(fromCenter in Iterate.trueAndFalse) ITrackBlock.addToListIfConnected(
-				connectedTo,
-				list,
-				{ d, b ->
-					axis.tangent.scale((if(b) 0.0 else if(fromCenter) -d else d))
-						.add(center)
-				},
-				{ b -> shape.normal },
-				{ b -> if(world is Level) world.dimension() else Level.OVERWORLD },
-				{ v -> 0 },
-				axis.tangent,
-				null,
-				{ b, v -> ITrackBlock.getMaterialSimple(world, v) }
-			)
+			for(direction in Iterate.positiveAndNegative) list.addIfConnected(
+				fromEnd = connectedTo,
+				getOffset = { t, first -> center + axis.tangent.scale(if(first) 0.0 else direction * t) }
+			) { DiscoveredLocation(level = world, normal = shape.normal, tangent = axis.tangent) }
 		}
 		
 		if(linear) {
@@ -239,18 +230,21 @@ class FlexiTrackBlock(
 		
 		val connections = blockEntity.connections
 		connections.forEach { (_, bc) ->
-			ITrackBlock.addToListIfConnected(
-				connectedTo,
-				list,
-				{ d, b ->
-					if(d == 1.0) Vec3.atLowerCornerOf(bc.bePositions.get(b)) else bc.starts.get(b)
-				},
-				{ first -> bc.normals.get(first) },
-				{ b -> if(world is Level) world.dimension() else Level.OVERWORLD },
-				{ end -> bc.yOffsetAt(end) },
-				null,
-				bc,
-				{ b, v -> ITrackBlock.getMaterialSimple(world, v, bc.material) })
+			list.addIfConnected(
+				fromEnd = connectedTo,
+				getOffset = { t, first ->
+					if(t == 1.0) Vec3.atLowerCornerOf(bc.bePositions.get(first))
+					else bc.starts.get(first)
+				}
+			) {
+				DiscoveredLocation(
+					level = world,
+					normal = bc.normals.get(isFirst),
+					tangent = null,
+					yOffset = bc.yOffsetAt(offset),
+					viaTurn = bc,
+				)
+			}
 		}
 		
 		return list

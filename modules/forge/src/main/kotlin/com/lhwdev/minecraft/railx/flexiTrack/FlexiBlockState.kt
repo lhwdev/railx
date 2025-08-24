@@ -54,6 +54,10 @@ sealed class FlexiBlockState(
 		values = base.values as Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
 		propertiesCodec = base.propertiesCodec,
 	) {
+		init {
+			System.err.println("railx:state FlexiBlockState.Update constructed; ${Error().stackTraceToString()}")
+		}
+		
 		override fun mapState(previous: FlexiState): FlexiState =
 			stateFn(previous)
 		

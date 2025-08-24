@@ -15,3 +15,6 @@ infix fun Double.floorMod(by: Double): Double {
 	return if(this * by < 0 && r != 0.0) r + by
 	else r
 }
+
+infix fun Double.similarTo(to: Double): Boolean =
+	(this - to) < 1e-10

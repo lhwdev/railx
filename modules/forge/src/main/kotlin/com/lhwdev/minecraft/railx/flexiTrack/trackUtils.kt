@@ -3,8 +3,10 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
 import com.simibubi.create.content.trains.track.BezierConnection
+import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import net.minecraft.resources.ResourceKey
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 
@@ -25,11 +27,11 @@ fun MutableCollection<DiscoveredLocation>.addIfConnected(
 	}
 	
 	if(fromEnd != null) {
-		val skipFirst = firstFactory.offsetCenter != fromEnd
-		val skipSecond = secondFactory.offsetCenter != fromEnd
-		if(skipFirst && skipSecond) return
-		if(skipFirst) this += first
-		if(skipSecond) this += second
+		val skipFirst = first == fromEnd
+		val skipSecond = second == fromEnd
+		if(!skipFirst && !skipSecond) return
+		if(!skipFirst) this += first
+		if(!skipSecond) this += second
 	} else {
 		this += first
 		this += second
@@ -45,6 +47,9 @@ class DiscoveredLocationFactory(
 	fun offset(fraction: Double): Vec3 =
 		getOffset(fraction, isFirst)
 	
+	val offset: Vec3
+		get() = offset(if(isFirst) 0.0 else 1.0)
+	
 	val offsetStart: Vec3
 		get() = offset(0.0)
 	
@@ -57,7 +62,7 @@ class DiscoveredLocationFactory(
 	fun DiscoveredLocation(
 		dimension: ResourceKey<Level>,
 		normal: Vec3,
-		tangent: Vec3,
+		tangent: Vec3?,
 		yOffset: Int = 0,
 		firstMaterial: TrackMaterial,
 		secondMaterial: TrackMaterial,
@@ -68,4 +73,22 @@ class DiscoveredLocationFactory(
 		.withNormal(normal)
 		.withDirection(tangent)
 		.withYOffset(yOffset)
+	
+	fun DiscoveredLocation(
+		level: BlockGetter,
+		normal: Vec3,
+		tangent: Vec3?,
+		yOffset: Int = 0,
+		viaTurn: BezierConnection? = null,
+		firstMaterial: TrackMaterial = ITrackBlock.getMaterialSimple(level, offsetStart, viaTurn?.material),
+		secondMaterial: TrackMaterial = ITrackBlock.getMaterialSimple(level, offsetEnd, viaTurn?.material),
+	): DiscoveredLocation = DiscoveredLocation(
+		dimension = (level as? Level)?.dimension() ?: Level.OVERWORLD,
+		normal = normal,
+		tangent = tangent,
+		yOffset = yOffset,
+		firstMaterial = firstMaterial,
+		secondMaterial = secondMaterial,
+		viaTurn = viaTurn,
+	)
 }

@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.registry
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackRenderer
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVisual
 import com.simibubi.create.content.trains.observer.TrackObserverRenderer
 import com.simibubi.create.content.trains.observer.TrackObserverVisual
 import com.simibubi.create.content.trains.track.TrackVisual
@@ -29,7 +30,7 @@ object AllBlockEntityTypes {
 		.blockEntity("track", ::FlexiTrackBlockEntity)
 		.visual {
 			SimpleBlockEntityVisualizer.Factory { ctx, blockEntity, partialTick ->
-				TrackVisual(ctx, blockEntity, partialTick)
+				FlexiTrackVisual(ctx, blockEntity, partialTick)
 			}
 		}
 		.renderer { NonNullFunction { FlexiTrackRenderer(it) } }

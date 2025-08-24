@@ -6,6 +6,7 @@ import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import com.simibubi.create.content.trains.track.TrackRenderer
 import com.simibubi.create.content.trains.track.TrackShape
+import dev.engine_room.flywheel.api.visualization.VisualizationManager
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
@@ -27,16 +28,16 @@ class FlexiTrackRenderer(context: BlockEntityRendererProvider.Context) : TrackRe
 		super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 		
 		val level = be.level!!
-		// if(VisualizationManager.supportsVisualization(level)) return
+		if(VisualizationManager.supportsVisualization(level)) return
 		
 		val vb = buffer.getBuffer(RenderType.CUTOUT_MIPPED)
-		renderFlexiBlock(be.shape, ms, vb, light)
+		renderFlexiBlock(be, ms, vb, light)
 	}
 	
-	fun renderFlexiBlock(shape: FlexiShape, ms: PoseStack, vb: VertexConsumer, light: Int) {
-		val state = CreateBlocks.TRACK.defaultState.setValue(TrackBlock.SHAPE, TrackShape.XO)
+	fun renderFlexiBlock(be: FlexiTrackBlockEntity, ms: PoseStack, vb: VertexConsumer, light: Int) {
+		val state = be.block.material.block.defaultBlockState().setValue(TrackBlock.SHAPE, TrackShape.XO)
 		
-		for(axis in shape.axes) {
+		for(axis in be.shape.axes) {
 			CachedBuffers.block(state)
 				.light<SuperByteBuffer>(light)
 				.rotateYCentered(axis.tangentAngle.toFloat())

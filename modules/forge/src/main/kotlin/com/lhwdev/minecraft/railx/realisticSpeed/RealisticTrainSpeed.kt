@@ -1,11 +1,13 @@
 package com.lhwdev.minecraft.railx.realisticSpeed
 
 import com.lhwdev.minecraft.railx.RailXConfig
+import com.lhwdev.minecraft.railx.utils.pow2
 import com.simibubi.create.content.trains.entity.Carriage
 import com.simibubi.create.content.trains.entity.CarriageBogey
 import com.simibubi.create.content.trains.entity.CarriageContraption
 import com.simibubi.create.content.trains.entity.Train
 import net.minecraft.core.Direction
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -34,12 +36,18 @@ class RealisticTrainSpeed(private val train: Train) {
 	private var skipCount = 0
 	private var stoppedFor = 0
 	
+	private var debugCounter = 0
+	private fun debug(text: String) {
+		if(debugCounter == 0 && stoppedFor < 20) println("railx:realistic $text")
+	}
+	
 	fun calculateSpeed(previousSpeed: Double): Double {
 		val threshold = if(stoppedFor >= 20) 40 else config.updateTickRate.get()
 		if(skipCount >= threshold) {
 			updateSpeed()
 			skipCount = 0
 		}
+		if(debugCounter++ >= 20) debugCounter = 0
 		
 		var speed = previousSpeed + (netAcceleration / 400)
 		speed = if(speed > 0) {
@@ -64,6 +72,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	private var gravitationalAcceleration: Double = 0.0
 	private var normalMass: Double = 0.0
 	private var mass: Double = 1.0
+	private var curveRadius: Double = 100000.0
 	
 	fun updateSpeed() {
 		netAcceleration = 0.0
@@ -91,18 +100,33 @@ class RealisticTrainSpeed(private val train: Train) {
 			return carriage.bogeys.sumOf { if(it != null) calculateBogeyGradient(it) else 0.0 } / bogeyCount
 		}
 		
+		fun calculateRadius(carriage: Carriage): Double {
+			val leading = carriage.leadingPoint
+			val trailing = carriage.trailingPoint
+			val leadingDirection = leading.edge.getDirectionAt(leading.position)
+			val trailingDirection = trailing.edge.getDirectionAt(trailing.position)
+			// b/2 = r cos(90-T/2) = r sqrt((1 - cos T)/2), r = b / [2 sqrt((1 - cos T)/2)]
+			// cos T = leadingDirection dot trailingDirection
+			val offset = trailing.getPosition(train.graph) - leading.getPosition(train.graph)
+			return offset.length() / (2 * sqrt((1 - leadingDirection.dot(trailingDirection)) / 2))
+		}
+		
 		var netTangentForce = 0.0
 		var netNormalMass = 0.0
 		var netMass = 0.0
+		var netRadius = 0.0
 		for(carriage in train.carriages) {
 			val entity = carriage.anyAvailableEntity() ?: continue
 			val mass = entity.contraption.blocks.size.toDouble() // stub implementation
 			if(mass < 1.0) continue
+			
 			val sin = calculateGradient(carriage)
 			netTangentForce += mass * -sin
 			netNormalMass += mass * sqrt(1.0 - sin * sin)
 			netMass += mass
+			netRadius += calculateRadius(carriage)
 		}
+		
 		if(abs(netMass) < 0.1e-3) {
 			gravitationalAcceleration = 0.0
 			normalMass = netNormalMass
@@ -112,6 +136,8 @@ class RealisticTrainSpeed(private val train: Train) {
 			normalMass = netNormalMass
 			mass = netMass
 		}
+		curveRadius = netRadius / train.carriages.size
+		debug("curveRadius=$curveRadius")
 	}
 	
 	private fun handleRollingResistance() {
@@ -145,13 +171,35 @@ class RealisticTrainSpeed(private val train: Train) {
 		netSlowdown += brake * factor
 	}
 	
+	private object CurvatureResistance {
+		// r = c / (r-a); r' = -c / (r-a)^2
+		// R = 650/(r-55), L = c/r + k; L(p) = R(p), L'(p) = R'(p)
+		// c/p + k = 650/(p-55), c/p^2 = 650/(p-55)^2
+		// c = 650 p^2 / (p-55)^2, k = 650/(p-55) - c/p
+		const val criticalPoint = 155
+		const val c = 650 * (criticalPoint * criticalPoint) / ((criticalPoint - 55) * (criticalPoint - 55))
+		const val k = 650 / (criticalPoint - 55) - c / criticalPoint
+		
+		fun calculate(radius: Double) = if(radius > criticalPoint) {
+			650 / (radius - 55)
+		} else {
+			c / radius + k
+		}
+	}
+	
 	private fun handleCurvatureResistance() {
-		// TODO
+		val factor = config.curvatureResistance.get()
+		if(factor == 0.0) return
+		
+		val resistance = CurvatureResistance.calculate(curveRadius)
+		netSlowdown += resistance
 	}
 	
 	private fun handleAirResistance() {
 		val speed = train.speed
 		if(speed == 0.0) return
+		
+		// TODO: take my tunnel factor
 		
 		val area: Double
 		when(config.airResistance.get()) {

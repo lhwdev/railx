@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
+import dev.engine_room.flywheel.lib.visualization.VisualizationHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
@@ -12,6 +13,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.VoxelShape
+import net.neoforged.api.distmarker.Dist
+import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
 
 
 class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
@@ -30,6 +33,9 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	val offset: Vec3
 		get() = state.offset
 	
+	val block: FlexiTrackBlock
+		get() = blockState.block
+	
 	override fun getBlockState(): FlexiBlockState =
 		super.getBlockState() as FlexiBlockState
 	
@@ -41,6 +47,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		super.setBlockState(blockState)
 		
 		if(blockState is FlexiBlockState.Update) {
+			println("railx:update from $blockState")
 			updateState(blockState.mapState(state))
 		}
 	}
@@ -78,6 +85,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		super.read(tag, registries, clientPacket)
 		
 		state = FlexiState.read(tag.getCompound("FlexiState"))
+		runWhenOn(Dist.CLIENT) { VisualizationHelper.queueUpdate(this) }
 	}
 	
 	override fun bind(boundDimension: ResourceKey<Level>, boundLocation: BlockPos) {

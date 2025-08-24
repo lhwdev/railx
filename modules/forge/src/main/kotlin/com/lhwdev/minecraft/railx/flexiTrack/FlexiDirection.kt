@@ -229,6 +229,28 @@ interface FlexiDirection {
 		override fun toString(): String = "FlexiDirection.NormalizedImpl(base=$base, normal=$normal)"
 	}
 	
+	class Two(override val tangent: Vec3, override val normal: Vec3) : FlexiDirection {
+		init {
+			require(tangent.isNormalized()) { "tangent.length != 1" }
+			require(normal.isNormalized()) { "normal.length != 1" }
+			require(tangent.dot(normal) similarTo 0.0) { "tangent is not perpendicular to normal" }
+		}
+		
+		override val tangent2: Tangent2?
+			get() = null
+		
+		override fun mirror(by: Mirror): FlexiDirection = Two(by.mirror(tangent), by.mirror(normal))
+		override fun rotate(by: Rotation): FlexiDirection = Two(by.rotate(tangent), by.rotate(normal))
+		override fun rotateKnown(by: Int): FlexiDirection {
+			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
+			return Two(tangent.yRot(angle), normal.yRot(angle))
+		}
+		
+		override fun write(): CompoundTag {
+			TODO("Not yet implemented")
+		}
+	}
+	
 	
 	companion object {
 		fun read(tag: CompoundTag): FlexiDirection = when(tag.getByte("Type").toInt()) {

@@ -34,7 +34,7 @@ class RailXClient(bus: IEventBus) {
 		
 		@SubscribeEvent
 		fun onPostTick(event: ClientTickEvent.Post) {
-			FlexiTrackPlacement.clientTick()
+			// nothing
 		}
 	}
 }
