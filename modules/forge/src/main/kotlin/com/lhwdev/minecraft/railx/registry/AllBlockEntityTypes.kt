@@ -4,6 +4,8 @@ import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrack
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackRenderer
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVisual
+import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlockEntity
+import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackVisual
 import com.simibubi.create.content.trains.observer.TrackObserverRenderer
 import com.simibubi.create.content.trains.observer.TrackObserverVisual
 import com.simibubi.create.content.trains.track.TrackVisual
@@ -17,23 +19,22 @@ object AllBlockEntityTypes {
 	
 	val AdvancedTrackObserver: BlockEntityEntry<AdvancedTrackObserverBlockEntity> = Registry
 		.blockEntity("advanced_track_observer", ::AdvancedTrackObserverBlockEntity)
-		.visual {
-			SimpleBlockEntityVisualizer.Factory { ctx, blockEntity, partialTick ->
-				TrackObserverVisual(ctx, blockEntity, partialTick)
-			}
-		}
-		.renderer { NonNullFunction { TrackObserverRenderer(it) } }
+		.visual { SimpleBlockEntityVisualizer.Factory(::TrackObserverVisual) }
+		.renderer { NonNullFunction(::TrackObserverRenderer) }
 		.validBlocks(AllBlocks.AdvancedTrackObserver)
+		.register()
+	
+	val MiddleTrack: BlockEntityEntry<MiddleTrackBlockEntity> = Registry
+		.blockEntity("middle_track", ::MiddleTrackBlockEntity)
+		.visual { SimpleBlockEntityVisualizer.Factory(::MiddleTrackVisual) }
+		
+		.validBlocks(AllBlocks.MiddleTrack)
 		.register()
 	
 	val FlexiTrack: BlockEntityEntry<FlexiTrackBlockEntity> = Registry
 		.blockEntity("track", ::FlexiTrackBlockEntity)
-		.visual {
-			SimpleBlockEntityVisualizer.Factory { ctx, blockEntity, partialTick ->
-				FlexiTrackVisual(ctx, blockEntity, partialTick)
-			}
-		}
-		.renderer { NonNullFunction { FlexiTrackRenderer(it) } }
+		.visual { SimpleBlockEntityVisualizer.Factory(::FlexiTrackVisual) }
+		.renderer { NonNullFunction(::FlexiTrackRenderer) }
 		.validBlocks(AllBlocks.FlexiTrack)
 		.register()
 }

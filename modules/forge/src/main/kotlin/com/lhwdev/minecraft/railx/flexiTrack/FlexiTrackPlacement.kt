@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.registry.AllDataComponents
 import com.lhwdev.minecraft.railx.utils.pow2
+import com.lhwdev.minecraft.railx.utils.similarTo
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer
@@ -47,6 +48,9 @@ import org.spongepowered.asm.mixin.injection.callback.Cancellable
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.round
 import kotlin.math.sign
 import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllSpecialTextures as CreateSpecialTextures
@@ -203,8 +207,27 @@ object FlexiTrackPlacement {
 		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)
 			return placeErrorCreate("turn_start")
 		
-		if(curve.radius < RailXConfig.Server.flexiTrak.maxRadius.get())
-			return placeErrorCreate("too_sharp")
+		val intersect = VecHelper.intersect(from.end, to.end, from.tangent, to.tangent, Direction.Axis.Y)
+		if(intersect != null) {
+			if(from.tangent.dot(to.tangent) > 0) // illegal curve
+				return placeErrorCreate("too_sharp")
+			
+			if(curve.radius < RailXConfig.Server.flexiTrak.minRadius.get())
+				return placeErrorCreate("too_sharp")
+		} else {
+			val fromCross = from.tangent.cross(Vec3(0.0, 1.0, 0.0))
+			val sCurve = VecHelper.intersect(from.end, to.end, fromCross, to.tangent, Direction.Axis.Y)
+				?: return this
+			val (u, v) = sCurve
+			val t = round(abs(u) * 100) * 0.01
+			if(t similarTo 0.0) {
+				// straight line
+			} else {
+				// s curve
+				val maxT = max(v, 1.0) / (RailXConfig.Server.flexiTrak.minRadius.get() / 2) // IDK about this
+				if(t > maxT) return placeErrorCreate("too_sharp")
+			}
+		}
 		
 		return this
 	}
@@ -305,39 +328,45 @@ object FlexiTrackPlacement {
 		toState: BlockState,
 		item: ItemStack,
 	): PlaceResult {
-		// 1. tangent should look inside curve; A -> (curve) <- B
-		// 2. angle difference should be smallest, curve should be shortest
+		val fromState = level.getBlockState(from.pos)
+		val fromBlock = fromState.block as? ITrackBlock ?: return PlaceErrorCreate("original_missing")
+		
+		val toBlock = toState.block as ITrackBlock
+		
+		// 1. Tangent should look inside curve; A -> (curve) <- B
+		// 2. Angle difference should be smallest, curve should be shortest
 		//    -> the position where two vector intersects; tangent go towards intersection point (where t, u > 0)
-		// 3. if does not intersect, (parallel / on same line; same point -> will not happen)
+		// 3. If they do not intersect, (parallel / on same line; same point -> will not happen)
 		//    3-1. S curve: make u of intersect(A, B.rotY(90)) > 0, then make A dot B < 0
 		//    3-2. on same line: yeah just line
-		val fromVec = Vec3.atBottomCenterOf(from.pos)
-		val toVec = Vec3.atBottomCenterOf(to.pos)
-		val intersect = VecHelper.intersect(fromVec, toVec, from.tangent, to.tangent, Direction.Axis.Y)
+		
 		val fromTangent: Vec3
 		val toTangent: Vec3
-		if(intersect != null) {
-			fromTangent = from.tangent.scale(sign(intersect[0]))
-			toTangent = to.tangent.scale(sign(intersect[1]))
-		} else {
-			val crossIntersect = VecHelper.intersect(
-				fromVec, toVec,
-				from.tangent, to.tangent.cross(Vec3(0.0, 1.0, 0.0)),
-				Direction.Axis.Y
-			)
-			if(crossIntersect != null) {
-				fromTangent = from.tangent.scale(sign(crossIntersect[0]))
-				toTangent = to.tangent.scale(-sign(fromTangent.dot(to.tangent)))
+		
+		// find sign of tangent
+		run {
+			val fromVec = fromBlock.getCurveStart(level, from.pos, fromState, from.tangent)
+			val toVec = toBlock.getCurveStart(level, to.pos, toState, to.tangent)
+			val intersect = VecHelper.intersect(fromVec, toVec, from.tangent, to.tangent, Direction.Axis.Y)
+			if(intersect != null) {
+				fromTangent = from.tangent.scale(sign(intersect[0]))
+				toTangent = to.tangent.scale(sign(intersect[1]))
 			} else {
-				fromTangent = (toVec - fromVec).normalize()
-				toTangent = -fromTangent
+				val crossIntersect = VecHelper.intersect(
+					fromVec, toVec,
+					from.tangent, to.tangent.cross(Vec3(0.0, 1.0, 0.0)),
+					Direction.Axis.Y
+				)
+				if(crossIntersect != null) {
+					fromTangent = from.tangent.scale(sign(crossIntersect[0]))
+					toTangent = to.tangent.scale(-sign(fromTangent.dot(to.tangent)))
+				} else {
+					fromTangent = (toVec - fromVec).normalize()
+					toTangent = -fromTangent
+				}
 			}
 		}
 		
-		val fromState = level.getBlockState(from.pos)
-		val fromBlock = fromState.block as? ITrackBlock ?: return PlaceErrorCreate("original_missing")
-		val toState = toState
-		val toBlock = toState.block as ITrackBlock
 		val fromEnd = TrackEnd(
 			block = fromBlock,
 			pos = from.pos,
@@ -505,7 +534,10 @@ object FlexiTrackPlacement {
 		extraTipWarmup = restoreWarmup
 		val maxTurns = minecraft.options.keySprint.isDown()
 		val info = tryConnect(level, player, pos, hitState, stack, false)
-		if(info !is FlexiPlacementInfo) return
+		if(info !is FlexiPlacementInfo) {
+			if(info is PlaceError) player.displayClientMessage(info.message.withStyle(ChatFormatting.RED), true)
+			return
+		}
 		
 		if(extraTipWarmup < 20) extraTipWarmup++
 		if(!info.valid || /* !hoveringMaxed && */ info.fromExtent == 0.0 || info.toExtent == 0.0)
@@ -521,7 +553,7 @@ object FlexiTrackPlacement {
 			player.offhandItem
 		)
 		val error = info.error
-		if(error != null){
+		if(error != null) {
 			player.displayClientMessage(
 				error.message
 					.withStyle(/* if(error == "track.second_point") ChatFormatting.WHITE else */ ChatFormatting.RED),

@@ -42,6 +42,9 @@ object FlexiTrackVoxelShapes {
 	fun of(shape: FlexiShape): VoxelShape =
 		shape.axes.fold(Shapes.empty()) { acc, axis -> Shapes.or(acc, of(axis)) }
 	
+	fun of(state: FlexiState): VoxelShape =
+		of(state.shape)
+	
 	private fun createKnown(direction: FlexiDirection.Known): VoxelShape {
 		var result = Shapes.empty()
 		val rotation = direction.angleDegree

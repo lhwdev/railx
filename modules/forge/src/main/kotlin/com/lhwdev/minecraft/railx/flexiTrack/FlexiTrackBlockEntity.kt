@@ -31,16 +31,13 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	val shape: FlexiShape
 		get() = state.shape
 	
-	val offset: Vec3
-		get() = state.offset
-	
 	val block: FlexiTrackBlock
 		get() = blockState.block
 	
 	override fun getBlockState(): FlexiBlockState =
 		super.getBlockState() as FlexiBlockState
 	
-	private var voxelShapeCache: Pair<FlexiShape, VoxelShape>? = null
+	private var voxelShapeCache: Pair<FlexiState, VoxelShape>? = null
 	
 	
 	@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
@@ -66,13 +63,8 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		notifyUpdate()
 	}
 	
-	fun voxelShape(): VoxelShape = voxelShapeCache?.let { cache -> cache.second.takeIf { cache.first == shape } }
-		?: FlexiTrackVoxelShapes.of(shape).also { voxelShapeCache = shape to it }
-	
-	// override fun getModelData(): ModelData = ModelData.builder()
-	// 	.also { if(isTilted) it.with(TrackBlockEntityTilt.ASCENDING_PROPERTY, tilt.smoothingAngle.get()) }
-	// 	.with(FlexiTrackModel.ShapeProperty, shape)
-	// 	.build()
+	fun voxelShape(): VoxelShape = voxelShapeCache?.let { cache -> cache.second.takeIf { cache.first == state } }
+		?: FlexiTrackVoxelShapes.of(state).also { voxelShapeCache = state to it }
 	
 	
 	override fun write(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {

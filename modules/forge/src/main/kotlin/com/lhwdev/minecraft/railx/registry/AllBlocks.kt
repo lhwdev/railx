@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrack
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
+import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
 import com.simibubi.create.AllDisplaySources
 import com.simibubi.create.Create
 import com.simibubi.create.api.behaviour.display.DisplaySource
@@ -42,6 +43,18 @@ object AllBlocks {
 		.register()
 	
 	
+	val MiddleTrack: BlockEntry<MiddleTrackBlock> = Registry
+		.block("middle_track", ::MiddleTrackBlock)
+		.properties {
+			it.mapColor(MapColor.METAL)
+				.noCollission()
+				.noOcclusion()
+				.replaceable()
+		}
+		.blockstate { c, p -> p.simpleBlock(c.get(), p.models().withExistingParent(c.name, p.mcLoc("block/air"))) }
+		.lang("Middle Track Block")
+		.register()
+	
 	@Suppress("DEPRECATION", "removal")
 	val FlexiTrack: BlockEntry<FlexiTrackBlock> = Registry
 		.block("flexi_track") { FlexiTrackBlock(it, FlexiTrackMaterial.Andesite) }
@@ -52,7 +65,6 @@ object AllBlocks {
 				.sound(SoundType.METAL)
 				.noOcclusion()
 				.forceSolidOn()
-				.dynamicShape()
 		}
 		.blockstate { c, p ->
 			p.simpleBlock(

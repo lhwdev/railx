@@ -1,6 +1,5 @@
-package com.lhwdev.minecraft.railx.flexiTrack.mixin
+package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.flexiTrack.*
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.trains.track.TrackBlockOutline
 import dev.engine_room.flywheel.lib.transform.TransformStack
@@ -11,8 +10,7 @@ import net.neoforged.neoforge.client.event.RenderHighlightEvent
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-
-object TrackBlockOutlineHelper {
+object FlexiTrackBlockOutline {
 	fun drawCustomBlockSelection(event: RenderHighlightEvent.Block): Boolean {
 		val mc = Minecraft.getInstance()
 		val level = mc.level!!
@@ -32,7 +30,8 @@ object TrackBlockOutlineHelper {
 		ms.translate(pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z)
 		
 		val holdingTrack = AllTags.AllBlockTags.TRACKS.matches(mc.player!!.mainHandItem)
-		val shape = blockEntity.shape
+		val state = blockEntity.state
+		val shape = state.shape
 		val canConnectFrom = !shape.isJunction && !blockEntity.isTilted
 		
 		walkShapes(

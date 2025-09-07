@@ -11,6 +11,8 @@ object RailXConfig {
 		
 		val realisticSpeed = RealisticSpeed()
 		
+		val middleTrack = MiddleTrack()
+		
 		val flexiTrak = FlexiTrak()
 		
 		
@@ -67,6 +69,30 @@ object RailXConfig {
 				.defineInRange("realistic_speed.air_resistance.multiplier", 1.0, 0.0, 10.0)
 		}
 		
+		inner class MiddleTrack {
+			val enabled: BooleanValue = builder
+				.comment("Whether to enable rendering tracks for out-of-chunk end node.")
+				.define("middle_track.enabled", true)
+			
+			val enablePlacing: BooleanValue = builder
+				.comment(
+					"Whether to enable placing fake middle track. All curves, only with this option" +
+						"enabled, are rendered even with out-of-chunk end node."
+				)
+				.define("middle_track.enable_placing", false)
+			
+			val placeGap: IntValue = builder
+				.comment("The gap, in chunk, at which fake middle track is placed. If larger than render distance, does not take effect.")
+				.defineInRange("middle_track.place_gap", 4, 1, 16)
+			
+			val enableInteraction: BooleanValue = builder
+				.comment(
+					"Whether to show outline, relocate train, etc. for curves with out-of-chunk end node. " +
+						"Some features like breaking curve are still restricted."
+				)
+				.define("middle_track.enable_interaction", false)
+		}
+		
 		inner class FlexiTrak {
 			val enabled: BooleanValue = builder
 				.comment("You can create train track block with any angle you want.")
@@ -80,9 +106,9 @@ object RailXConfig {
 			// 	)
 			// 	.define("flexi_trak.blend", false)
 			
-			val maxRadius = builder
+			val minRadius: IntValue = builder
 				.comment("Max radius at which flexi tracks can be placed.")
-				.defineInRange("flexi_trak.max_radius", 32, 5, 1000)
+				.defineInRange("flexi_trak.min_radius", 32, 5, 1000)
 		}
 		
 		val spec = builder.build()

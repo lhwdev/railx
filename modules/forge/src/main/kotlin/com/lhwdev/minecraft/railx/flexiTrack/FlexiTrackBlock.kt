@@ -68,13 +68,13 @@ import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks
 
 
-private val Properties_offsetFunction = Properties::class.java.getDeclaredField("offsetFunction")
-	.also { it.isAccessible = true }
-
-private fun Properties.offsetFunction(fn: BlockBehaviour.OffsetFunction): Properties {
-	Properties_offsetFunction.set(this, fn)
-	return this
-}
+// private val Properties_offsetFunction = Properties::class.java.getDeclaredField("offsetFunction")
+// 	.also { it.isAccessible = true }
+//
+// private fun Properties.offsetFunction(fn: BlockBehaviour.OffsetFunction): Properties {
+// 	Properties_offsetFunction.set(this, fn)
+// 	return this
+// }
 
 
 class FlexiTrackBlock(
@@ -82,7 +82,8 @@ class FlexiTrackBlock(
 	@get:JvmName("getMaterialKt")
 	val material: FlexiTrackMaterial,
 ) : Block(
-	properties.offsetFunction { state, level, pos -> blockEntity(level, pos)?.offset ?: Vec3.ZERO }
+	properties
+		.dynamicShape()
 ),
 	IBE<FlexiTrackBlockEntity>,
 	IWrenchable,
