@@ -1,66 +1,74 @@
-package com.lhwdev.minecraft.railx.middleTrack
+package com.lhwdev.minecraft.railx.middleTrack.visual
 
+import com.lhwdev.minecraft.railx.middleTrack.ConnectionMiddleState
 import com.lhwdev.minecraft.railx.utils.createInstances
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.render.ContraptionVisual
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.foundation.render.SpecialModels
-import dev.engine_room.flywheel.api.instance.Instance
-import dev.engine_room.flywheel.api.visual.SectionTrackedVisual
+import dev.engine_room.flywheel.api.instance.Instancer
+import dev.engine_room.flywheel.api.visual.LightUpdatedVisual
+import dev.engine_room.flywheel.api.visual.SectionTrackedVisual.SectionCollector
 import dev.engine_room.flywheel.api.visual.ShaderLightVisual
+import dev.engine_room.flywheel.api.visual.Visual
 import dev.engine_room.flywheel.api.visualization.VisualizationContext
 import dev.engine_room.flywheel.lib.instance.FlatLit
 import dev.engine_room.flywheel.lib.instance.InstanceTypes
 import dev.engine_room.flywheel.lib.instance.TransformedInstance
 import dev.engine_room.flywheel.lib.model.Models
 import dev.engine_room.flywheel.lib.transform.TransformStack
-import dev.engine_room.flywheel.lib.visual.AbstractBlockEntityVisual
 import it.unimi.dsi.fastutil.longs.LongArraySet
 import it.unimi.dsi.fastutil.longs.LongSet
 import net.createmod.catnip.data.Couple
 import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
-import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LightLayer
-import java.util.function.Consumer
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import kotlin.math.max
 import kotlin.math.min
 
 
-class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockEntity, partialTick: Float) :
-	AbstractBlockEntityVisual<MiddleTrackBlockEntity>(context, middle, partialTick), ShaderLightVisual {
+class MiddleTrackVisual(
+	private val context: VisualizationContext,
+	val connection: ConnectionMiddleState,
+) : Visual, LightUpdatedVisual, ShaderLightVisual {
+	private var lightSections: SectionCollector? = null
 	
-	val connections: List<BezierConnection>
-		get() = blockEntity.connections
+	private val instancerProvider get() = context.instancerProvider()
 	
-	private var visuals: List<BezierTrackVisual> = emptyList()
+	private val visualPosition
+		get() = connection.from - context.renderOrigin()
+	
+	private val level get() = connection.level
 	
 	
-	override fun setSectionCollector(sectionCollector: SectionTrackedVisual.SectionCollector?) {
-		super.setSectionCollector(sectionCollector)
-		lightSections.sections(collectLightSections())
+	private var visual: BezierTrackVisual? = null
+	
+	override fun setSectionCollector(sectionCollector: SectionCollector) {
+		lightSections = sectionCollector
+		sectionCollector.sections(collectLightSections())
 	}
 	
 	override fun update(pt: Float) {
-		_delete()
-		visuals = connections.mapNotNull {
-			if(it.primary) {
-				BezierTrackVisual(it)
-			} else null
-		}
+		delete()
+		val curve = connection.curve
+		visual = if(connection.isActive) {
+			BezierTrackVisual(curve)
+		} else null
 		
-		lightSections.sections(collectLightSections())
+		lightSections?.sections(collectLightSections())
 	}
 	
 	override fun updateLight(partialTick: Float) {
-		visuals.forEach { it.updateLight() }
+		visual?.updateLight()
 	}
 	
-	public override fun _delete() {
-		visuals.forEach { it.delete() }
-		visuals = emptyList()
+	override fun delete() {
+		visual?.delete()
+		visual = null
 	}
 	
 	fun collectLightSections(): LongSet {
@@ -70,15 +78,13 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 		var maxX = Int.MIN_VALUE
 		var maxY = Int.MIN_VALUE
 		var maxZ = Int.MIN_VALUE
-		for(connection in connections) {
-			for(pos in connection.bePositions) {
-				minX = min(minX, pos.x)
-				minY = min(minY, pos.y)
-				minZ = min(minZ, pos.z)
-				maxX = max(maxX, pos.x)
-				maxY = max(maxY, pos.y)
-				maxZ = max(maxZ, pos.z)
-			}
+		for(pos in connection.curve.bePositions) {
+			minX = min(minX, pos.x)
+			minY = min(minY, pos.y)
+			minZ = min(minZ, pos.z)
+			maxX = max(maxX, pos.x)
+			maxY = max(maxY, pos.y)
+			maxZ = max(maxZ, pos.z)
 		}
 		
 		val minSectionX = ContraptionVisual.minLightSection(minX.toDouble())
@@ -88,7 +94,7 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 		val maxSectionY = ContraptionVisual.maxLightSection(maxY.toDouble())
 		val maxSectionZ = ContraptionVisual.maxLightSection(maxZ.toDouble())
 		
-		val out: LongSet = LongArraySet()
+		val out = LongArraySet()
 		
 		for(x in minSectionX..maxSectionX) {
 			for(y in minSectionY..maxSectionY) {
@@ -101,9 +107,9 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 		return out
 	}
 	
-	override fun collectCrumblingInstances(consumer: Consumer<Instance?>) {
-		visuals.forEach { it.collectCrumblingInstances(consumer) }
-	}
+	// override fun collectCrumblingInstances(consumer: Consumer<Instance?>) {
+	// 	visual?.collectCrumblingInstances(consumer)
+	// }
 	
 	private inner class BezierTrackVisual(bc: BezierConnection) {
 		private val ties: List<TransformedInstance>
@@ -118,25 +124,17 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 				.translate(visualPosition)
 			
 			val segCount = bc.segmentCount
-			val modelHolder = bc.material.modelHolder
 			
-			ties = instancerProvider().instancer(
-				InstanceTypes.TRANSFORMED,
-				SpecialModels.flatChunk(modelHolder.tie())
-			).createInstances(segCount)
-			
-			left = instancerProvider().instancer(
-				InstanceTypes.TRANSFORMED,
-				SpecialModels.flatChunk(modelHolder.leftSegment())
-			).createInstances(segCount)
-			
-			right = instancerProvider().instancer(
-				InstanceTypes.TRANSFORMED,
-				SpecialModels.flatChunk(modelHolder.rightSegment())
-			).createInstances(segCount)
+			val models = bc.material.modelHolder
+			ties = instancerProvider.instancer(InstanceTypes.TRANSFORMED, SpecialModels.flatChunk(models.tie))
+				.createInstances(segCount)
+			left = instancerProvider.instancer(InstanceTypes.TRANSFORMED, SpecialModels.flatChunk(models.leftSegment))
+				.createInstances(segCount)
+			right = instancerProvider.instancer(InstanceTypes.TRANSFORMED, SpecialModels.flatChunk(models.rightSegment))
+				.createInstances(segCount)
 			
 			
-			val segments = bc.getBakedSegments()
+			val segments = bc.bakedSegments
 			for(i in 1..<segments.size) {
 				val segment = segments[i]
 				val modelIndex = i - 1
@@ -146,7 +144,7 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 					.setChanged()
 				
 				for(first in Iterate.trueAndFalse) {
-					val transform = segment.railTransforms.get(first)
+					val transform = segment.railTransforms[first]
 					(if(first) this.left else this.right)[modelIndex].setTransform(pose)
 						.mul(transform)
 						.setChanged()
@@ -168,12 +166,12 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 			girder?.updateLight()
 		}
 		
-		fun collectCrumblingInstances(consumer: Consumer<Instance?>) {
-			for(d in ties) consumer.accept(d)
-			for(d in left) consumer.accept(d)
-			for(d in right) consumer.accept(d)
-			girder?.collectCrumblingInstances(consumer)
-		}
+		// fun collectCrumblingInstances(consumer: Consumer<Instance?>) {
+		// 	for(d in ties) consumer.accept(d)
+		// 	for(d in left) consumer.accept(d)
+		// 	for(d in right) consumer.accept(d)
+		// 	girder?.collectCrumblingInstances(consumer)
+		// }
 	}
 	
 	private inner class GirderVisual(bc: BezierConnection) {
@@ -190,20 +188,17 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 			
 			val segCount = bc.segmentCount
 			beams = Couple.create {
-				instancerProvider().instancer(
+				instancerProvider.instancer(
 					InstanceTypes.TRANSFORMED,
 					Models.partial(AllPartialModels.GIRDER_SEGMENT_MIDDLE)
 				).createInstances(segCount)
 			}
 			
 			beamCaps = Couple.createWithContext { top ->
-				val partialModel = Models.partial(
-					if(top) AllPartialModels.GIRDER_SEGMENT_TOP else AllPartialModels.GIRDER_SEGMENT_BOTTOM
-				)
 				Couple.create {
-					instancerProvider().instancer(
+					instancerProvider.instancer<TransformedInstance>(
 						InstanceTypes.TRANSFORMED,
-						partialModel
+						Models.partial(if(top) AllPartialModels.GIRDER_SEGMENT_TOP else AllPartialModels.GIRDER_SEGMENT_BOTTOM),
 					).createInstances(segCount)
 				}
 			}
@@ -255,21 +250,31 @@ class MiddleTrackVisual(context: VisualizationContext, middle: MiddleTrackBlockE
 			}
 		}
 		
-		fun collectCrumblingInstances(consumer: Consumer<Instance?>) {
-			beams.forEach {
-				for(d in it) consumer.accept(d)
-			}
-			beamCaps.forEach { c ->
-				c.forEach {
-					for(d in it) consumer.accept(d)
-				}
-			}
-		}
+		// fun collectCrumblingInstances(consumer: Consumer<Instance?>) {
+		// 	beams.forEach {
+		// 		for(d in it) consumer.accept(d)
+		// 	}
+		// 	beamCaps.forEach { c ->
+		// 		c.forEach {
+		// 			for(d in it) consumer.accept(d)
+		// 		}
+		// 	}
+		// }
 	}
 	
 	
-	private fun updateLight(instance: FlatLit, level: Level, pos: BlockPos) {
+	private fun updateLight(instance: FlatLit, level: LevelAccessor, pos: BlockPos) {
 		instance.light(level.getBrightness(LightLayer.BLOCK, pos), level.getBrightness(LightLayer.SKY, pos))
 			.setChanged()
 	}
 }
+
+
+class TrackInstancers(
+	val tie: Instancer<TransformedInstance>,
+	val left: Instancer<TransformedInstance>,
+	val right: Instancer<TransformedInstance>,
+	val beam: Instancer<TransformedInstance>,
+	val girderSegmentTop: Instancer<TransformedInstance>,
+	val girderSegmentBottom: Instancer<TransformedInstance>,
+)
