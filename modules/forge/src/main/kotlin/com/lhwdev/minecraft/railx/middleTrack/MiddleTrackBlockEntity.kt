@@ -1,23 +1,86 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
-import com.lhwdev.minecraft.railx.utils.getList
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.FakeTrackBlockEntity
 import com.simibubi.create.content.trains.track.TrackMaterial
 import net.createmod.catnip.data.Couple
-import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
-import net.minecraft.nbt.*
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 
 class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
 	FakeTrackBlockEntity(type, pos, state) {
 	
 	var connections: List<BezierConnection> = emptyList()
+		private set
+	
+	
+	private var pendingConnections: List<BezierConnection>? = null
+	
+	fun updateConnections(value: List<BezierConnection>) {
+		val level = level
+		if(level == null || level.getBlockEntity(blockPos) !is MiddleTrackBlockEntity) {
+			pendingConnections = value
+			return
+		}
+		
+		if(value.isEmpty() && !level.isClientSide) {
+			Error("value.isEmpty()").printStackTrace()
+			connections = emptyList()
+			level.removeBlock(blockPos, false)
+			return
+		}
+		
+		notifyUpdate()
+		
+		if(level.isClientSide) {
+			GlobalConnections[level].updateMiddle(this, value)
+		}
+		connections = value
+	}
+	
+	override fun setLevel(level: Level) {
+		super.setLevel(level)
+		
+		// pendingConnections?.let {
+		// 	pendingConnections = null
+		// 	updateConnections(it)
+		// }
+	}
+	
+	override fun onLoad() {
+		super.onLoad()
+		
+		pendingConnections?.let {
+			pendingConnections = null
+			updateConnections(it)
+		}
+	}
+	
+	// Be aware that this is also called on chunk unload!
+	override fun setRemoved() {
+		super.setRemoved()
+		
+		val level = level
+		if(level != null) {
+			GlobalConnections[level].removeMiddle(this)
+		}
+	}
+	
 	
 	override fun saveAdditional(tag: CompoundTag, registries: HolderLookup.Provider) {
 		super.saveAdditional(tag, registries)
@@ -26,47 +89,149 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	
 	override fun loadAdditional(tag: CompoundTag, registries: HolderLookup.Provider) {
 		super.loadAdditional(tag, registries)
-		connections = tag.getList("Connections") { t: CompoundTag ->
-			CompactBezierConnection.read(t, blockPos)
-				.also { require(it.primary) { "curve is not primary" } }
-		}
+		updateConnections((tag.get("Connections") as ListTag).mapNotNull { t ->
+			CompactBezierConnection.read(t as CompoundTag, blockPos)
+				?.also { require(it.primary) { "curve is not primary" } }
+		})
 	}
 }
 
 
 private object CompactBezierConnection {
-	fun read(tag: CompoundTag, localTo: BlockPos): BezierConnection = BezierConnection(
-		tag.get("P").toCouple { t: LongTag -> BlockPos.of(t.asLong).offset(localTo) },
-		tag.get("S").toCouple { t: ListTag -> VecHelper.readNBT(t).add(Vec3.atLowerCornerOf(localTo)) },
-		tag.get("A").toCouple { t: ListTag -> VecHelper.readNBT(t) },
-		tag.get("N").toCouple { t: ListTag -> VecHelper.readNBT(t) },
-		tag.getBoolean("F"),
-		tag.getBoolean("G"),
-		TrackMaterial.deserialize(tag.getString("M")),
-	).also { bc ->
-		if("S" in tag) bc.smoothing = tag.get("S").toCouple { t: IntTag -> t.asInt }
+	// size <= 127
+	private val MaterialCache = mutableListOf<TrackMaterial>().apply {
+		add(TrackMaterial.ANDESITE)
+		add(FlexiTrackMaterial.Andesite)
+	}
+	
+	
+	fun read(tag: CompoundTag, localTo: BlockPos): BezierConnection? {
+		if("D3" !in tag) return null
+		val bytes = tag.getByteArray("D3")
+		val input = DataInputStream(ByteArrayInputStream(bytes))
+		
+		val flags = input.readUnsignedShort()
+		
+		// Note: given vec3 would be generally not too big; size would be no more than 1.
+		fun readVec3MaybeFlat(flagIndex: Int): Vec3 = if(flags and (1 shl flagIndex) != 0) {
+			Vec3(input.readFloat().toDouble(), 0.0, input.readFloat().toDouble())
+		} else {
+			Vec3(input.readFloat().toDouble(), input.readFloat().toDouble(), input.readFloat().toDouble())
+		}
+		
+		fun readStart(blockPos: BlockPos, flagIndex: Int): Vec3 =
+			readVec3MaybeFlat(flagIndex) + Vec3.atBottomCenterOf(blockPos)
+		
+		
+		fun readVec3MaybeNormal(flagIndex: Int): Vec3 = if(flags and (1 shl flagIndex) != 0) {
+			FlexiDirection.Flat.normal
+		} else {
+			Vec3(input.readFloat().toDouble(), input.readFloat().toDouble(), input.readFloat().toDouble())
+		}
+		
+		val fromPos = BlockPos(input.readShort().toInt(), input.readByte().toInt(), input.readShort().toInt())
+			.offset(localTo)
+		val toPos = BlockPos(input.readShort().toInt(), input.readByte().toInt(), input.readShort().toInt())
+			.offset(localTo)
+		
+		val bc = BezierConnection(
+			Couple.create(fromPos, toPos),
+			Couple.create(readStart(fromPos, 10), readStart(toPos, 11)),
+			Couple.create(readVec3MaybeFlat(12), readVec3MaybeFlat(13)),
+			Couple.create(readVec3MaybeNormal(14), readVec3MaybeNormal(15)),
+			flags and 1 != 0,
+			flags and 2 != 0,
+			(flags shr 3 and 0x7f).let { type ->
+				if(type == 0) {
+					TrackMaterial.deserialize(input.readUTF())
+				} else {
+					MaterialCache[type - 1]
+				}
+			}
+		)
+		
+		if(flags and 4 != 0) {
+			bc.smoothing = Couple.create(input.readInt(), input.readInt())
+		}
+		
+		return bc
 	}
 	
 	fun write(bc: BezierConnection, localTo: BlockPos): CompoundTag = CompoundTag().also { tag ->
-		tag.put("P", bc.bePositions.toListTag { LongTag.valueOf(it.subtract(localTo).asLong()) })
-		tag.put("S", bc.starts.toListTag { VecHelper.writeNBT(it.subtract(Vec3.atLowerCornerOf(localTo))) })
-		tag.put("A", bc.axes.toListTag { VecHelper.writeNBT(it) })
-		tag.put("N", bc.normals.toListTag { VecHelper.writeNBT(it) })
-		tag.putBoolean("F", bc.isPrimary)
-		tag.putBoolean("G", bc.hasGirder)
-		tag.putString("M", bc.material.id.toString())
-		bc.smoothing?.let { s -> tag.put("S", s.toListTag { IntTag.valueOf(it) }) }
-	}
-	
-	
-	private inline fun <reified T, R> Tag?.toCouple(block: (T) -> R): Couple<R> {
-		this as ListTag
-		@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-		return Couple.create(block(this[0] as T), block(this[1] as T))
-	}
-	
-	private inline fun <T> Couple<T>.toListTag(block: (T) -> Tag): ListTag = ListTag().also { tag ->
-		tag += block(first)
-		tag += block(second)
+		val bytes = ByteArrayOutputStream()
+		val output = DataOutputStream(bytes)
+		
+		var flags = 0
+		output.writeShort(0) // placeholder for flags
+		fun writeFlag(index: Int, data: Int) {
+			flags = flags or (data shl index)
+		}
+		
+		fun writeFlag(index: Int, data: Boolean) {
+			writeFlag(index, if(data) 1 else 0)
+		}
+		writeFlag(0, bc.primary)
+		writeFlag(1, bc.hasGirder)
+		writeFlag(3, MaterialCache.indexOf(bc.material) + 1)
+		
+		fun write(pos: BlockPos) {
+			val pos = pos.subtract(localTo)
+			output.writeShort(pos.x)
+			output.writeByte(pos.y)
+			output.writeShort(pos.z)
+		}
+		
+		write(bc.bePositions.first)
+		write(bc.bePositions.second)
+		
+		fun writeMaybeFlat(vec: Vec3, flagIndex: Int) {
+			output.writeFloat(vec.x.toFloat())
+			if(vec.y == 0.0) {
+				writeFlag(flagIndex, true)
+			} else {
+				output.writeFloat(vec.y.toFloat())
+			}
+			output.writeFloat(vec.z.toFloat())
+		}
+		
+		fun writeStart(pos: Vec3, blockPos: BlockPos, flagIndex: Int) {
+			val relative = pos - Vec3.atBottomCenterOf(blockPos)
+			writeMaybeFlat(relative, flagIndex)
+		}
+		
+		writeStart(bc.starts.first, bc.bePositions.first, 10)
+		writeStart(bc.starts.second, bc.bePositions.second, 11)
+		
+		writeMaybeFlat(bc.axes.first, 12)
+		writeMaybeFlat(bc.axes.second, 13)
+		
+		fun writeMaybeNormal(vec: Vec3, flagIndex: Int) {
+			if(vec.x == 0.0 && vec.z == 0.0) {
+				writeFlag(flagIndex, true)
+			} else {
+				output.writeFloat(vec.x.toFloat())
+				output.writeFloat(vec.y.toFloat())
+				output.writeFloat(vec.z.toFloat())
+			}
+		}
+		
+		writeMaybeNormal(bc.normals.first, 14)
+		writeMaybeNormal(bc.normals.second, 15)
+		
+		if(bc.material !in MaterialCache) {
+			output.writeUTF(bc.material.id.toString())
+		}
+		
+		bc.smoothing?.let { smoothing ->
+			writeFlag(2, true)
+			output.writeInt(smoothing.first)
+			output.writeInt(smoothing.second)
+		}
+		
+		val result = bytes.toByteArray()
+		result[0] = (flags shr 8).toByte()
+		result[1] = (flags).toByte()
+		
+		tag.putByteArray("D3", result)
 	}
 }

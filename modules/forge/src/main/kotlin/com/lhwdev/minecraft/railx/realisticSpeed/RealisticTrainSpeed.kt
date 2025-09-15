@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.realisticSpeed
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.lhwdev.minecraft.railx.utils.pow2
 import com.simibubi.create.content.trains.entity.Carriage
 import com.simibubi.create.content.trains.entity.CarriageBogey
 import com.simibubi.create.content.trains.entity.CarriageContraption
@@ -20,7 +19,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	fun handleTickSpeed(): Boolean {
 		if(!config.enabled.get()) return false
 		
-		if(train.manualTick || train.navigation.destination != null) {
+		if(/* train.manualTick ||  */train.navigation.destination != null) {
 			// TODO: do nothing
 			skipCount = 0
 			stoppedFor = 0
@@ -137,7 +136,6 @@ class RealisticTrainSpeed(private val train: Train) {
 			mass = netMass
 		}
 		curveRadius = netRadius / train.carriages.size
-		debug("curveRadius=$curveRadius")
 	}
 	
 	private fun handleRollingResistance() {
@@ -177,11 +175,12 @@ class RealisticTrainSpeed(private val train: Train) {
 		// c/p + k = 650/(p-55), c/p^2 = 650/(p-55)^2
 		// c = 650 p^2 / (p-55)^2, k = 650/(p-55) - c/p
 		const val criticalPoint = 155
-		const val c = 650 * (criticalPoint * criticalPoint) / ((criticalPoint - 55) * (criticalPoint - 55))
-		const val k = 650 / (criticalPoint - 55) - c / criticalPoint
+		const val multiplier = 650
+		const val c = multiplier * (criticalPoint * criticalPoint) / ((criticalPoint - 55) * (criticalPoint - 55))
+		const val k = multiplier / (criticalPoint - 55) - c / criticalPoint
 		
 		fun calculate(radius: Double) = if(radius > criticalPoint) {
-			650 / (radius - 55)
+			multiplier / (radius - 55)
 		} else {
 			c / radius + k
 		}
@@ -192,7 +191,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		if(factor == 0.0) return
 		
 		val resistance = CurvatureResistance.calculate(curveRadius)
-		netSlowdown += resistance
+		netSlowdown += factor * resistance * sqrt(abs(train.speed))
 	}
 	
 	private fun handleAirResistance() {

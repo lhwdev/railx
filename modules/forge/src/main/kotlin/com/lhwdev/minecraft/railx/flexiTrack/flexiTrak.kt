@@ -2,7 +2,7 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 
 object FlexiTrak {
-	fun initialize() {
+	fun register() {
 		FlexiTrackMaterial.Andesite
 	}
 }

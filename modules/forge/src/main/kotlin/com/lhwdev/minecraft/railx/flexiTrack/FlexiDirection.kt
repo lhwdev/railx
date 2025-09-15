@@ -57,11 +57,15 @@ interface FlexiDirection {
 	}
 	
 	abstract class Flat : Normalized {
+		companion object {
+			val normal = Vec3(0.0, 1.0, 0.0)
+		}
+		
 		override val base: Flat
 			get() = this
 		
 		final override val normal: Vec3
-			get() = Vec3(0.0, 1.0, 0.0)
+			get() = Flat.normal
 		
 		fun applyNormal(normal: Vec3): Normalized = if(normal.x == 0.0 && normal.z == 0.0) {
 			this

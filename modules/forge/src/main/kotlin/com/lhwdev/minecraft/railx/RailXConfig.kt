@@ -81,6 +81,10 @@ object RailXConfig {
 				)
 				.define("middle_track.enable_placing", false)
 			
+			val removePrevious: BooleanValue = builder
+				.comment("Removes all previous middle tracks for compatibility.")
+				.define("middle_track.remove_previous", false)
+			
 			val placeGap: IntValue = builder
 				.comment("The gap, in chunk, at which fake middle track is placed. If larger than render distance, does not take effect.")
 				.defineInRange("middle_track.place_gap", 4, 1, 16)

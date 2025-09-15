@@ -37,6 +37,8 @@ neoForge {
 		register("client") {
 			client()
 			systemProperty("neoforge.enabledGameTestNamespaces", modId)
+			
+			// jvmArguments.add("-Dmixin.debug.export=true")
 		}
 		
 		register("server") {
@@ -52,7 +54,6 @@ neoForge {
 		
 		register("data") {
 			data()
-			this.loadedMods
 			
 			// example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
 			gameDirectory = project.file("run-data")
@@ -139,8 +140,8 @@ dependencies {
 		isTransitive = false
 	}
 	implementation("net.createmod.ponder:Ponder-NeoForge-${libs.versions.minecraft.get()}:1.0.56")
-	compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4-27")
-	runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${libs.versions.minecraft.get()}:1.0.4-27")
+	// compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4-27")
+	implementation("dev.engine-room.flywheel:flywheel-neoforge-${libs.versions.minecraft.get()}:1.0.4-27")
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+62")
 	
 }

@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "railx:block/empty"
+      "model": "railx:block/flexi_track"
     }
   }
 }

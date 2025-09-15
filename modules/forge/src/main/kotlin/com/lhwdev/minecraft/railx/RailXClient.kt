@@ -2,7 +2,6 @@
 
 package com.lhwdev.minecraft.railx
 
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement
 import com.lhwdev.minecraft.railx.registry.RailXPonderPlugin
 import net.createmod.ponder.foundation.PonderIndex
 import net.neoforged.api.distmarker.Dist
@@ -34,7 +33,6 @@ class RailXClient(bus: IEventBus) {
 		
 		@SubscribeEvent
 		fun onPostTick(event: ClientTickEvent.Post) {
-			// nothing
 		}
 	}
 }

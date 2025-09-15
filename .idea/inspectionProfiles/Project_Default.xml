@@ -4,6 +4,7 @@
     <inspection_tool class="ConstPropertyName" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="namePattern" value="[A-Za-z][_A-Za-z\d]*" />
     </inspection_tool>
+    <inspection_tool class="ExtractMethodRecommender" enabled="true" level="INFORMATION" enabled_by_default="true" editorAttributes="INFORMATION_ATTRIBUTES" />
     <inspection_tool class="FunctionName" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="namePattern" value="[A-Za-z\d]*" />
     </inspection_tool>

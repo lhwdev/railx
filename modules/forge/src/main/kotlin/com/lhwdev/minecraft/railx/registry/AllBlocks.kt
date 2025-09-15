@@ -51,7 +51,7 @@ object AllBlocks {
 				.noOcclusion()
 				.replaceable()
 		}
-		.blockstate { c, p -> p.simpleBlock(c.get(), p.models().withExistingParent(c.name, p.mcLoc("block/air"))) }
+		.blockstate { c, p -> p.simpleBlock(c.get(), p.models().withExistingParent(c.name, p.mcLoc("block/stone"))) }
 		.lang("Middle Track Block")
 		.register()
 	

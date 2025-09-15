@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrak
+import com.lhwdev.minecraft.railx.middleTrack.MiddleTrack
 import com.lhwdev.minecraft.railx.registry.*
 import net.minecraft.resources.ResourceLocation
 import net.neoforged.api.distmarker.Dist
@@ -49,6 +50,7 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		AllPackets.register()
 		AllDataComponents.register()
 		
-		FlexiTrak.initialize()
+		MiddleTrack.register()
+		FlexiTrak.register()
 	}
 }

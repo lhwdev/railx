@@ -1,4 +1,5 @@
 {
   "block.railx.advanced_track_observer": "Advanced Track Observer",
-  "block.railx.flexi_track": "Train Track"
+  "block.railx.flexi_track": "Flexi Train Track",
+  "block.railx.middle_track": "Middle Track Block"
 }
