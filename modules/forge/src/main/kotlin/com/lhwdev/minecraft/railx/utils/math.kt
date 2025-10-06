@@ -2,6 +2,10 @@
 
 package com.lhwdev.minecraft.railx.utils
 
+import net.minecraft.world.phys.Vec3
+import org.joml.Quaterniondc
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
+import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVector3d
 import kotlin.math.abs
 
 
@@ -23,3 +27,5 @@ infix fun Double.floorMod(by: Double): Double {
 
 inline infix fun Double.similarTo(to: Double): Boolean =
 	abs(this - to) < 1e-10
+
+fun Quaterniondc.transform(vec: Vec3): Vec3 = transform(vec.toVector3d()).toVec3()

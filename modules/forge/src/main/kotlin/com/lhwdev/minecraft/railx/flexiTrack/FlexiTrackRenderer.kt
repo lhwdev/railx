@@ -12,7 +12,7 @@ import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import org.joml.Quaternionf
+import org.joml.Vector3f
 
 
 class FlexiTrackRenderer(context: BlockEntityRendererProvider.Context) : TrackRenderer(context) {
@@ -35,12 +35,13 @@ class FlexiTrackRenderer(context: BlockEntityRendererProvider.Context) : TrackRe
 	}
 	
 	fun renderFlexiBlock(be: FlexiTrackBlockEntity, ms: PoseStack, vb: VertexConsumer, light: Int) {
+		val center = Vector3f(0.5f, 0.0f, 0.5f)
 		val state = be.block.material.block.defaultBlockState().setValue(TrackBlock.SHAPE, TrackShape.XO)
 		
 		for(axis in be.state.shapeCache) {
 			CachedBuffers.block(state)
 				.light<SuperByteBuffer>(light)
-				.rotateCentered(Quaternionf(axis.rotationValue))
+				.rotateAround(axis.rotationValue, center)
 				.renderInto(ms, vb)
 		}
 	}

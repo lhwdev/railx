@@ -38,6 +38,8 @@ interface FlexiDirection {
 	/** rotates direction clockwise; which means index **decreases**. */
 	fun rotateKnown(by: Int): FlexiDirection
 	
+	fun applyNormal(normal: Vec3): FlexiDirection
+	
 	
 	operator fun unaryMinus(): Signed = Two(-tangent, normal)
 	
@@ -65,6 +67,8 @@ interface FlexiDirection {
 		override fun rotateKnown(by: Int): Zero = this
 		override fun unaryMinus(): Zero = this
 		
+		override fun applyNormal(normal: Vec3): Zero = this
+		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
 			tag.putByte("Type", 0x0)
 		}
@@ -83,16 +87,16 @@ interface FlexiDirection {
 		final override val normal: Vec3
 			get() = Flat.normal
 		
-		fun applyNormal(normal: Vec3): Normalized = if(normal.x == 0.0 && normal.z == 0.0) {
-			this
-		} else {
-			NormalizedImpl(this, normal)
-		}
-		
 		abstract override fun mirror(by: Mirror): Flat
 		
 		abstract override fun rotate(by: Rotation): Flat
 		abstract override fun rotateKnown(by: Int): Flat
+		
+		override fun applyNormal(normal: Vec3): Normalized = if(normal.x == 0.0 && normal.z == 0.0) {
+			this
+		} else {
+			NormalizedImpl(this, normal)
+		}
 	}
 	
 	interface Normalized : FlexiDirection {
@@ -323,6 +327,8 @@ interface FlexiDirection {
 			return NormalizedImpl(base.rotateKnown(by), normal.yRot(angle), tangent.yRot(angle))
 		}
 		
+		override fun applyNormal(normal: Vec3): NormalizedImpl = NormalizedImpl(base, normal)
+		
 		override fun unaryMinus(): NormalizedImpl = NormalizedImpl(-base as Flat, normal, -tangent)
 		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
@@ -384,6 +390,8 @@ interface FlexiDirection {
 			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
 			return Two(tangent.yRot(angle), normal.yRot(angle))
 		}
+		
+		override fun applyNormal(normal: Vec3): Two = Two(tangent, normal)
 		
 		override fun unaryMinus(): Two = Two(-tangent, normal)
 		

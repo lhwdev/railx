@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
-import com.simibubi.create.content.trains.track.TrackBlockEntity
+import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
@@ -66,9 +66,42 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		notifyUpdate()
 	}
 	
+	fun updateEachConnections(updateConnection: (connection: BezierConnection) -> Unit) {
+		val level = level!!
+		val validConnections = connections.values.filter { connection ->
+			val other = level.getBlockEntity(connection.key) as? TrackBlockEntity ?: return@filter false
+			blockPos in other.connections
+		}
+		
+		removeInboundConnections(false)
+		TrackPropagator.onRailRemoved(level, blockPos, blockState)
+		connections.clear()
+		
+		for(connection in validConnections) {
+			updateConnection(connection)
+			addConnection(connection)
+			
+			val otherPos = connection.key
+			val otherState = level.getBlockState(otherPos)
+			if(otherState.block !is ITrackBlock) continue
+			level.setBlockAndUpdate(otherPos, otherState.setValue(TrackBlock.HAS_BE, true))
+			val otherBe = level.getBlockEntity(otherPos)
+			if(otherBe is TrackBlockEntity) {
+				otherBe.addConnection(connection.secondary())
+			}
+		}
+		
+		notifyUpdate()
+	}
+	
 	fun voxelShape(): VoxelShape = voxelShapeCache?.let { cache -> cache.second.takeIf { cache.first == state } }
 		?: FlexiTrackVoxelShapes.of(state).also { voxelShapeCache = state to it }
 	
+	
+	override fun removeConnection(target: BlockPos) {
+		if(state.tilt != null) tilt.captureSmoothingHandles()
+		super.removeConnection(target)
+	}
 	
 	override fun write(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
 		super.write(tag, registries, clientPacket)

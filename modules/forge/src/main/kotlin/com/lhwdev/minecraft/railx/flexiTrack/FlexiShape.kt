@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.utils.asAllInstanceOf
 import com.lhwdev.minecraft.railx.utils.mirror
 import com.lhwdev.minecraft.railx.utils.rotate
 import net.createmod.catnip.math.VecHelper
@@ -236,4 +237,22 @@ private fun writeDirectionList(axes: List<FlexiDirection>): ListTag = ListTag().
 		axes.map { it.write() }
 	}
 	list.addAll(result)
+}
+
+
+inline fun FlexiShape.map(block: (axis: FlexiDirection) -> FlexiDirection): FlexiShape {
+	return when(this) {
+		FlexiShape.Empty -> FlexiShape.Empty
+		is FlexiShape.Impl -> FlexiShape.Impl(axes.map(block))
+		is FlexiShape.NormalizedImpl -> {
+			val axes = axes.map(block).asAllInstanceOf<FlexiDirection.Normalized>()
+				?: return FlexiShape.Impl(axes)
+			if(axes.isEmpty()) return FlexiShape.Empty
+			val flatAxes = flatAxes.map(block).asAllInstanceOf<FlexiDirection.Flat>()
+				?: return FlexiShape.Impl(axes)
+			FlexiShape.NormalizedImpl(flatAxes, axes.first().normal, axes)
+		}
+		
+		is FlexiShape.Single -> FlexiShape.Single(block(axis))
+	}
 }

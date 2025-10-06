@@ -24,13 +24,8 @@ class ConnectionMiddles(private val level: LevelAccessor) : Iterable<ConnectionM
 	fun getAll(from: BlockPos): Collection<ConnectionMiddleState> =
 		primaryToMiddles.get(from.asLong())?.values ?: emptyList()
 	
-	override fun iterator(): Iterator<ConnectionMiddleState> = iterator {
-		for(toMiddles in primaryToMiddles.values) {
-			for(middle in toMiddles.values) {
-				yield(middle)
-			}
-		}
-	}
+	override fun iterator(): Iterator<ConnectionMiddleState> =
+		primaryToMiddles.values.asSequence().flatMap { it.values }.iterator()
 	
 	fun toList(): List<ConnectionMiddleState> =
 		primaryToMiddles.flatMap { it.value.map { it.value } }

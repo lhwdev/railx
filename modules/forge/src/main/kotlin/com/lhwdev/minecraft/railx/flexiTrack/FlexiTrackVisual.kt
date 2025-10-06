@@ -11,6 +11,7 @@ import dev.engine_room.flywheel.lib.instance.TransformedInstance
 import dev.engine_room.flywheel.lib.model.Models
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.minecraft.world.level.LightLayer
+import org.joml.Vector3f
 import java.util.function.Consumer
 
 
@@ -64,12 +65,13 @@ class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEnti
 			val instancer = instancerProvider()
 				.instancer(InstanceTypes.TRANSFORMED, Models.block(trackState))
 			
-			blocks = blockEntity.shape.axes.map { axe ->
+			val center = Vector3f(0.5f, 0.0f, 0.5f)
+			blocks = blockEntity.state.shapeCache.map { axis ->
 				val block = instancer.createInstance()
 				val pose = PoseStack()
 				TransformStack.of(pose)
 					.translate(visualPosition)
-					.rotateYCentered(axe.tangentAngle.toFloat())
+					.rotateAround(axis.rotationValue, center)
 				
 				block.setTransform(pose)
 				block.setChanged()

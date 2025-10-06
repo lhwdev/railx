@@ -86,27 +86,16 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 		if(state.tilt == null) return
 		if(previousSmoothingHandles == null) return
 		if(blockEntity.connections.size >= 2) return
-		val axis = state.shape.axes.singleOrNull() ?: return
+		if(state.shape.axes.size != 1) return
 		
 		val blockState = blockEntity.blockState
 		val blockPos = blockEntity.blockPos
 		val level = blockEntity.level!!
 		
-		val validConnections = mutableListOf<BezierConnection>()
-		for(connection in blockEntity.connections.values) {
-			val otherPosition = connection.key
-			val otherBE = level.getBlockEntity(otherPosition)
-			if(otherBE is TrackBlockEntity && otherBE.connections.containsKey(blockPos))
-				validConnections.add(connection)
-		}
-		
-		blockEntity.removeInboundConnections(false)
-		TrackPropagator.onRailRemoved(level, blockPos, blockState)
-		blockEntity.connections.clear()
-		
 		blockEntity.updateState(state.copy(tilt = null))
+		val axis = state.shape.axis1
 		
-		for(connection in validConnections) {
+		blockEntity.updateEachConnections { connection ->
 			val tangent = axis.tangent * sign(axis.tangent.dot(connection.axes.first))
 			connection.starts.first = blockEntity.block.getCurveStart(
 				world = level,
@@ -116,18 +105,7 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 			)
 			connection.axes.first = tangent
 			connection.normals.first = axis.normal
-			
-			blockEntity.addConnection(connection)
-			
-			val otherPosition = connection.key
-			val otherState = level.getBlockState(otherPosition)
-			if(otherState.block !is ITrackBlock) continue
-			level.setBlockAndUpdate(otherPosition, otherState.setValue(TrackBlock.HAS_BE, true))
-			val otherBE = level.getBlockEntity(otherPosition)
-			if(otherBE is TrackBlockEntity) otherBE.addConnection(connection.secondary())
 		}
-		
-		blockEntity.notifyUpdate()
 		previousSmoothingHandles = null
 		TrackPropagator.onRailAdded(level, blockPos, blockState)
 	}

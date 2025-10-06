@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVector3d
 
@@ -29,7 +30,7 @@ class FlexiState(
 	
 	class AxisCache(direction: FlexiDirection) {
 		val rotation = direction.toRotation()
-		val rotationValue = rotation.rotationValue()
+		val rotationValue = Quaternionf(rotation.rotationValue())
 	}
 	
 	

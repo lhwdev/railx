@@ -149,7 +149,7 @@ object RailXConfig {
 			
 			val maxGradient: DoubleValue = builder
 				.comment("Maximum gradient of flexi tracks. Defined as per mille (‰); 1 means ascending 1 meter while travelling 1000 meter.")
-				.defineInRange("flexi_trak.max_gradient", 80.0, 0.0, Double.POSITIVE_INFINITY)
+				.defineInRange("flexi_trak.max_gradient", 80.0, 0.0, 10000.0)
 		}
 		
 		val spec = builder.build()

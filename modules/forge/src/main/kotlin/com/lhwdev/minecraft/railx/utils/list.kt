@@ -3,13 +3,17 @@ package com.lhwdev.minecraft.railx.utils
 import kotlin.experimental.ExperimentalTypeInference
 
 
-inline fun </* kotlin.internal.NoInfer */ reified T> List<*>.requireInstanceOf(): List<T> {
+inline fun </* kotlin.internal.NoInfer */ reified T> List<*>.requireAllInstanceOf(): List<T> {
 	for((index, item) in withIndex()) {
 		if(item !is T) throw ClassCastException("item $item at $index is not ${T::class.simpleName}")
 	}
 	@Suppress("UNCHECKED_CAST")
 	return this as List<T>
 }
+
+inline fun <reified T> List<*>.asAllInstanceOf(): List<T>? =
+	@Suppress("UNCHECKED_CAST")
+	if(this.all { it is T }) this as List<T> else null
 
 fun <T> MutableList<T>.indexOfOrPut(value: T): Int {
 	val index = indexOf(value)
