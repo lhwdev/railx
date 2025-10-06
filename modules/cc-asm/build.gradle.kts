@@ -6,7 +6,7 @@ dependencies {
 	implementation("org.ow2.asm:asm:9.+")
 	implementation("org.ow2.asm:asm-util:9.+")
 	
-	implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
+	implementation(kotlin("reflect"))
 	
 	// 1.21.1-1.115.1 does not exist in squiddev maven
 	implementation(files("../../libs/cc-tweaked-1.21.1-forge-1.115.1.jar"))

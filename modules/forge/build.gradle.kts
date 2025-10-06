@@ -7,7 +7,7 @@ plugins {
 }
 
 val modId = "railx"
-val neoVersion = "21.1.179"
+val neoVersion = "21.1.209"
 
 version = "1.0-SNAPSHOT"
 
@@ -93,6 +93,11 @@ repositories {
 	remove(central)
 	add(0, central)
 	
+	exclusiveContent {
+		forRepository { maven(url = "https://api.modrinth.com/maven") }
+		filter { includeGroup("maven.modrinth") }
+	}
+	
 	maven(url = "https://thedarkcolour.github.io/KotlinForForge/") {
 		name = "Kotlin for Forge"
 		content { includeGroup("thedarkcolour") }
@@ -135,15 +140,22 @@ repositories {
 dependencies {
 	implementation(project(":cc-asm"))
 	
-	implementation("thedarkcolour:kotlinforforge-neoforge:5.3.0")
+	// kfflib>=5.8.0 won't resolve extension functions: https://github.com/thedarkcolour/KotlinForForge/issues/131
+	compileOnly("thedarkcolour:kotlinforforge-neoforge:5.7.0")
+	runtimeOnly("thedarkcolour:kotlinforforge-neoforge:5.10.0")
+	
 	implementation("com.simibubi.create:create-${libs.versions.minecraft.get()}:6.0.6-98:slim") {
 		isTransitive = false
 	}
+	
 	implementation("net.createmod.ponder:Ponder-NeoForge-${libs.versions.minecraft.get()}:1.0.56")
 	// compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4-27")
 	implementation("dev.engine-room.flywheel:flywheel-neoforge-${libs.versions.minecraft.get()}:1.0.4-27")
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+62")
 	
+	// for mod compatibility
+	compileOnly("maven.modrinth:framedblocks:10.4.0")
+	compileOnly("maven.modrinth:copycats:3.0.2+mc.1.21.1-neoforge")
 }
 
 file("build/mod_output_path.txt").let { output ->

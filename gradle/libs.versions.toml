@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.0.0"
+kotlin = "2.2.20"
 minecraft = "1.21.1"
 
 

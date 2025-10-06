@@ -12,7 +12,7 @@ import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import com.simibubi.create.AllBlocks as CreateBlocks
+import org.joml.Quaternionf
 
 
 class FlexiTrackRenderer(context: BlockEntityRendererProvider.Context) : TrackRenderer(context) {
@@ -37,10 +37,10 @@ class FlexiTrackRenderer(context: BlockEntityRendererProvider.Context) : TrackRe
 	fun renderFlexiBlock(be: FlexiTrackBlockEntity, ms: PoseStack, vb: VertexConsumer, light: Int) {
 		val state = be.block.material.block.defaultBlockState().setValue(TrackBlock.SHAPE, TrackShape.XO)
 		
-		for(axis in be.shape.axes) {
+		for(axis in be.state.shapeCache) {
 			CachedBuffers.block(state)
 				.light<SuperByteBuffer>(light)
-				.rotateYCentered(axis.tangentAngle.toFloat())
+				.rotateCentered(Quaternionf(axis.rotationValue))
 				.renderInto(ms, vb)
 		}
 	}

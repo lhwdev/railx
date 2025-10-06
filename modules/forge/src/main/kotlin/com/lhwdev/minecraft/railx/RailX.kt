@@ -27,9 +27,17 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		
 		val Logger: Logger = LogManager.getLogger(Id)
 		
+		fun errorBreakpoint() {
+			println("error!")
+		}
+		
 		fun asResource(path: String): ResourceLocation =
 			ResourceLocation.fromNamespaceAndPath(Id, path)
 	}
+	
+	// TODO: multiple @Mod class not supported in KotlinForForge
+	//   - see https://github.com/thedarkcolour/KotlinForForge/issues/142
+	private val client = RailXClient(bus)
 	
 	init {
 		container.registerConfig(ModConfig.Type.SERVER, RailXConfig.Server.spec)
@@ -49,6 +57,7 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		AllCreativeModeTabs
 		AllPackets.register()
 		AllDataComponents.register()
+		AllCustoms.register()
 		
 		MiddleTrack.register()
 		FlexiTrak.register()

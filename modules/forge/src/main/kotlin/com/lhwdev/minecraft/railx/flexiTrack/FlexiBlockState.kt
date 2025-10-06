@@ -13,11 +13,8 @@ inline fun FlexiBlockState.mapState(crossinline fn: (FlexiState) -> FlexiState):
 	is FlexiBlockState.Update -> FlexiBlockState.Update(base, stateFn = { fn(stateFn(it)) })
 }
 
-fun FlexiBlockState.setShape(shape: FlexiShape): FlexiBlockState =
-	mapState { it.copy(shape = shape) }
-
 inline fun FlexiBlockState.mapShape(crossinline fn: (FlexiShape) -> FlexiShape): FlexiBlockState =
-	mapState { it.copy(shape = fn(it.shape)) }
+	mapState { it.copy(baseShape = fn(it.baseShape)) }
 
 
 /**
@@ -75,7 +72,7 @@ sealed class FlexiBlockState(
 	
 	@Suppress("UNCHECKED_CAST")
 	override fun <T : Comparable<T>> getValue(property: Property<T>): T = when(property) {
-		TrackBlock.HAS_BE -> false.also { Error("HAS_BE access").printStackTrace() }
+		TrackBlock.HAS_BE -> true
 		TrackBlock.SHAPE -> TrackShape.NONE.also { Error("SHAPE access").printStackTrace() }
 		
 		else -> super.getValue(property)
@@ -84,7 +81,7 @@ sealed class FlexiBlockState(
 	override fun <T : Comparable<T>, V : T> setValue(
 		property: Property<T>, value: V,
 	): FlexiBlockState = when(property) {
-		TrackBlock.HAS_BE -> this.also { Error("set HAS_BE").printStackTrace() }
+		TrackBlock.HAS_BE -> this
 		
 		else -> super.setValue(property, value)
 	} as FlexiBlockState

@@ -6,6 +6,7 @@
   "refmap": "railx.refmap.json",
   "mixins": [
     "ccAdvanced.CarriageMixin",
+    "common.TrackPlacementOverlayMixin",
     "flexiTrack.BezierConnectionMixin",
     "flexiTrack.BlockAccessor",
     "flexiTrack.BlueprintOverlayRendererMixin",
@@ -15,10 +16,14 @@
     "flexiTrack.TrackBlockItemMixin",
     "flexiTrack.TrackBlockOutlineMixin",
     "flexiTrack.TrackPlacementMixin",
+    "flexiTrack.graph.TrackNodeLocationMixin",
     "flywheel.VisualizationManagerImpl$LateInitMixin",
     "flywheel.VisualizationManagerImplMixin",
     "middleTrack.TrackBlockEntityMixin",
     "middleTrack.TrackBlockOutlineMixin",
+    "realisticSpeed.BlockBuilderMixin",
+    "realisticSpeed.ContraptionMixin",
+    "realisticSpeed.PropertiesMixin",
     "realisticSpeed.TrainHUDMixin",
     "realisticSpeed.TrainMixin"
   ],

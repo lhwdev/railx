@@ -1,8 +1,6 @@
 package com.lhwdev.minecraft.railx
 
-import net.minecraft.network.chat.Component
 import net.neoforged.neoforge.common.ModConfigSpec.*
-import net.neoforged.neoforge.common.TranslatableEnum
 
 
 object RailXConfig {
@@ -36,6 +34,22 @@ object RailXConfig {
 				.comment("Enables trains to have realistic speed")
 				.define("realistic_speed.enabled", true)
 			
+			val removePrevious: BooleanValue = builder
+				.comment("Removes previously saved realistic speed-related parameters/caches from train data.")
+				.define("realistic_speed.remove_previous", false)
+			
+			val preciseMass: BooleanValue = builder
+				.comment(
+					"Calculates carriage mass based on its shape and material. If you want to specify mass for your" +
+						"specific blocks, create datapack at railx.realistic_speed/materials, or implement" +
+						"BlockMaterialResolver and adding into AllCustoms.Registry."
+				)
+				.define("realistic_speed.precise_mass", true)
+			
+			val power: DoubleValue = builder
+				.comment("Amount of force power cars exert in kW. This replaces acceleration property of Create.")
+				.defineInRange("realistic_speed.power", 800.0, 0.0, Double.POSITIVE_INFINITY)
+			
 			val updateTickRate: IntValue = builder
 				.comment("How often physical values, such as mass, gravitational force, etc. are calculated")
 				.defineInRange("realistic_speed.update_tick_rate", 3, 1, Int.MAX_VALUE)
@@ -60,13 +74,28 @@ object RailXConfig {
 				.comment("Factor for curvature resistance of train. 1 for default; 0 to disable.")
 				.defineInRange("realistic_speed.curvature_resistance", 1.0, 0.0, 100.0)
 			
-			val airResistance: EnumValue<AirResistanceLogic> = builder
+			val airResistance: BooleanValue = builder
 				.comment("Whether to enable air resistance")
-				.defineEnum("realistic_speed.air_resistance.logic", AirResistanceLogic.Off)
+				.define("realistic_speed.air_resistance_enabled", true)
 			
-			val airResistanceMultiplier: DoubleValue = builder
-				.comment("Multiplier for air resistance")
-				.defineInRange("realistic_speed.air_resistance.multiplier", 1.0, 0.0, 10.0)
+			// TODO: support custom bogeys
+			// TODO 2: support topping, hunting, etc. simulation: see https://en.wikipedia.org/wiki/Adhesion_railway
+			// TODO 3: add slip sound and effect
+			val slipEnabled: BooleanValue = builder
+				.comment("Whether train slips where there are not sufficient adhesion(friction) between wheels and track.")
+				.define("realistic_speed.slip.enabled", true)
+			
+			val slipCoefficient: DoubleValue = builder
+				.comment("The coefficient of friction. The larger, the less it slips.")
+				.defineInRange("realistic_speed.slip.coefficient", 0.5, 0.0, Double.POSITIVE_INFINITY)
+			
+			// val slipInWater: BooleanValue = builder
+			// 	.comment("Train slips more underwater.")
+			// 	.define("realistic_speed.slip.in_water", true)
+			
+			// val slipInFrozenBiome: BooleanValue = builder
+			// 	.comment("Train slips more when inside frozen biome.")
+			// 	.define("realistic_speed.slip.in_frozen_biome", false)
 		}
 		
 		inner class MiddleTrack {
@@ -82,7 +111,7 @@ object RailXConfig {
 				.define("middle_track.enable_placing", false)
 			
 			val removePrevious: BooleanValue = builder
-				.comment("Removes all previous middle tracks for compatibility.")
+				.comment("Removes all previous middle tracks.")
 				.define("middle_track.remove_previous", false)
 			
 			val placeGap: IntValue = builder
@@ -110,19 +139,21 @@ object RailXConfig {
 			// 	)
 			// 	.define("flexi_trak.blend", false)
 			
+			val maxPlacementLength: IntValue = builder
+				.comment("maximum placement length. Note that if placement length is too large, curve may not be placed.")
+				.defineInRange("flexi_trak.max_placement_length", 128, 0, 1024)
+			
 			val minRadius: IntValue = builder
-				.comment("Max radius at which flexi tracks can be placed.")
+				.comment("Minimum radius at which flexi tracks can be placed.")
 				.defineInRange("flexi_trak.min_radius", 32, 5, 1000)
+			
+			val maxGradient: DoubleValue = builder
+				.comment("Maximum gradient of flexi tracks. Defined as per mille (‰); 1 means ascending 1 meter while travelling 1000 meter.")
+				.defineInRange("flexi_trak.max_gradient", 80.0, 0.0, Double.POSITIVE_INFINITY)
 		}
 		
 		val spec = builder.build()
 		
-		companion object Value : Server(Builder()) {
-			enum class AirResistanceLogic(val displayName: String) : TranslatableEnum {
-				Off("off"), Crude("crude");
-				
-				override fun getTranslatedName(): Component = Component.literal(displayName)
-			}
-		}
+		companion object Value : Server(Builder())
 	}
 }

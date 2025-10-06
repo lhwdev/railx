@@ -4,8 +4,11 @@ import com.lhwdev.minecraft.railx.RailX
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.entry.RegistryEntry
+import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 
 
@@ -15,6 +18,10 @@ val RailXRegistry = RailXRegistrate(RailX.Id)
 class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	fun location(name: String): ResourceLocation =
 		ResourceLocation.fromNamespaceAndPath(modid, name)
+	
+	@Suppress("UNCHECKED_CAST")
+	fun <T> registryOf(key: ResourceKey<Registry<T>>): Registry<T> =
+		BuiltInRegistries.REGISTRY[key.location()] as Registry<T>
 	
 	
 	val allBlocks: List<BlockEntry<*>>

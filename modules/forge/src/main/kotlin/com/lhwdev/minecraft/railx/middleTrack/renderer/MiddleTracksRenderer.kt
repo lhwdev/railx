@@ -56,7 +56,6 @@ class MiddleTracksRenderer(val level: Level) {
 				.translate(connection.from.toVec3() - camera.position)
 			
 			TrackRenderer.renderBezierTurn(level, connection.curve, poseStack, vb)
-			
 			poseStack.popPose()
 		}
 	}

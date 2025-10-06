@@ -2,11 +2,11 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.Direction
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
-import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
 
@@ -15,9 +15,9 @@ val VoxelCenter = Vec3(8.0, 8.0, 8.0)
 
 
 private fun Vec3.normalAsRotation(): Vec3 = Vec3(
-	atan2(z, y),
-	atan2(z, x),
-	atan2(y, x),
+	Mth.atan2(z, y),
+	Mth.atan2(z, x),
+	Mth.atan2(y, x),
 )
 
 object FlexiTrackVoxelShapes {
@@ -29,8 +29,8 @@ object FlexiTrackVoxelShapes {
 	private val knownCache = arrayOfNulls<VoxelShape>(FlexiDirection.Known.DivisionCount)
 	
 	fun known(direction: FlexiDirection.Known): VoxelShape {
-		val index = direction.index
-		return knownCache[index] ?: createKnown(direction).also { knownCache[index] = it }
+		val ordinal = direction.ordinal
+		return knownCache[ordinal] ?: createKnown(direction).also { knownCache[ordinal] = it }
 	}
 	
 	fun of(direction: FlexiDirection): VoxelShape = when(direction) {

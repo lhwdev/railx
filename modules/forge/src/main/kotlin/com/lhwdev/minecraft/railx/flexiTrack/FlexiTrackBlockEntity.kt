@@ -1,11 +1,8 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.utils.addOneTimeListener
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
-import com.tterrag.registrate.util.OneTimeEventReceiver
-import dev.engine_room.flywheel.lib.visualization.VisualizationHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
@@ -13,13 +10,15 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.VoxelShape
-import net.neoforged.neoforge.client.event.RenderFrameEvent
 
 
 class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
 	TrackBlockEntity(type, pos, state), TransformableBlockEntity, IMergeableBE {
+	
+	init {
+		tilt = FlexiTrackBlockEntityTilt(this)
+	}
 	
 	var state: FlexiState = if(state is FlexiBlockState.Update) {
 		notifyUpdate()
@@ -27,6 +26,9 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	} else {
 		FlexiState.Base
 	}
+	
+	val baseShape: FlexiShape
+		get() = state.baseShape
 	
 	val shape: FlexiShape
 		get() = state.shape
@@ -53,8 +55,9 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	fun overlayShape(direction: FlexiDirection): FlexiState {
 		val state = state
 		val shape = state.shape
+		if(shape != state.baseShape) return state
 		if(direction in shape.axes) return state
-		return state.copy(shape = shape.insert(direction))
+		return state.copy(baseShape = shape.insert(direction))
 	}
 	
 	fun updateState(newState: FlexiState) {

@@ -101,6 +101,7 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 		stack = player.mainHandItem
 		if(CreateTags.AllBlockTags.TRACKS.matches(stack)) {
 			stack.remove(AllDataComponents.TrackConnectingFrom)
+			stack.remove(CreateDataComponents.TRACK_CONNECTING_FROM)
 			player.setItemInHand(pContext.hand, stack)
 		}
 		
@@ -134,7 +135,7 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 			val player = context.player ?: return result
 			if(result) (context.level.getBlockEntity(context.clickedPos) as? FlexiTrackBlockEntity)?.let { be ->
 				be.updateState(
-					be.state.copy(shape = FlexiShape.Single(FlexiDirection.Known.roundFrom(vector = player.lookAngle)))
+					be.state.copy(baseShape = FlexiShape.Single(FlexiDirection.Known.roundFrom(vector = player.lookAngle)))
 				)
 			}
 		}

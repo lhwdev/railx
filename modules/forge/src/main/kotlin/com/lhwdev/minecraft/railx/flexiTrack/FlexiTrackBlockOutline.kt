@@ -5,9 +5,9 @@ import com.simibubi.create.content.trains.track.TrackBlockOutline
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderType
+import net.minecraft.util.Mth
 import net.minecraft.world.phys.shapes.VoxelShape
 import net.neoforged.neoforge.client.event.RenderHighlightEvent
-import kotlin.math.atan2
 import kotlin.math.sqrt
 
 object FlexiTrackBlockOutline {
@@ -30,8 +30,7 @@ object FlexiTrackBlockOutline {
 		ms.translate(pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z)
 		
 		val holdingTrack = AllTags.AllBlockTags.TRACKS.matches(mc.player!!.mainHandItem)
-		val state = blockEntity.state
-		val shape = state.shape
+		val shape = blockEntity.shape
 		val canConnectFrom = !shape.isJunction && !blockEntity.isTilted
 		
 		walkShapes(
@@ -57,7 +56,7 @@ object FlexiTrackBlockOutline {
 		val normal = shape.normal
 		val sin = sqrt(1.0 - normal.y * normal.y)
 		msr.rotate(
-			atan2(sin, normal.y).toFloat(),
+			Mth.atan2(sin, normal.y).toFloat(),
 			(normal.z / sin).toFloat(),
 			0f,
 			(-normal.x / sin).toFloat(),

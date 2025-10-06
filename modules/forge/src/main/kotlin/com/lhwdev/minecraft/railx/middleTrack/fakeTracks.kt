@@ -42,11 +42,12 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 		it.offset(bc.bePositions.first).above(1)
 	}
 	
+	if(blocks.isEmpty()) return
 	var chunkX = blocks.first().x shr 4
 	var chunkZ = blocks.first().z shr 4
-	val maxGap = RailXConfig.Server.middleTrack.placeGap.get()
-	val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.get()
-	val removePrevious = RailXConfig.Server.middleTrack.removePrevious.get()
+	val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
+	val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.asBoolean
+	val removePrevious = RailXConfig.Server.middleTrack.removePrevious.asBoolean
 	
 	for(pos in blocks) {
 		val stateAtPos = level.getBlockState(pos)
@@ -62,7 +63,6 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 				}
 				val middle = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
 				if(middle == null) {
-					println("BE=null 11 pos=$pos")
 					level.removeBlock(pos, false)
 					continue
 				}
@@ -90,7 +90,6 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 			if(middlePresent) {
 				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
 				if(previous == null) {
-					println("BE=null 22 pos=$pos")
 					continue
 				}
 				if(previous.connections.none { it.bePositions == bc.bePositions })

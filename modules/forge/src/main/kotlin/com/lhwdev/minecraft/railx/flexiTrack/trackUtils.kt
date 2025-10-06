@@ -13,14 +13,10 @@ import net.minecraft.world.phys.Vec3
 
 fun MutableCollection<DiscoveredLocation>.addIfConnected(
 	fromEnd: TrackNodeLocation?,
-	getOffset: (fraction: Double, isFirst: Boolean) -> Vec3,
-	getLocation: DiscoveredLocationFactory.() -> DiscoveredLocation,
+	getLocation: (isFirst: Boolean) -> DiscoveredLocation,
 ) {
-	val firstFactory = DiscoveredLocationFactory(getOffset, isFirst = true)
-	val first = firstFactory.getLocation()
-	val secondFactory = DiscoveredLocationFactory(getOffset, isFirst = false)
-	val second = secondFactory.getLocation()
-	
+	val first = getLocation(true)
+	val second = getLocation(false)
 	if(first.dimension != second.dimension) {
 		first.forceNode()
 		second.forceNode()
@@ -38,17 +34,26 @@ fun MutableCollection<DiscoveredLocation>.addIfConnected(
 	}
 }
 
+fun MutableCollection<DiscoveredLocation>.addIfConnected(
+	fromEnd: TrackNodeLocation?,
+	getOffset: (fraction: Double, isFirst: Boolean) -> Vec3,
+	factory: (dimension: ResourceKey<Level>, vec: Vec3) -> DiscoveredLocation = ::DiscoveredLocation,
+	getLocation: DiscoveredLocationFactory.() -> DiscoveredLocation,
+) {
+	addIfConnected(fromEnd) { isFirst ->
+		DiscoveredLocationFactory(factory, getOffset, isFirst).getLocation()
+	}
+}
+
 
 class DiscoveredLocationFactory(
+	private val factory: (ResourceKey<Level>, Vec3) -> DiscoveredLocation = ::DiscoveredLocation,
 	private val getOffset: (fraction: Double, isFirst: Boolean) -> Vec3,
 	val isFirst: Boolean,
 ) {
 	
 	fun offset(fraction: Double): Vec3 =
 		getOffset(fraction, isFirst)
-	
-	val offset: Vec3
-		get() = offset(if(isFirst) 0.0 else 1.0)
 	
 	val offsetStart: Vec3
 		get() = offset(0.0)
@@ -67,7 +72,7 @@ class DiscoveredLocationFactory(
 		firstMaterial: TrackMaterial,
 		secondMaterial: TrackMaterial,
 		viaTurn: BezierConnection? = null,
-	): DiscoveredLocation = DiscoveredLocation(dimension, offsetCenter)
+	): DiscoveredLocation = factory(dimension, offsetCenter)
 		.viaTurn(viaTurn)
 		.materials(firstMaterial, secondMaterial)
 		.withNormal(normal)

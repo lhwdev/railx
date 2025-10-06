@@ -46,8 +46,6 @@ import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
-import net.minecraft.world.level.block.state.BlockBehaviour
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
@@ -201,8 +199,35 @@ class FlexiTrackBlock(
 		return state
 	}
 	
-	override fun getYOffsetAt(world: BlockGetter, pos: BlockPos, state: BlockState?, end: Vec3?): Int =
-		getBlockEntity(world, pos)?.tilt?.getYOffsetForAxisEnd(end) ?: 0
+	
+	fun getNearestTrackDirection(
+		world: BlockGetter,
+		pos: BlockPos,
+		state: BlockState,
+		lookVec: Vec3,
+	): FlexiDirection? {
+		var best: FlexiDirection? = null
+		var bestDiff = Double.Companion.MAX_VALUE
+		for(axis in flexiShape(world, pos).axes) {
+			for(opposite in Iterate.positiveAndNegative) {
+				val distanceTo = axis.tangent.distanceTo(lookVec.scale(opposite.toDouble()))
+				if(distanceTo > bestDiff) continue
+				bestDiff = distanceTo
+				best = axis
+			}
+		}
+		if(best == null) return null
+		return if(lookVec.dot(best.tangent.multiply(1.0, 0.0, 1.0)) < 0) {
+			best
+		} else {
+			-best
+		}
+	}
+	
+	
+	override fun getYOffsetAt(world: BlockGetter, pos: BlockPos, state: BlockState?, end: Vec3?): Int = 0
+	
+	override fun getElevationAtCenter(world: BlockGetter, pos: BlockPos, state: BlockState): Double = 0.0
 	
 	override fun getConnected(
 		worldIn: BlockGetter,
@@ -221,38 +246,33 @@ class FlexiTrackBlock(
 		if(blockEntity !is FlexiTrackBlockEntity) return emptyList()
 		
 		val shape = blockEntity.shape
-		val center = Vec3.atBottomCenterOf(pos)
-			.add(0.0, getElevationAtCenter(world, pos, state), 0.0)
+		val center = getTrackBase(world, pos, state)
 		
 		val list = mutableListOf<DiscoveredLocation>()
 		for(axis in shape.axes) {
-			for(direction in Iterate.positiveAndNegative) list.addIfConnected(
+			for(direction in Direction.AxisDirection.entries) list.addIfConnected(
 				fromEnd = connectedTo,
-				getOffset = { t, first -> center + axis.tangent.scale(if(first) 0.0 else direction * t) }
+				getOffset = { t, first -> center + axis.tangent.scale(if(first) 0.0 else direction.step * t) },
 			) { DiscoveredLocation(level = world, normal = shape.normal, tangent = axis.tangent) }
 		}
 		
-		if(linear) {
-			return list
-		}
+		if(linear) return list
 		
 		val connections = blockEntity.connections
-		connections.forEach { (_, bc) ->
-			list.addIfConnected(
-				fromEnd = connectedTo,
-				getOffset = { t, first ->
-					if(t == 1.0) Vec3.atLowerCornerOf(bc.bePositions.get(first))
-					else bc.starts.get(first)
-				}
-			) {
-				DiscoveredLocation(
-					level = world,
-					normal = bc.normals.get(isFirst),
-					tangent = null,
-					yOffset = bc.yOffsetAt(offset),
-					viaTurn = bc,
-				)
+		for((_, bc) in connections) list.addIfConnected(
+			fromEnd = connectedTo,
+			getOffset = { t, first ->
+				if(t == 1.0) Vec3.atLowerCornerOf(bc.bePositions.get(first))
+				else bc.starts.get(first)
 			}
+		) {
+			DiscoveredLocation(
+				level = world,
+				normal = bc.normals.get(isFirst),
+				tangent = null,
+				yOffset = bc.yOffsetAt(offsetCenter),
+				viaTurn = bc,
+			)
 		}
 		
 		return list
@@ -356,9 +376,11 @@ class FlexiTrackBlock(
 	override fun getTrackAxes(world: BlockGetter, pos: BlockPos, state: BlockState): List<Vec3> =
 		flexiShape(world, pos).tangents
 	
+	fun getTrackBase(world: BlockGetter, pos: BlockPos, state: BlockState): Vec3 =
+		Vec3.atBottomCenterOf(pos).add(0.0, getElevationAtCenter(world, pos, state), 0.0)
+	
 	override fun getCurveStart(world: BlockGetter, pos: BlockPos, state: BlockState, axis: Vec3): Vec3 =
-		Vec3.atBottomCenterOf(pos)
-			.add(axis.scale(.5))
+		getTrackBase(world, pos, state) + axis.scale(.5)
 	
 	override fun onWrenched(state: BlockState, context: UseOnContext): InteractionResult =
 		InteractionResult.SUCCESS

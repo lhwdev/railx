@@ -23,4 +23,10 @@ fun Rotation.rotate(vector: Vec3): Vec3 = when(this) {
 }
 
 infix fun Vec3.closeTo(other: Vec3): Boolean =
-	(this - other).lengthSqr() < 1e-10
+	(this - other).lengthSqr() < 1e-12
+
+fun Vec3.isInt(): Boolean =
+	x.isInt() && y.isInt() && z.isInt()
+
+private fun Double.isInt(): Boolean =
+	this similarTo toInt().toDouble()

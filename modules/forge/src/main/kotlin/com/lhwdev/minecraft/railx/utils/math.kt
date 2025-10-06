@@ -2,8 +2,13 @@
 
 package com.lhwdev.minecraft.railx.utils
 
+import kotlin.math.abs
+
 
 inline fun Int.pow2(): Int =
+	this * this
+
+inline fun Double.pow2(): Double =
 	this * this
 
 inline infix fun Int.floorMod(by: Int): Int =
@@ -16,5 +21,5 @@ infix fun Double.floorMod(by: Double): Double {
 	else r
 }
 
-infix fun Double.similarTo(to: Double): Boolean =
-	(this - to) < 1e-10
+inline infix fun Double.similarTo(to: Double): Boolean =
+	abs(this - to) < 1e-10

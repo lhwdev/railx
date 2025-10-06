@@ -5,6 +5,12 @@ import net.neoforged.neoforge.common.ModConfigSpec
 
 fun <T> ModConfigSpec.ConfigValue<T>.getOrNull(): T? = try {
 	get()
-} catch(e: IllegalStateException) {
+} catch(_: IllegalStateException) {
 	null
+}
+
+fun <T> ModConfigSpec.ConfigValue<T>.getOrDefault(default: T): T = try {
+	get()
+} catch(_: IllegalStateException) {
+	default
 }
