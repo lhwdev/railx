@@ -1,13 +1,16 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.flexiTrack.rotate.FlexiTrackRotateScrollBehaviors
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.shapes.VoxelShape
@@ -42,6 +45,12 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	private var voxelShapeCache: Pair<FlexiState, VoxelShape>? = null
 	
 	
+	override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+		super.addBehaviours(behaviours)
+		behaviours += FlexiTrackRotateScrollBehaviors(this)
+	}
+	
+	
 	@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 	override fun setBlockState(blockState: BlockState) {
 		super.setBlockState(blockState)
@@ -55,18 +64,44 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	fun overlayShape(direction: FlexiDirection): FlexiState {
 		val state = state
 		val shape = state.shape
-		if(shape != state.baseShape) return state
-		if(direction in shape.axes) return state
-		return state.copy(baseShape = shape.insert(direction))
+		for(axis in shape.axes) {
+			if(direction closeToUnsigned axis) return state
+		}
+		val newShape = shape.insert(direction)
+		return state.copy(baseShape = newShape, tilt = null)
 	}
 	
 	fun updateState(newState: FlexiState) {
 		if(state == newState) return
 		state = newState
 		notifyUpdate()
+		
+		for(behavior in allBehaviours)
+			if(behavior is FlexiTrackTargetingBehavior) behavior.onFlexiStateUpdate(level!!, blockPos)
 	}
 	
-	fun updateEachConnections(updateConnection: (connection: BezierConnection) -> Unit) {
+	inner class UpdateEachConnectionsContext(
+		val level: Level,
+		@PublishedApi internal val validConnections: List<BezierConnection>,
+	) {
+		inline fun forEachConnections(block: (connection: BezierConnection) -> Unit) {
+			for(connection in validConnections) {
+				block(connection)
+				addConnection(connection)
+				
+				val otherPos = connection.key
+				val otherState = level.getBlockState(otherPos)
+				if(otherState.block !is ITrackBlock) continue
+				level.setBlockAndUpdate(otherPos, otherState.setValue(TrackBlock.HAS_BE, true))
+				val otherBe = level.getBlockEntity(otherPos)
+				if(otherBe is TrackBlockEntity) {
+					otherBe.addConnection(connection.secondary())
+				}
+			}
+		}
+	}
+	
+	fun updateEachConnections(updateConnection: UpdateEachConnectionsContext.() -> Unit) {
 		val level = level!!
 		val validConnections = connections.values.filter { connection ->
 			val other = level.getBlockEntity(connection.key) as? TrackBlockEntity ?: return@filter false
@@ -77,19 +112,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		TrackPropagator.onRailRemoved(level, blockPos, blockState)
 		connections.clear()
 		
-		for(connection in validConnections) {
-			updateConnection(connection)
-			addConnection(connection)
-			
-			val otherPos = connection.key
-			val otherState = level.getBlockState(otherPos)
-			if(otherState.block !is ITrackBlock) continue
-			level.setBlockAndUpdate(otherPos, otherState.setValue(TrackBlock.HAS_BE, true))
-			val otherBe = level.getBlockEntity(otherPos)
-			if(otherBe is TrackBlockEntity) {
-				otherBe.addConnection(connection.secondary())
-			}
-		}
+		updateConnection(UpdateEachConnectionsContext(level, validConnections))
 		
 		notifyUpdate()
 	}
@@ -113,9 +136,17 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		super.read(tag, registries, clientPacket)
 		
 		state = FlexiState.read(tag.getCompound("FlexiState"))
+		val level = level
+		for(behavior in allBehaviours)
+			if(level != null && behavior is FlexiTrackTargetingBehavior) behavior.onFlexiStateUpdate(level, blockPos)
 	}
 	
 	override fun bind(boundDimension: ResourceKey<Level>, boundLocation: BlockPos) {
 		throw IllegalStateException("cannot bind flexi track into portal")
 	}
+}
+
+
+interface FlexiTrackTargetingBehavior {
+	fun onFlexiStateUpdate(level: LevelReader, pos: BlockPos) {}
 }

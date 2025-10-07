@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.mixin;
+package com.lhwdev.minecraft.railx.mixin.other;
 
 
 import com.llamalad7.mixinextras.sugar.Local;

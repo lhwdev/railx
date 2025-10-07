@@ -28,17 +28,18 @@ interface FlexiDirection {
 	val tangent2: Tangent2?
 	val normal: Vec3
 	
-	infix fun closeTo(other: FlexiDirection): Boolean =
-		tangent closeTo other.tangent && normal closeTo other.tangent
+	infix fun closeToUnsigned(other: FlexiDirection): Boolean =
+		tangent closeToUnsigned other.tangent && normal closeToUnsigned other.normal
 	
 	fun mirror(by: Mirror): FlexiDirection
 	
 	fun rotate(by: Rotation): FlexiDirection
 	
-	/** rotates direction clockwise; which means index **decreases**. */
 	fun rotateKnown(by: Int): FlexiDirection
 	
 	fun applyNormal(normal: Vec3): FlexiDirection
+	
+	fun optimize(): FlexiDirection = this
 	
 	
 	operator fun unaryMinus(): Signed = Two(-tangent, normal)
@@ -69,6 +70,8 @@ interface FlexiDirection {
 		
 		override fun applyNormal(normal: Vec3): Zero = this
 		
+		override fun optimize(): Zero = Zero
+		
 		override fun write(): CompoundTag = CompoundTag().also { tag ->
 			tag.putByte("Type", 0x0)
 		}
@@ -97,15 +100,18 @@ interface FlexiDirection {
 		} else {
 			NormalizedImpl(this, normal)
 		}
+		
+		override fun optimize(): Flat = this
 	}
 	
 	interface Normalized : FlexiDirection {
 		val base: Flat
+		
+		override fun optimize(): Normalized
 	}
 	
 	
 	// As index increases, tangent goes counter-clockwise, starting from (1, 0).
-	// BE AWARE THAT ANGLE IS CLOCKWISE OMG
 	class Known(val index: Int, val ordinal: Int) : Flat(), Normalized, Comparable<Known> {
 		companion object {
 			private const val DivisionCountBase = 32
@@ -180,9 +186,9 @@ interface FlexiDirection {
 				null
 			}
 		
-		override fun closeTo(other: FlexiDirection): Boolean {
+		override fun closeToUnsigned(other: FlexiDirection): Boolean {
 			if(other is Known) return index == other.index
-			return super<Flat>.closeTo(other)
+			return super<Flat>.closeToUnsigned(other)
 		}
 		
 		override fun mirror(by: Mirror): Known = when(by) {
@@ -196,6 +202,8 @@ interface FlexiDirection {
 		
 		override fun rotateKnown(by: Int): Known =
 			DivisionsByOrdinal[(ordinal - by) floorMod DivisionCount]
+		
+		override fun optimize(): Known = this
 		
 		override fun unaryMinus(): SignedKnown =
 			SignedKnown(this, sign = Direction.AxisDirection.NEGATIVE)
@@ -240,6 +248,7 @@ interface FlexiDirection {
 		override fun mirror(by: Mirror): SignedKnown = TODO()
 		override fun rotate(by: Rotation): SignedKnown = TODO()
 		override fun rotateKnown(by: Int): SignedKnown = TODO()
+		override fun optimize(): SignedKnown = this
 		override fun unaryMinus(): SignedKnown = SignedKnown(from, sign.opposite())
 		
 		override fun write(): CompoundTag {
@@ -251,8 +260,15 @@ interface FlexiDirection {
 	class FlatImpl(override val tangent: Vec3) : Flat(), Signed {
 		override fun mirror(by: Mirror): FlatImpl = FlatImpl(by.mirror(tangent))
 		override fun rotate(by: Rotation): FlatImpl = FlatImpl(by.rotate(tangent))
-		override fun rotateKnown(by: Int): FlatImpl =
-			FlatImpl(tangent.yRot(by.toFloat() / Known.DivisionCount * PI.toFloat()))
+		override fun rotateKnown(by: Int): Flat =
+			FlatImpl(tangent.yRot(by.toFloat() / Known.DivisionCount * PI.toFloat())).optimize()
+		
+		override fun optimize(): Flat {
+			tangent.asKnownVec3()?.let { return it.known }
+			val tangent = tangent.optimize()
+			if(tangent != this.tangent) return FlatImpl(tangent)
+			return this
+		}
 		
 		override fun unaryMinus(): FlatImpl = FlatImpl(-tangent)
 		
@@ -322,12 +338,20 @@ interface FlexiDirection {
 			NormalizedImpl(base.rotate(by), by.rotate(normal), by.rotate(tangent))
 		} else this
 		
-		override fun rotateKnown(by: Int): NormalizedImpl {
+		override fun rotateKnown(by: Int): Normalized {
 			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
 			return NormalizedImpl(base.rotateKnown(by), normal.yRot(angle), tangent.yRot(angle))
+				.optimize()
 		}
 		
 		override fun applyNormal(normal: Vec3): NormalizedImpl = NormalizedImpl(base, normal)
+		
+		override fun optimize(): Normalized {
+			val base = base.optimize()
+			if(normal.x similarTo 0.0 && normal.z similarTo 0.0) return base
+			if(base === this.base) return NormalizedImpl(base, normal.optimize(), tangent)
+			return NormalizedImpl(base, normal.optimize(), tangent.optimize())
+		}
 		
 		override fun unaryMinus(): NormalizedImpl = NormalizedImpl(-base as Flat, normal, -tangent)
 		
@@ -375,7 +399,6 @@ interface FlexiDirection {
 					val d = b + 1
 					val x = tangent.x - tangent.y * a / d
 					val y = (-tangent.x * d + (d - a * a) * x) / (a * c)
-					println("toNormalized: ${x * x + y * y} should similar to 1.0")
 					return NormalizedImpl(base = FlatImpl(Vec3(x, 0.0, y).normalize()), normal, tangent)
 				}
 			}
@@ -389,6 +412,13 @@ interface FlexiDirection {
 		override fun rotateKnown(by: Int): FlexiDirection {
 			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
 			return Two(tangent.yRot(angle), normal.yRot(angle))
+		}
+		
+		override fun optimize(): FlexiDirection {
+			val tangent = tangent.optimize()
+			val normal = normal.optimize()
+			if(tangent !== this.tangent || normal !== this.normal) Two(tangent, normal)
+			return this
 		}
 		
 		override fun applyNormal(normal: Vec3): Two = Two(tangent, normal)
@@ -421,4 +451,21 @@ fun Vec3.asKnownVec3(): FlexiDirection.KnownVec3? {
 	if(this is FlexiDirection.KnownVec3) return this
 	val known = FlexiDirection.Known.roundFrom(this).tangent
 	return if(known closeTo this) known else null
+}
+
+infix fun Vec3.closeToUnsigned(to: Vec3): Boolean = closeTo(to) || closeTo(-to)
+
+fun Vec3.optimize(): Vec3 {
+	val xx = x.optimize()
+	val yy = y.optimize()
+	val zz = z.optimize()
+	if(x != xx || y != yy || z != zz) Vec3(xx, yy, zz)
+	return this
+}
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun Double.optimize(): Double {
+	if(this < 1e-7 && this > -1e-7) return 0.0
+	if(this < 1 + 1e-7 && this > -1 - 1e-7) return 1.0
+	return this
 }

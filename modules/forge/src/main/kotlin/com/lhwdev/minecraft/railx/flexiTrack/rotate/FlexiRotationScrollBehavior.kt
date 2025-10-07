@@ -17,43 +17,25 @@ import kotlin.math.PI
 import kotlin.math.roundToInt
 
 
-class FlexiDirectionScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform, val axis: FlexiDirection) :
+class FlexiRotationScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
 	FlexiTrackRotateScrollBehavior(Component.literal("Rotate Flexi Track Direction"), be, slot) {
+	init {
+		value = FlexiDirection.Known.DivisionCount / 2
+	}
+	
 	override val kind: FlexiTrackRotateScrollBehaviors.Kind
 		get() = FlexiTrackRotateScrollBehaviors.Kind.Direction
 	
-	
-	val offset = if(axis is FlexiDirection.Known) {
-		axis.ordinal
-	} else {
-		FlexiDirection.Known.roundFrom(axis.tangent).ordinal
-	}
-	
-	init {
-		value = offset
-	}
-	
-	override fun formatValue(): String {
-		return if(axis is FlexiDirection.Known) {
-			"K${axis.ordinal}"
-		} else {
-			"${((axis.direction * 180 / PI + 360) % 360).roundToInt()}°"
-		}
-	}
+	override fun formatValue(): String = "F"
 	
 	override fun createBoard(player: Player, hitResult: BlockHitResult) = ValueSettingsBoard(
 		label,
 		FlexiDirection.Known.DivisionCount,
 		8,
-		listOf(Component.literal("Direction").withStyle(ChatFormatting.BOLD)),
+		listOf(Component.literal("Rotation").withStyle(ChatFormatting.BOLD)),
 		ValueSettingsFormatter { v ->
-			val value = v.value
-			if(axis is FlexiDirection.Known) {
-				Component.literal("K$value")
-			} else {
-				val angle = ((axis.rotateKnown(value).tangentAngle * 180 / PI + 360) % 360).roundToInt()
-				Component.literal("${angle}°")
-			}
+			val value = v.value - FlexiDirection.Known.DivisionCount / 2
+			Component.literal(if(value >= 0) "+K$value" else "-K${-value}")
 		},
 	)
 	
@@ -64,7 +46,7 @@ class FlexiDirectionScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTran
 	) {
 		val be = be
 		val level = be.level!!
-		val delta = -(valueSetting.value - offset)
+		val delta = -(valueSetting.value - FlexiDirection.Known.DivisionCount / 2)
 		
 		be.updateEachConnections {
 			be.updateState(be.state.copy(baseShape = be.shape.map { direction -> direction.rotateKnown(delta) }))

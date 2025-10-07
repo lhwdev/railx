@@ -15,7 +15,7 @@ data class FlexiTrackRotation(
 	val tilt: Double, // -0.5PI for left 90 degree (normal facing left), +0.5PI for right 90 degree (normal facing right)
 ) {
 	fun rotationValue(): Quaterniond =
-		Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient / 2)/* .rotateX(tilt)*//* .rotateY(direction) */
+		Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)/* .rotateX(tilt)*//* .rotateY(direction) */
 		// Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)
 }
 

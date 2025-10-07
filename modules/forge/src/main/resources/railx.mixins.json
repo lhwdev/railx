@@ -21,6 +21,8 @@
     "flywheel.VisualizationManagerImplMixin",
     "middleTrack.TrackBlockEntityMixin",
     "middleTrack.TrackBlockOutlineMixin",
+    "other.ScrollValueRendererMixin",
+    "other.VecHelperFixMixin",
     "realisticSpeed.BlockBuilderMixin",
     "realisticSpeed.ContraptionMixin",
     "realisticSpeed.PropertiesMixin",

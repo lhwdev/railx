@@ -401,18 +401,13 @@ object FlexiTrackPlacement {
 		
 		requiredTracks = 0
 		
-		fun placeTrack(pos: BlockPos, state: BlockState, direction: FlexiDirection): Boolean {
+		fun placeTrack(pos: BlockPos, state: BlockState, direction: FlexiDirection) {
 			val stateAtPos = level.getBlockState(pos)
-			return when {
+			when {
 				stateAtPos.block is FlexiTrackBlock -> {
 					val be = level.getBlockEntity(pos) as FlexiTrackBlockEntity
 					val newState = be.overlayShape(direction)
-					if(be.state == newState) {
-						false
-					} else {
-						be.updateState(newState)
-						true
-					}
+					be.updateState(newState)
 				}
 				
 				stateAtPos.block is ITrackBlock -> {
@@ -422,7 +417,6 @@ object FlexiTrackPlacement {
 							stateAtPos.setValue(TrackBlock.HAS_BE, true), pos
 						), 3
 					)
-					true
 				}
 				
 				stateAtPos.canBeReplaced() || stateAtPos.`is`(BlockTags.FLOWERS) -> {
@@ -432,10 +426,7 @@ object FlexiTrackPlacement {
 					if(be is FlexiTrackBlockEntity) {
 						be.updateState(be.state.copy(baseShape = FlexiShape.Single(direction)))
 					}
-					true
 				}
-				
-				else -> false
 			}
 		}
 		

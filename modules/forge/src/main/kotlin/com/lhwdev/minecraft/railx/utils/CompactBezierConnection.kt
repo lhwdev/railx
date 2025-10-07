@@ -196,7 +196,7 @@ object CompactBezierConnection {
 		
 		fun writeMaybeFlat(vec: Vec3, flagIndex: Int) {
 			output.writeFloat(vec.x.toFloat())
-			if(vec.y == 0.0) {
+			if(vec.y similarTo 0.0) {
 				writeFlag(flagIndex, true)
 			} else {
 				output.writeFloat(vec.y.toFloat())
@@ -225,7 +225,7 @@ object CompactBezierConnection {
 		writeAxis(bc.axes.second, 13)
 		
 		fun writeMaybeNormal(vec: Vec3, flagIndex: Int) {
-			if(vec.x == 0.0 && vec.z == 0.0) {
+			if(vec.x similarTo 0.0 && vec.z similarTo 0.0) {
 				writeFlag(flagIndex, true)
 			} else {
 				output.writeFloat(vec.x.toFloat())

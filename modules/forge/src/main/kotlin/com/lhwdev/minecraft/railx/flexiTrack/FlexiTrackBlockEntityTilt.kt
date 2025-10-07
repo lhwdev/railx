@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.trains.track.*
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
@@ -35,6 +36,7 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 		
 		if(lowestPoint.y > lowStarts.first.y) return
 		if(highestPoint.y < highStarts.first.y) return
+		if(lowestPoint.y similarTo highestPoint.y) return
 		
 		blockEntity.removeInboundConnections(false)
 		blockEntity.connections.clear()
@@ -92,19 +94,21 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 		val blockPos = blockEntity.blockPos
 		val level = blockEntity.level!!
 		
-		blockEntity.updateState(state.copy(tilt = null))
-		val axis = state.shape.axis1
-		
-		blockEntity.updateEachConnections { connection ->
-			val tangent = axis.tangent * sign(axis.tangent.dot(connection.axes.first))
-			connection.starts.first = blockEntity.block.getCurveStart(
-				world = level,
-				pos = blockPos,
-				state = blockState,
-				axis = tangent,
-			)
-			connection.axes.first = tangent
-			connection.normals.first = axis.normal
+		blockEntity.updateEachConnections {
+			blockEntity.updateState(state.copy(tilt = null))
+			val axis = state.shape.axis1
+			
+			forEachConnections { connection ->
+				val tangent = axis.tangent * sign(axis.tangent.dot(connection.axes.first))
+				connection.starts.first = blockEntity.block.getCurveStart(
+					world = level,
+					pos = blockPos,
+					state = blockState,
+					axis = tangent,
+				)
+				connection.axes.first = tangent
+				connection.normals.first = axis.normal
+			}
 		}
 		previousSmoothingHandles = null
 		TrackPropagator.onRailAdded(level, blockPos, blockState)

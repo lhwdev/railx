@@ -65,7 +65,7 @@ class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEnti
 			val instancer = instancerProvider()
 				.instancer(InstanceTypes.TRANSFORMED, Models.block(trackState))
 			
-			val center = Vector3f(0.5f, 0.0f, 0.5f)
+			val center = Vector3f(0.5f, 0.125f, 0.5f)
 			blocks = blockEntity.state.shapeCache.map { axis ->
 				val block = instancer.createInstance()
 				val pose = PoseStack()

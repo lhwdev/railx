@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.utils.asAllInstanceOf
 import com.lhwdev.minecraft.railx.utils.mirror
+import com.lhwdev.minecraft.railx.utils.requireAllInstanceOf
 import com.lhwdev.minecraft.railx.utils.rotate
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.nbt.CompoundTag
@@ -121,7 +122,7 @@ sealed interface FlexiShape {
 	) : FlexiShape {
 		companion object {
 			fun read(tag: CompoundTag): NormalizedImpl = NormalizedImpl(
-				flatAxes = readDirectionList(tag.get("FlatAxes") as ListTag),
+				flatAxes = readDirectionList(tag.get("FlatAxes") as ListTag).requireAllInstanceOf(),
 				normal = VecHelper.readNBT(tag.getList("Normal", Tag.TAG_DOUBLE.toInt())),
 			)
 		}
@@ -219,14 +220,14 @@ private fun FlexiShape.checkInsert(direction: FlexiDirection): Boolean {
 	if((normal - direction.normal).lengthSqr() > 1.0e-10) {
 		throw IllegalArgumentException("direction.normal != normal")
 	}
-	return axes.none { it closeTo direction }
+	return axes.none { it closeToUnsigned direction }
 }
 
 private fun readDirectionList(tag: ListTag) = tag.let { axesTag ->
 	if(axesTag.first() is NumericTag) {
 		axesTag.map { FlexiDirection.Known.readInt(it as NumericTag) }
 	} else {
-		axesTag.map { FlexiDirection.read(it as CompoundTag) as FlexiDirection.Flat }
+		axesTag.map { FlexiDirection.read(it as CompoundTag) }
 	}
 }
 

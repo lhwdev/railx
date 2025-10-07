@@ -3,34 +3,79 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.map
-import com.lhwdev.minecraft.railx.utils.transform
+import com.lhwdev.minecraft.railx.flexiTrack.optimize
+import com.lhwdev.minecraft.railx.utils.transformUnit
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter
 import net.minecraft.ChatFormatting
+import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.BlockHitResult
 import org.joml.Quaterniond
 import kotlin.math.PI
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 
-class FlexiGradientScrollBehavior(label: Component, be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
-	FlexiTrackRotateScrollBehavior(label, be, slot) {
-	val maxGradient = Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.asDouble)
+class FlexiGradientScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
+	FlexiTrackRotateScrollBehavior(Component.literal("Rotate Flexi Track Gradient"), be, slot) {
+	override val kind: FlexiTrackRotateScrollBehaviors.Kind
+		get() = FlexiTrackRotateScrollBehaviors.Kind.Gradient
 	
-	override fun createBoard(player: Player, hitResult: BlockHitResult) = ValueSettingsBoard(
-		label,
-		2 * maxGradient - 1,
-		8,
-		listOf(Component.literal("Gradient").withStyle(ChatFormatting.BOLD)),
-		ValueSettingsFormatter { v ->
-			val value = v.value - maxGradient
-			Component.literal(if(value >= 0) "+${value}‰" else "-${-value}‰")
-		},
-	)
+	val maxGradient = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.asDouble), 80)
+	
+	override fun formatValue(): String {
+		val mc = Minecraft.getInstance()
+		val level = be.level!!
+		val hitResult = mc.hitResult as? BlockHitResult ?: return "?"
+		val direction = be.block.getNearestTrackDirection(
+			level,
+			hitResult.blockPos,
+			level.getBlockState(be.blockPos),
+			mc.player!!.lookAngle
+		) ?: return "?"
+		val value = (direction.gradient * maxGradient / PI).roundToInt()
+		return when {
+			value == 0 -> "0‰"
+			value > 0 -> "+$value‰"
+			else -> "-$value‰"
+		}
+	}
+	
+	override fun createBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard {
+		val level = player.level()
+		val direction = be.block.getNearestTrackDirection(
+			level,
+			hitResult.blockPos,
+			level.getBlockState(hitResult.blockPos),
+			player.lookAngle
+		) ?: return ValueSettingsBoard(
+			Component.literal("Cannot rotate empty track"), 0, 0, emptyList(),
+			ValueSettingsFormatter { Component.empty() })
+		
+		value = maxGradient + (direction.gradient * maxGradient / PI).roundToInt()
+		
+		return ValueSettingsBoard(
+			label,
+			2 * maxGradient - 1,
+			8,
+			listOf(Component.literal("Gradient").withStyle(ChatFormatting.BOLD)),
+			ValueSettingsFormatter { v ->
+				val value = v.value - maxGradient
+				Component.literal(
+					when {
+						value == 0 -> "0‰"
+						value > 0 -> "+${value}‰"
+						else -> "-${-value}‰"
+					}
+				)
+			},
+		)
+	}
 	
 	override fun setValueSettings(
 		player: Player,
@@ -39,21 +84,25 @@ class FlexiGradientScrollBehavior(label: Component, be: FlexiTrackBlockEntity, s
 	) {
 		val be = be
 		val level = be.level!!
-		val delta = valueSetting.value - maxGradient
 		
-		val direction = be.block.getNearestTrackDirection(level, be.blockPos, be.blockState, player.lookAngle)
-			?: return
+		val direction = be.block.getNearestTrackDirection(level, be.blockPos, be.blockState, player.lookAngle) ?: return
+		val initialValue = maxGradient + (direction.gradient * maxGradient / PI).roundToInt()
+		val delta = valueSetting.value - initialValue
+		
 		val axis = direction.tangent.cross(direction.normal)
 		val rotation = Quaterniond().rotationAxis(delta.toDouble() * PI / maxGradient, axis.x, axis.y, axis.z)
-		be.updateState(be.state.copy(baseShape = be.shape.map { direction ->
-			direction.applyNormal(rotation.transform(direction.normal))
-		}))
 		
-		be.updateEachConnections { connection ->
-			val axis = rotation.transform(connection.axes.first)
-			connection.axes.first = axis
-			connection.normals.first = rotation.transform(connection.normals.first)
-			connection.starts.first = be.block.getCurveStart(level, be.blockPos, be.blockState, axis)
+		be.updateEachConnections {
+			be.updateState(be.state.copy(baseShape = be.shape.map { direction ->
+				direction.applyNormal(rotation.transformUnit(direction.normal).optimize())
+			}))
+			
+			forEachConnections { connection ->
+				val axis = rotation.transformUnit(connection.axes.first).optimize()
+				connection.axes.first = axis
+				connection.normals.first = rotation.transformUnit(connection.normals.first).optimize()
+				connection.starts.first = be.block.getCurveStart(level, be.blockPos, be.blockState, axis)
+			}
 		}
 	}
 	
