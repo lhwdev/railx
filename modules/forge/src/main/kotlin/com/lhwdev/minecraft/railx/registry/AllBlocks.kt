@@ -23,6 +23,8 @@ import com.simibubi.create.AllTags as CreateTags
 
 
 object AllBlocks {
+	fun register() {}
+	
 	private val Registry = RailXRegistry
 	
 	val AdvancedTrackObserver: BlockEntry<AdvancedTrackObserverBlock> = Registry

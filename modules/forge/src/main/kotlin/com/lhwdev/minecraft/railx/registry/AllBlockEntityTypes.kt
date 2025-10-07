@@ -13,6 +13,8 @@ import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer
 
 
 object AllBlockEntityTypes {
+	fun register() {}
+	
 	val Registry = RailXRegistry
 	
 	val AdvancedTrackObserver: BlockEntityEntry<AdvancedTrackObserverBlockEntity> = Registry

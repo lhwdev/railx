@@ -51,10 +51,9 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		
 		// ensures initialization of registry
 		RailXRegistry.registerEventListeners(bus)
-		AllTags
-		AllBlocks
-		AllBlockEntityTypes
-		AllCreativeModeTabs
+		AllBlocks.register()
+		AllBlockEntityTypes.register()
+		AllCreativeModeTabs.register()
 		AllPackets.register()
 		AllDataComponents.register()
 		AllCustoms.register()

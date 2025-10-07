@@ -2,6 +2,7 @@
 
 package com.lhwdev.minecraft.railx.registry
 
+import com.tterrag.registrate.util.entry.RegistryEntry
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.CreativeModeTab
@@ -11,9 +12,11 @@ import com.simibubi.create.AllCreativeModeTabs as CreateCreativeModeTabs
 
 
 object AllCreativeModeTabs {
+	fun register() {}
+	
 	val Registry = RailXRegistry
 	
-	val BaseTab = Registry.generic(
+	val BaseTab: RegistryEntry<CreativeModeTab, CreativeModeTab> = Registry.simple(
 		"base_tag",
 		Registries.CREATIVE_MODE_TAB,
 	) {
@@ -23,7 +26,7 @@ object AllCreativeModeTabs {
 			.icon { CreateBlocks.TRACK.asStack() }
 			.displayItems(RegistrateDisplayItemsGenerator())
 			.build()
-	}.register()
+	}
 	
 	private class RegistrateDisplayItemsGenerator : CreativeModeTab.DisplayItemsGenerator {
 		override fun accept(
@@ -35,11 +38,12 @@ object AllCreativeModeTabs {
 				AllTags.Features.FlexiTrack.block,
 			)
 			RailXRegistry.allBlocks
+				.filter { !it.asStack().isEmpty }
 				.sortedBy { block ->
 					val tag = block.tags().asSequence().firstOrNull { it.location.path.startsWith("feature.") }
 					features.indexOf(tag)
 				}
-				// .forEach { output.accept(it.asStack()) }
+				.forEach { output.accept(it.asStack()) }
 		}
 	}
 }
