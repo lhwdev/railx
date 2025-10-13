@@ -11,6 +11,7 @@ import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import com.simibubi.create.foundation.utility.BlockHelper
 import com.simibubi.create.foundation.utility.CreateLang
+import com.simibubi.create.infrastructure.config.AllConfigs as CreateConfigs
 import io.netty.buffer.ByteBuf
 import net.createmod.catnip.codecs.stream.CatnipStreamCodecs
 import net.createmod.catnip.data.Couple
@@ -90,6 +91,7 @@ object FlexiTrackPlacement {
 		val flexiMaterial: FlexiTrackMaterial?
 			get() = material as? FlexiTrackMaterial
 		
+		var addToPlan: Boolean = false
 		var girder: Boolean = false
 		
 		val fromOffset = from.end + from.tangent.scale(fromExtent)
@@ -97,6 +99,7 @@ object FlexiTrackPlacement {
 		
 		lateinit var curve: BezierConnection
 		var requiredTracks: Int = 0
+		var pavementItem: BlockItem
 		var requiredPavement: Int = 0
 		var hasRequiredTracks: Boolean = true
 		var hasRequiredPavement: Boolean = true
@@ -196,12 +199,23 @@ object FlexiTrackPlacement {
 		
 		info.girder = girder
 		info.curve = info.createCurve()
-		return info.tryConnect(level, player)
+		
+		return connect(info, level, player)
 	}
 	
 	private fun FlexiPlacementInfo.validateConnect(level: Level): FlexiPlacementInfo {
-		if(from.pos.distSqr(to.pos) > RailXConfig.Server.flexiTrak.maxPlacementLength.asInt.pow2())
-			return placeErrorCreate("too_far").noOverlay()
+		val distSqr = from.pos.distSqr(to.pos)
+		if(distSqr > CreateConfigs.server().trains.maxTrackPlacementLength.get().pow2()) {
+			if(
+				RailXConfig.Server.buildTrak.enabled.asBoolean &&
+				distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()
+			) {
+				addToPlan = true
+			} else {
+				return placeErrorCreate("too_far").noOverlay()
+			}
+		}
+		
 		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)
 			return placeErrorCreate("turn_start")
 		
@@ -229,11 +243,10 @@ object FlexiTrackPlacement {
 				if(t > maxT) return placeError(PlaceError.TooSharp())
 			}
 		}
-		
 		return this
 	}
 	
-	private fun FlexiPlacementInfo.tryConnect(level: Level, player: Player): PlaceResult {
+	private fun FlexiPlacementInfo.prepareConnect(level: Level, player: Player): PlaceResult {
 		validateConnect(level)
 		if(error != null) return this
 		
@@ -243,63 +256,23 @@ object FlexiTrackPlacement {
 		val shouldPave = offhandItem.item is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
 		if(shouldPave) {
 			val paveItem = offhandItem.item as BlockItem
-			paveTracks(level, paveItem, simulate = true)
+			paveTracks(level, paveItem.block, simulate = true)
 		}
 		
 		if(!player.isCreative) {
-			fun useTrackItem(simulate: Boolean): Boolean {
-				if(level.isClientSide && !simulate) return true
-				var tracks = 0
-				var pavements = 0
-				val inv = player.inventory
-				val size = inv.items.size
-				for(j in 0..size + 1) {
-					var i = j
-					val offhand = j == size + 1
-					if(j == size)
-						i = inv.selected
-					else if(offhand)
-						i = 0
-					else if(j == inv.selected)
-						continue
-					
-					val stackInSlot = (if(offhand) inv.offhand else inv.items)[i]
-					val isTrack =
-						CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
-					if(!isTrack && (!shouldPave || offhandItem.item != stackInSlot.item))
-						continue
-					if(if(isTrack) tracks >= requiredTracks else pavements >= requiredPavement) continue
-					
-					val count = stackInSlot.count
-					
-					if(!simulate) {
-						val remainingItems = count -
-							(if(isTrack) requiredTracks - tracks else requiredPavement - pavements)
-								.coerceAtMost(count)
-						if(i == inv.selected) {
-							stackInSlot.remove(AllDataComponents.TrackConnectingFrom)
-							stackInSlot.remove(CreateDataComponents.TRACK_CONNECTING_FROM)
-						}
-						val newItem = stackInSlot.copyWithCount(remainingItems)
-						if(offhand)
-							player.setItemInHand(InteractionHand.OFF_HAND, newItem)
-						else
-							inv.setItem(i, newItem)
-					}
-					
-					if(isTrack)
-						tracks += count
-					else
-						pavements += count
-				}
-				hasRequiredTracks = tracks >= requiredTracks
-				hasRequiredPavement = pavements >= requiredPavement
-				return hasRequiredTracks && hasRequiredPavement
-			}
-			if(!useTrackItem(simulate = true)) {
+			if(!useTrackItem(level, player, simulate = true))
 				return placeErrorCreate("not_enough_tracks").noOverlay()
-			}
-			useTrackItem(simulate = false)
+		}
+		
+		return this
+	}
+	
+	fun connect(info: FlexiPlacementInfo, level: Level, player: Player): PlaceResult =
+		info.connectInternal(level, player)
+	
+	private fun FlexiPlacementInfo.connectInternal(level: Level, player: Player): PlaceResult {
+		if(!player.isCreative) {
+			useTrackItem(level, player, simulate = false)
 		}
 		if(!level.isClientSide) {
 			if(shouldPave) paveTracks(level, offhandItem.item as BlockItem, simulate = false)
@@ -307,6 +280,57 @@ object FlexiTrackPlacement {
 		}
 		return this
 	}
+	
+	private fun FlexiPlacementInfo.useTrackItem(level: Level, player: Player, simulate: Boolean): Boolean {
+		if(level.isClientSide && !simulate) return true
+		var tracks = 0
+		var pavements = 0
+		val inv = player.inventory
+		val size = inv.items.size
+		for(j in 0..size + 1) {
+			var i = j
+			val offhand = j == size + 1
+			if(j == size)
+				i = inv.selected
+			else if(offhand)
+				i = 0
+			else if(j == inv.selected)
+				continue
+			
+			val stackInSlot = (if(offhand) inv.offhand else inv.items)[i]
+			val isTrack =
+				CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
+			if(!isTrack && (!shouldPave || offhandItem.item != stackInSlot.item))
+				continue
+			if(if(isTrack) tracks >= requiredTracks else pavements >= requiredPavement) continue
+			
+			val count = stackInSlot.count
+			
+			if(!simulate) {
+				val remainingItems = count -
+					(if(isTrack) requiredTracks - tracks else requiredPavement - pavements)
+						.coerceAtMost(count)
+				if(i == inv.selected) {
+					stackInSlot.remove(AllDataComponents.TrackConnectingFrom)
+					stackInSlot.remove(CreateDataComponents.TRACK_CONNECTING_FROM)
+				}
+				val newItem = stackInSlot.copyWithCount(remainingItems)
+				if(offhand)
+					player.setItemInHand(InteractionHand.OFF_HAND, newItem)
+				else
+					inv.setItem(i, newItem)
+			}
+			
+			if(isTrack)
+				tracks += count
+			else
+				pavements += count
+		}
+		hasRequiredTracks = tracks >= requiredTracks
+		hasRequiredPavement = pavements >= requiredPavement
+		return hasRequiredTracks && hasRequiredPavement
+	}
+	
 	
 	private fun tryMatchCache(player: Player, item: ItemStack, toPos: BlockPos): FlexiPlacementInfo? {
 		val lookVec = player.lookAngle.multiply(1.0, 0.0, 1.0)
@@ -459,9 +483,8 @@ object FlexiTrackPlacement {
 		}
 	}
 	
-	private fun FlexiPlacementInfo.paveTracks(level: Level, item: BlockItem, simulate: Boolean) {
+	private fun FlexiPlacementInfo.paveTracks(level: Level, block: Block, simulate: Boolean) {
 		requiredPavement = 0
-		val block = item.block ?: return
 		if(block is EntityBlock || block.defaultBlockState().getCollisionShape(level, from.pos).isEmpty)
 			return
 		
@@ -470,8 +493,6 @@ object FlexiTrackPlacement {
 		// TODO: pave extended
 		requiredPavement += TrackPaver.paveCurve(level, curve, block, simulate, visited)
 	}
-	
-	
 }
 
 

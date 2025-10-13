@@ -13,6 +13,8 @@ object RailXConfig {
 		
 		val flexiTrak = FlexiTrak()
 		
+		val buildTrak = BuildTrak()
+		
 		
 		inner class CarriageMetadata {
 			val enabled: BooleanValue = builder
@@ -139,10 +141,6 @@ object RailXConfig {
 			// 	)
 			// 	.define("flexi_trak.blend", false)
 			
-			val maxPlacementLength: IntValue = builder
-				.comment("maximum placement length. Note that if placement length is too large, curve may not be placed.")
-				.defineInRange("flexi_trak.max_placement_length", 128, 0, 1024)
-			
 			val minRadius: IntValue = builder
 				.comment("Minimum radius at which flexi tracks can be placed.")
 				.defineInRange("flexi_trak.min_radius", 32, 5, 1000)
@@ -150,6 +148,16 @@ object RailXConfig {
 			val maxGradient: DoubleValue = builder
 				.comment("Maximum gradient of flexi tracks. Defined as per mille (‰); 1 means ascending 1 meter while travelling 1000 meter.")
 				.defineInRange("flexi_trak.max_gradient", 80.0, 0.0, 10000.0)
+		}
+		
+		inner class BuildTrak {
+			val enabled = builder
+				.comment("Whether to enable tools for building tracks. This also enables placing tracks longer than maximum track length limit.")
+				.define("build_trak.enabled", true)
+			
+			val maxPlacementLength: IntValue = builder
+				.comment("Maximum placement length for each curve.")
+				.defineInRange("flexi_trak.max_placement_length", 1024, 0, 25565)
 		}
 		
 		val spec = builder.build()
