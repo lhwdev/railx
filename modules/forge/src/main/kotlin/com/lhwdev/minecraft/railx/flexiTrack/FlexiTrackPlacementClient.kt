@@ -1,17 +1,16 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement.FlexiPlacementInfo
+import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement.PlaceError
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement.tryConnect
+import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
 import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackPlacement
 import com.simibubi.create.foundation.utility.CreateLang
 import net.createmod.catnip.animation.LerpedFloat
-import net.createmod.catnip.data.Couple
 import net.createmod.catnip.data.Pair
-import net.createmod.catnip.math.AngleHelper
 import net.createmod.catnip.math.VecHelper
 import net.createmod.catnip.outliner.Outliner
 import net.createmod.catnip.theme.Color
@@ -19,7 +18,6 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.phys.BlockHitResult
@@ -29,6 +27,8 @@ import net.neoforged.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
+import kotlin.math.max
+import kotlin.math.min
 import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllSpecialTextures as CreateSpecialTextures
 import com.simibubi.create.AllTags as CreateTags
@@ -36,15 +36,15 @@ import com.simibubi.create.AllTags as CreateTags
 
 @OnlyIn(Dist.CLIENT)
 object FlexiTrackPlacementClient {
-	var extraTipWarmup: Int = 0
-	
 	var animation: LerpedFloat = LerpedFloat.linear()
 		.startWithValue(0.0)
 	var lastLineCount: Int = 0
 	
 	var hintPos: BlockPos? = null
 	var hintAngle: Int = 0
-	var hints: Couple<MutableList<BlockPos>>? = null
+	var hints: MutableList<Hint>? = null
+	
+	class Hint(val pos: BlockPos, val valid: Boolean, val curvature: Double)
 	
 	var lastOverlay: FlexiPlacementInfo? = null
 	
@@ -55,12 +55,8 @@ object FlexiTrackPlacementClient {
 		minecraft.level ?: return
 		val player = minecraft.player ?: return
 		var stack = player.mainHandItem
-		val hitResult = minecraft.hitResult
-		val restoreWarmup = extraTipWarmup
-		extraTipWarmup = 0
+		val hitResult = minecraft.hitResult as? BlockHitResult ?: return
 		
-		if(hitResult == null) return
-		if(hitResult !is BlockHitResult) return
 		if(!stack.hasFoil()) return
 		
 		var hand = InteractionHand.MAIN_HAND
@@ -90,7 +86,6 @@ object FlexiTrackPlacementClient {
 		}
 		defaultHandle.cancel()
 		
-		extraTipWarmup = restoreWarmup
 		val maxTurns = minecraft.options.keySprint.isDown()
 		val info = tryConnect(level, player, pos, hitState, stack, false)
 		if(info !is FlexiPlacementInfo) {
@@ -105,9 +100,6 @@ object FlexiTrackPlacementClient {
 		}
 		lastOverlay = info
 		
-		if(extraTipWarmup < 20) extraTipWarmup++
-		if(!info.valid || /* !hoveringMaxed && */ info.fromExtent == 0.0 || info.toExtent == 0.0)
-			extraTipWarmup = 0
 		
 		if(!player.isCreative && (info.valid || !info.hasRequiredTracks || !info.hasRequiredPavement)) BlueprintOverlayRenderer.displayTrackRequirements(
 			TrackPlacement.PlacementInfo(info.material).apply {
@@ -129,13 +121,13 @@ object FlexiTrackPlacementClient {
 			)
 		}
 		
-		var hints: Couple<MutableList<BlockPos>>? = hints
+		var hints = hints
 		if(hitResult.direction == Direction.UP) {
 			val lookVec = player.lookAngle
-			val lookAngle = (22.5 + AngleHelper.deg(Mth.atan2(lookVec.z, lookVec.x)) % 360).toInt() / 8
+			val lookAngle = FlexiDirection.Known.roundFrom(lookVec).ordinal
 			
 			if(pos != hintPos || lookAngle != hintAngle) {
-				hints = Couple.create { mutableListOf() }
+				hints = mutableListOf()
 				hintAngle = lookAngle
 				hintPos = pos
 				
@@ -143,21 +135,64 @@ object FlexiTrackPlacementClient {
 					for(zOffset in -2..2) {
 						val offset = pos.offset(xOffset, 0, zOffset)
 						val adjInfo = tryConnect(level, player, offset, hitState, stack, false)
-						hints[adjInfo.valid].add(offset.below())
+						val curvature = if(adjInfo !is FlexiPlacementInfo || !adjInfo.valid) {
+							0.0
+						} else {
+							-1 / (0.004 * adjInfo.curve.minRadius() + 1) + 1 // some random function...
+						}
+						hints += Hint(pos = offset.below(), valid = adjInfo.valid, curvature = curvature)
 					}
 				}
 				this.hints = hints
 			}
 			
-			if(hints != null && !hints.either { it.isEmpty() }) {
-				Outliner.getInstance().showCluster("track_valid", hints.first)
-					.withFaceTexture(CreateSpecialTextures.THIN_CHECKERED)
-					.colored(0x95CD41)
-					.lineWidth(0f)
-				Outliner.getInstance().showCluster("track_invalid", hints.second)
-					.withFaceTexture(CreateSpecialTextures.THIN_CHECKERED)
-					.colored(0xEA5C2B)
-					.lineWidth(0f)
+			if(hints != null) {
+				var minCurvature = Double.POSITIVE_INFINITY
+				var maxCurvature = Double.NEGATIVE_INFINITY
+				for(hint in hints) {
+					if(!hint.valid) continue
+					minCurvature = min(minCurvature, hint.curvature)
+					maxCurvature = max(maxCurvature, hint.curvature)
+				}
+				val curvatures = maxCurvature - minCurvature
+				for((index, hint) in hints.withIndex()) {
+					if(hint.valid) {
+						val w = (hint.curvature - minCurvature) / curvatures
+						val threshold = 0.9
+						if(w >= threshold) {
+							Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
+								.withFaceTexture(AllSpecialTextures.BOLD_THIN_CHECKERED)
+								.colored(
+									Color(
+										Color.mixColors(
+											0x5095CD41u.toInt(),
+											0x789AC953u.toInt(),
+											((w - threshold) / (1 - threshold)).toFloat().coerceIn(0f, 1f)
+										)
+									)
+								)
+								.lineWidth(0f)
+						} else {
+							Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
+								.withFaceTexture(CreateSpecialTextures.THIN_CHECKERED)
+								.colored(
+									Color(
+										Color.mixColors(
+											0xc095CD41u.toInt(),
+											0xff95CD41u.toInt(),
+											w.toFloat().coerceIn(0f, 1f)
+										)
+									)
+								)
+								.lineWidth(0f)
+						}
+					} else {
+						Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
+							.withFaceTexture(CreateSpecialTextures.THIN_CHECKERED)
+							.colored(0xEA5C2B)
+							.lineWidth(0f)
+					}
+				}
 			}
 		}
 		
@@ -177,7 +212,7 @@ object FlexiTrackPlacementClient {
 			val a1 = from.tangent
 			val n1 = from.normal.cross(a1).scale((15 / 16f).toDouble())
 			val o1 = a1.scale(0.125)
-			val ex1 = a1.scale(info.fromExtent)
+			val ex1 = a1.scale(0.0)
 			line(1, from.tangent - n1 + up, o1, ex1)
 			line(2, from.tangent - n1 + up, o1, ex1)
 			
@@ -185,7 +220,7 @@ object FlexiTrackPlacementClient {
 			val a2 = to.tangent
 			val n2 = to.tangent.cross(a2).scale((15 / 16f).toDouble())
 			val o2 = a2.scale(0.125)
-			val ex2 = a2.scale(info.toExtent/*  * a2.length() */)
+			val ex2 = a2.scale(0.0/*  * a2.length() */)
 			line(3, to.tangent + n2 + up, o2, ex2)
 			line(4, to.tangent - n2 + up, o2, ex2)
 		}

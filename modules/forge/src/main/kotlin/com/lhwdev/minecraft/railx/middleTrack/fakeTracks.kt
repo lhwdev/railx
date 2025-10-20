@@ -88,10 +88,7 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 		
 		if(placeMiddle && middle) {
 			if(middlePresent) {
-				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
-				if(previous == null) {
-					continue
-				}
+				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity ?: continue
 				if(previous.connections.none { it.bePositions == bc.bePositions })
 					previous.updateConnections(previous.connections.plus<BezierConnection>(bc))
 			} else if(stateAtPos.canBeReplaced()) {

@@ -51,11 +51,16 @@ class FlexiTrackMaterial(
 	
 	
 	companion object {
-		val Andesite: FlexiTrackMaterial = FlexiTrackMaterial(RailX.asResource("andesite")) {
+		val Andesite: FlexiTrackMaterial = FlexiTrackMaterial(RailX.asResource("flexi_andesite")) {
 			langName = "Andesite"
 			trackBlock = AllBlocks.FlexiTrack
 			particle = Create.asResource("block/palettes/stone_types/polished/andesite_cut_polished")
 			defaultModels()
+		}
+		
+		init {
+			// legacy material migration
+			ALL[RailX.asResource("andesite")] = Andesite
 		}
 		
 		fun allFlexiBlocks(): List<NonNullSupplier<out FlexiTrackBlock>> = ALL.values

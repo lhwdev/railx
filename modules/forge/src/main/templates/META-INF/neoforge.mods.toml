@@ -50,3 +50,10 @@ type = "optional"
 versionRange = "[3.0.2,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "worldedit"
+type = "optional"
+versionRange = "[7.3.8,)"
+ordering = "AFTER"
+side = "BOTH"

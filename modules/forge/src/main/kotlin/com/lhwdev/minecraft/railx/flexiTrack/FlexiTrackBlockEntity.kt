@@ -92,7 +92,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 				val otherPos = connection.key
 				val otherState = level.getBlockState(otherPos)
 				if(otherState.block !is ITrackBlock) continue
-				level.setBlockAndUpdate(otherPos, otherState.setValue(TrackBlock.HAS_BE, true))
+				level.setBlockAndUpdate(otherPos, otherState.trySetValue(TrackBlock.HAS_BE, true))
 				val otherBe = level.getBlockEntity(otherPos)
 				if(otherBe is TrackBlockEntity) {
 					otherBe.addConnection(connection.secondary())

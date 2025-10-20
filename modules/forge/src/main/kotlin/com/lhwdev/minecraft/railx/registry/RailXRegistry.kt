@@ -10,12 +10,18 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.CreativeModeTab
 
 
 val RailXRegistry = RailXRegistrate(RailX.Id)
 
 
 class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
+	init {
+		@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+		defaultCreativeTab(null as ResourceKey<CreativeModeTab>?)
+	}
+	
 	fun location(name: String): ResourceLocation =
 		ResourceLocation.fromNamespaceAndPath(modid, name)
 	

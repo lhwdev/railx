@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.common
 import com.lhwdev.minecraft.railx.flexiTrack.*
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
+import com.lhwdev.minecraft.railx.utils.pow3
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
@@ -27,7 +28,10 @@ import net.neoforged.fml.common.EventBusSubscriber
 import net.neoforged.neoforge.client.event.RenderGuiEvent
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.*
 import java.lang.invoke.MethodHandles
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.log10
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 
 private val lookup = MethodHandles.lookup()
@@ -43,6 +47,9 @@ private val TrackPlacement_hoveringPos =
 @EventBusSubscriber(Dist.CLIENT)
 object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	var info: PreciseInfo? = null
+	
+	val infoLineCount: Int
+		get() = info?.lines?.size ?: 0
 	
 	@SubscribeEvent
 	private fun onPreRender(event: RenderGuiEvent.Pre) {
@@ -64,16 +71,18 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			val info = TrackPlacement_cached.invokeExact() as TrackPlacement.PlacementInfo? as? PlacementInfoAccessor
 			if(info?.curve == null) return null
 			
-			val hoveringPos = TrackPlacement_hoveringPos.invokeExact() as BlockPos?
+			// do not change to, e.g, if(invokeExact() !is BlockPos)
+			val hoveringPos: BlockPos? = TrackPlacement_hoveringPos.invokeExact() as BlockPos?
+			@Suppress("FoldInitializerAndIfToElvis", "RedundantSuppression")
 			if(hoveringPos == null) return null
 			
 			return PrecisePlacementInfo(
-				from = FlexiTrackPlacement.TrackPoint(
+				from = FlexiPlacementInfo.TrackPoint(
 					pos = info.pos1 ?: BlockPos.ZERO,
 					tangent = info.axis1 ?: Vec3.ZERO,
 					normal = info.normal1 ?: Vec3.ZERO,
 				),
-				to = FlexiTrackPlacement.TrackPoint(
+				to = FlexiPlacementInfo.TrackPoint(
 					pos = info.pos2 ?: BlockPos.ZERO,
 					tangent = info.axis2 ?: Vec3.ZERO,
 					normal = info.normal2 ?: Vec3.ZERO,
@@ -118,6 +127,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 				} else {
 					val tangent = track.getNearestTrackAxis(level, pos, state, player.lookAngle)
 					FlexiDirection.Two(tangent.first.normalize(), track.getUpNormal(level, pos, state).normalize())
+						.optimize()
 				},
 				virtual,
 			)
@@ -136,47 +146,84 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	
 	
 	override fun render(guiGraphics: GuiGraphics, deltaTracker: DeltaTracker) {
-		when(val info = info ?: return) {
-			is PrecisePlacementInfo -> renderPlacement(info, guiGraphics, deltaTracker)
-			is PreciseTrackInfo -> renderTrack(info, guiGraphics, deltaTracker)
+		val info = info ?: return
+		
+		val mc = Minecraft.getInstance()
+		val window = mc.window
+		for((index, line) in info.lines.withIndex()) guiGraphics.drawCenteredString(
+			mc.font,
+			line,
+			window.guiScaledWidth / 2,
+			window.guiScaledHeight - 61 + index * 9,
+			0xffffffffu.toInt(),
+		)
+		info.renderExtra(guiGraphics, deltaTracker)
+	}
+	
+	
+	sealed class PreciseInfo {
+		abstract val targetTrack: TrackPoint
+		
+		abstract val lines: List<Component>
+		
+		open fun renderExtra(guiGraphics: GuiGraphics, deltaTracker: DeltaTracker) {}
+		
+		class TrackPoint(val pos: Vec3, val tangent: Vec3)
+	}
+	
+	class PrecisePlacementInfo(
+		val from: FlexiPlacementInfo.TrackPoint,
+		val to: FlexiPlacementInfo.TrackPoint,
+		val curve: BezierConnection?,
+	) : PreciseInfo() {
+		override val targetTrack = TrackPoint(to.pos.toVec3(), to.tangent)
+		
+		override val lines = mutableListOf<Component>()
+		
+		init {
+			val delta = to.pos - from.pos
+			val curve = curve
+			
+			val line = Component.empty()
+			line.append("Axis = ${displayPoint(direction(from.tangent, from.normal))}")
+				.append(" -> ${displayPoint(direction(to.tangent, to.normal))}")
+			line.append(", Delta = ${with(delta) { "[$x, $y, $z]" }}")
+			if(curve != null) line.append(", R = ${minRadius(curve)}")
+			if(delta.y != 0) line.append(", Grad = ${delta.toVec3().gradient()}")
+			lines += line
+			
+			val onStraightLine = to.tangent.cross(delta.toVec3()).length() < 0.001
+			if(curve != null && !onStraightLine) {
+				val line2 = Component.empty()
+				line2.append("End Radius = ${radiusAt(curve, offset = 0.0)}")
+					.append(" -> ${radiusAt(curve, offset = 1.0)}")
+				lines += line2
+			}
 		}
 	}
 	
-	private fun renderPlacement(info: PrecisePlacementInfo, guiGraphics: GuiGraphics, deltaTracker: DeltaTracker) {
-		val mc = Minecraft.getInstance()
-		val delta = info.to.pos - info.from.pos
+	class PreciseTrackInfo(val pos: Vec3, val direction: FlexiDirection, val virtual: Boolean = false) : PreciseInfo() {
+		override val targetTrack = TrackPoint(pos, direction.tangent)
 		
-		val text = Component.empty()
-		text.append("Axis = ${displayPoint(direction(info.from.tangent, info.from.normal))}")
-			.append(" -> ${displayPoint(direction(info.to.tangent, info.to.normal))}")
-		text.append(", Delta = ${with(delta) { "[$x, $y, $z]" }}")
-		if(info.curve != null) text.append(", R = ${floor(info.curve.radius).toInt()}")
-		if(delta.y != 0) text.append(", Grad = ${delta.toVec3().gradient()} ")
+		private val line = Component.empty()
 		
-		val window = mc.window
-		val y = window.guiScaledHeight - 61
-		guiGraphics.drawCenteredString(mc.font, text, window.guiScaledWidth / 2, y, 0xffffffffu.toInt())
+		init {
+			line.append("Axis = ${displayPoint(direction)}")
+			
+			if(virtual) {
+				val center = pos.add(0.0, 1.0 / 16.0, 0.0)
+				val tangent = direction.tangent
+				Outliner.getInstance()
+					.showLine("precise_track", center - tangent * 0.5, center + tangent * 0.5)
+					.colored(0xe0edff)
+					.disableLineNormals()
+					.lineWidth(1 / 8f)
+			}
+		}
+		
+		override val lines = listOf(line)
 	}
 	
-	private fun renderTrack(info: PreciseTrackInfo, guiGraphics: GuiGraphics, deltaTracker: DeltaTracker) {
-		val mc = Minecraft.getInstance()
-		val text = Component.empty()
-		text.append("Axis = ${displayPoint(info.direction)}")
-		
-		val window = mc.window
-		val y = window.guiScaledHeight - 61
-		guiGraphics.drawCenteredString(mc.font, text, window.guiScaledWidth / 2, y, 0xffffffffu.toInt())
-		
-		if(info.virtual) {
-			val center = info.pos.add(0.0, 1.0 / 16.0, 0.0)
-			val tangent = info.direction.tangent
-			Outliner.getInstance()
-				.showLine("precise_track", center - tangent * 0.5, center + tangent * 0.5)
-				.colored(0xe0edff)
-				.disableLineNormals()
-				.lineWidth(1 / 8f)
-		}
-	}
 	
 	private fun direction(tangent: Vec3, normal: Vec3) = when {
 		normal.x similarTo 0.0 && normal.z similarTo 0.0 -> FlexiDirection.FlatImpl(tangent.normalize())
@@ -193,10 +240,10 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			return "$angle (Grad=${tangent.gradient()}, Tilt=${round(rot.tilt * radToDeg, 100)})"
 		} else {
 			val knownLength = log10(FlexiDirection.Known.DivisionCount.toDouble()).toInt() + 1
-			tangent.asKnownVec3()
-				?.let { return "K${it.known.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
-			(-tangent).asKnownVec3()
-				?.let { return "K${it.known.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
+			tangent.asKnown()
+				?.let { return "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
+			(-tangent).asKnown()
+				?.let { return "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
 			return angle
 		}
 	}
@@ -206,22 +253,16 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		return "${round(mille, 100)}‰"
 	}
 	
-	sealed class PreciseInfo {
-		abstract val targetTrack: TrackPoint
-		
-		class TrackPoint(val pos: Vec3, val tangent: Vec3)
+	private fun radiusAt(curve: BezierConnection, offset: Double): String {
+		val derivative = curve.derivative(offset)
+		val derivative2 = curve.derivative2(offset)
+		val radius = derivative.length().pow3() / derivative.cross(derivative2).length()
+		return if(radius.isFinite()) "R=${radius.roundToInt()}" else "R=?"
 	}
 	
-	class PrecisePlacementInfo(
-		val from: FlexiTrackPlacement.TrackPoint,
-		val to: FlexiTrackPlacement.TrackPoint,
-		val curve: BezierConnection?,
-	) : PreciseInfo() {
-		override val targetTrack = TrackPoint(to.pos.toVec3(), to.tangent)
-	}
-	
-	class PreciseTrackInfo(val pos: Vec3, val direction: FlexiDirection, val virtual: Boolean = false) : PreciseInfo() {
-		override val targetTrack = TrackPoint(pos, direction.tangent)
+	private fun minRadius(curve: BezierConnection): String {
+		val minRadius = curve.minRadius()
+		return if(minRadius > 100000.0 || !minRadius.isFinite()) "∞" else "${minRadius.roundToInt()}"
 	}
 }
 

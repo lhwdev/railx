@@ -21,7 +21,7 @@ public class TrackPlacementOverlayMixin {
 	int drawString(GuiGraphics instance, Font font, Component text, int x, int y, int color, boolean dropShadow) {
 		Minecraft mc = Minecraft.getInstance();
 		boolean active = mc.options.keySprint.isDown();
-		boolean preciseInfoShowing = PreciseTrackPlacementOverlay.INSTANCE.getInfo() != null;
+		int lineCount = PreciseTrackPlacementOverlay.INSTANCE.getInfoLineCount();
 		return instance.drawString(
 			font,
 			CreateLang.translateDirect(
@@ -29,7 +29,7 @@ public class TrackPlacementOverlayMixin {
 					.withStyle(active ? ChatFormatting.GREEN : ChatFormatting.GRAY)
 			).withStyle(ChatFormatting.WHITE),
 			x,
-			preciseInfoShowing ? y + 9 : y,
+			y + 9 * lineCount,
 			color,
 			dropShadow
 		);

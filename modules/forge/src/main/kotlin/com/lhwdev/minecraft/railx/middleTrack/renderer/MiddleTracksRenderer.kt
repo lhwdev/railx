@@ -23,7 +23,7 @@ import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
 
 @OnlyIn(Dist.CLIENT)
 class MiddleTracksRenderer(val level: Level) {
-	@EventBusSubscriber(Dist.CLIENT, modid = RailX.Companion.Id)
+	@EventBusSubscriber(Dist.CLIENT, modid = RailX.Id)
 	companion object {
 		@SubscribeEvent
 		private fun afterRenderEntities(event: RenderLevelStageEvent) {

@@ -2,12 +2,12 @@ package com.lhwdev.minecraft.railx.mixin.flexiTrack.graph;
 
 
 import com.lhwdev.minecraft.railx.flexiTrack.graph.ITrackNodeLocation;
-import com.lhwdev.minecraft.railx.flexiTrack.graph.TrackNodeLocationUtils;
-import com.lhwdev.minecraft.railx.utils.VectorKt;
+import com.lhwdev.minecraft.railx.flexiTrack.graph.TrackNodeLocationDelta;
 import com.simibubi.create.content.trains.graph.DimensionPalette;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -21,6 +21,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Objects;
+
 
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(TrackNodeLocation.class)
@@ -31,54 +33,65 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	public abstract Vec3 getLocation();
 	
 	@Unique
-	private Vec3 railx$location;
+	private TrackNodeLocationDelta railx$location;
 	
 	
 	// NOTE: <init>(DDD)V constructor is never called anywhere so far (other than (BlockPos)V one)
 	//       so did not handle that case
 	@Inject(method = "<init>(Lnet/minecraft/world/phys/Vec3;)V", at = @At("RETURN"))
 	void onInit(Vec3 vec, CallbackInfo ci) {
-		railx$location = vec;
+		railx$location = TrackNodeLocationDelta.of((TrackNodeLocation) (Object) this, vec);
 	}
 	
 	
 	@Inject(method = "getLocation", at = @At("HEAD"), cancellable = true)
 	void onGetLocation(CallbackInfoReturnable<Vec3> cir) {
-		if(railx$location != null) cir.setReturnValue(railx$location);
+		if(railx$location != null) cir.setReturnValue(railx$location.getLocation());
 	}
 	
 	
 	@Override
 	public @Nullable Vec3 getVecLocation() {
-		return railx$location;
+		TrackNodeLocationDelta location = railx$location;
+		if(location == null) return null;
+		return location.getLocation();
 	}
 	
 	@Override
 	public void setVecLocation(@Nullable Vec3 value) {
-		railx$location = value;
+		if(value == null) {
+			railx$location = null;
+		} else {
+			railx$location = TrackNodeLocationDelta.of((TrackNodeLocation) (Object) this, value);
+		}
 	}
 	
 	@Inject(method = "equalsIgnoreDim", at = @At("RETURN"), cancellable = true)
 	void onEqualsIgnoreDim(Object other, CallbackInfoReturnable<Boolean> cir) {
 		if(!cir.getReturnValue()) return;
-		if(other instanceof TrackNodeLocation node && !VectorKt.closeTo(getLocation(), node.getLocation()))
-			cir.setReturnValue(false);
+		if(other instanceof TrackNodeLocation node) {
+			TrackNodeLocationDelta otherDelta = ((TrackNodeLocationMixin) (Object) node).railx$location;
+			cir.setReturnValue(Objects.equals(railx$location, otherDelta));
+		}
 	}
 	
 	
 	@Inject(method = "write", at = @At("RETURN"))
 	void onWrite(DimensionPalette dimensions, CallbackInfoReturnable<CompoundTag> cir) {
-		Vec3 location = railx$location;
-		if(location != null && !TrackNodeLocationUtils.isIntTrackNodeLocation(location)) {
-			cir.getReturnValue().put("Vec", VecHelper.writeNBT(location));
+		TrackNodeLocationDelta location = railx$location;
+		if(location != null) {
+			cir.getReturnValue().putByteArray("railx:D", location.toByteArray());
 		}
 	}
 	
 	@Inject(method = "send", at = @At("RETURN"))
 	void onSend(FriendlyByteBuf buffer, DimensionPalette dimensions, CallbackInfo ci) {
-		Vec3 location = railx$location;
-		if(location == null) location = getLocation();
-		buffer.writeVec3(location);
+		TrackNodeLocationDelta location = railx$location;
+		if(location == null) {
+			buffer.writeBytes(TrackNodeLocationDelta.DummyBytes);
+		} else {
+			buffer.writeBytes(location.toByteArray());
+		}
 	}
 	
 	
@@ -90,8 +103,14 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 		DimensionPalette dimensions,
 		CallbackInfoReturnable<TrackNodeLocation> cir
 	) {
+		if(tag.get("railx:D") instanceof ByteArrayTag delta) {
+			((TrackNodeLocationMixin) (Object) cir.getReturnValue()).railx$location =
+				TrackNodeLocationDelta.fromByteArray(cir.getReturnValue(), delta.getAsByteArray());
+		}
+		
+		// compatibility
 		if(tag.get("Vec") instanceof ListTag vec) {
-			((TrackNodeLocationMixin) (Object) cir.getReturnValue()).railx$location = VecHelper.readNBT(vec);
+			((TrackNodeLocationMixin) (Object) cir.getReturnValue()).setVecLocation(VecHelper.readNBT(vec));
 		}
 	}
 	
@@ -101,6 +120,9 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 		DimensionPalette dimensions,
 		CallbackInfoReturnable<TrackNodeLocation> cir
 	) {
-		((TrackNodeLocationMixin) (Object) cir.getReturnValue()).railx$location = buffer.readVec3();
+		byte[] array = new byte[3];
+		buffer.readBytes(array);
+		((TrackNodeLocationMixin) (Object) cir.getReturnValue()).railx$location =
+			TrackNodeLocationDelta.fromByteArray(cir.getReturnValue(), array);
 	}
 }

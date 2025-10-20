@@ -16,10 +16,10 @@ class ConnectionMiddleState(
 	val from: BlockPos get() = pos.first
 	val to: BlockPos get() = pos.second
 	
-	private val value = mutableListOf<BlockPos>()
+	private val value = mutableSetOf<BlockPos>()
 	
-	val middles: List<BlockPos>
-		get() = value
+	fun isEmpty(): Boolean =
+		value.isEmpty()
 	
 	val isActive: Boolean
 		get() = if(DIST == Dist.CLIENT) {
@@ -30,7 +30,7 @@ class ConnectionMiddleState(
 	
 	
 	fun addMiddle(middle: BlockPos) {
-		if(middle !in value) value += middle
+		value += middle
 	}
 	
 	fun removeMiddle(middle: BlockPos) {

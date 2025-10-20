@@ -1,9 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.utils.asAllInstanceOf
-import com.lhwdev.minecraft.railx.utils.mirror
-import com.lhwdev.minecraft.railx.utils.requireAllInstanceOf
-import com.lhwdev.minecraft.railx.utils.rotate
+import com.lhwdev.minecraft.railx.utils.*
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
@@ -55,7 +52,7 @@ sealed interface FlexiShape {
 		override fun insert(direction: FlexiDirection): Single =
 			Single(direction)
 		
-		override fun write(): CompoundTag = CompoundTag().also { tag ->
+		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x0)
 		}
 		
@@ -107,7 +104,7 @@ sealed interface FlexiShape {
 			return Impl(listOf(axis, direction))
 		}
 		
-		override fun write(): CompoundTag = CompoundTag().also { tag ->
+		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x1)
 			tag.put("Axis", if(axis is FlexiDirection.Known) axis.writeInt() else axis.write())
 		}
@@ -162,7 +159,7 @@ sealed interface FlexiShape {
 			return Impl(axes + direction)
 		}
 		
-		override fun write(): CompoundTag = CompoundTag().also { tag ->
+		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x10)
 			tag.put("FlatAxes", writeDirectionList(flatAxes))
 			tag.put("Normal", VecHelper.writeNBT(normal))
@@ -188,7 +185,7 @@ sealed interface FlexiShape {
 		override fun rotate(by: Rotation): Impl = Impl(axes.map { it.rotate(by) })
 		override fun rotateKnown(by: Int): Impl = Impl(axes.map { it.rotateKnown(by) })
 		
-		override fun write(): CompoundTag = CompoundTag().also { tag ->
+		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x11)
 			tag.put("Axes", writeDirectionList(axes))
 		}
@@ -246,7 +243,8 @@ inline fun FlexiShape.map(block: (axis: FlexiDirection) -> FlexiDirection): Flex
 		FlexiShape.Empty -> FlexiShape.Empty
 		is FlexiShape.Impl -> FlexiShape.Impl(axes.map(block))
 		is FlexiShape.NormalizedImpl -> {
-			val axes = axes.map(block).asAllInstanceOf<FlexiDirection.Normalized>()
+			var axes = axes.map(block)
+			axes = axes.asAllInstanceOf<FlexiDirection.Normalized>()
 				?: return FlexiShape.Impl(axes)
 			if(axes.isEmpty()) return FlexiShape.Empty
 			val flatAxes = flatAxes.map(block).asAllInstanceOf<FlexiDirection.Flat>()

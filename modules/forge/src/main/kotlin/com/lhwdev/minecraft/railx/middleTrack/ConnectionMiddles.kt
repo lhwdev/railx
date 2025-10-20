@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
 import com.simibubi.create.content.trains.track.BezierConnection
+import com.simibubi.create.content.trains.track.TrackBlockEntity
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.createmod.catnip.data.Couple
 import net.createmod.catnip.data.WorldAttached
@@ -31,14 +32,17 @@ class ConnectionMiddles(private val level: LevelAccessor) : Iterable<ConnectionM
 		primaryToMiddles.flatMap { it.value.map { it.value } }
 	
 	
-	fun updateMiddle(be: MiddleTrackBlockEntity, value: List<BezierConnection>) {
-		val previous = be.connections
+	fun updateMiddle(
+		be: MiddleTrackLikeBlockEntity,
+		value: List<BezierConnection>,
+		previous: List<BezierConnection> = be.connectionValues,
+	) {
 		for(toRemove in previous withoutIdentity value) {
 			val from = toRemove.bePositions.first.asLong()
 			val to = toRemove.bePositions.second.asLong()
 			val state = primaryToMiddles.get(from)?.get(to) ?: continue
 			state.removeMiddle(be.blockPos)
-			if(state.middles.isEmpty()) {
+			if(state.isEmpty()) {
 				val toMiddles = primaryToMiddles[from]!!
 				toMiddles.remove(to)
 				if(toMiddles.isEmpty()) primaryToMiddles.remove(from)
@@ -54,11 +58,24 @@ class ConnectionMiddles(private val level: LevelAccessor) : Iterable<ConnectionM
 		}
 	}
 	
-	fun removeMiddle(be: MiddleTrackBlockEntity) {
-		updateMiddle(be, emptyList())
+	fun removeMiddle(be: MiddleTrackLikeBlockEntity, previous: List<BezierConnection> = be.connectionValues) {
+		updateMiddle(be, value = emptyList(), previous = previous)
+	}
+	
+	
+	fun updateTrack(be: TrackBlockEntity, previous: List<BezierConnection>) {
+		updateMiddle(
+			be as MiddleTrackLikeBlockEntity,
+			value = be.connections.values.filter { !it.primary },
+			previous = previous.filter { !it.primary },
+		)
+	}
+	
+	fun removeTrack(be: TrackBlockEntity, previous: List<BezierConnection>) {
+		removeMiddle(be as MiddleTrackLikeBlockEntity, previous.filter { !it.primary })
 	}
 }
 
 
-private infix fun <T> List<T>.withoutIdentity(other: List<T>): List<T> =
+private infix fun <T> Collection<T>.withoutIdentity(other: Collection<T>): Collection<T> =
 	filterNot { a -> other.any { b -> a === b } }

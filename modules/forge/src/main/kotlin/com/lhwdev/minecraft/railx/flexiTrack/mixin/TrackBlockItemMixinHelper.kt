@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack.mixin
 
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlacementInfo
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement
@@ -29,14 +30,14 @@ object TrackBlockItemMixinHelper {
 		val result = FlexiTrackPlacement.tryConnect(level, player, pos2, state2, stack, girder)
 		val info: PlacementInfoAccessor
 		@Suppress("KotlinConstantConditions")
-		if(result is FlexiTrackPlacement.FlexiPlacementInfo) {
+		if(result is FlexiPlacementInfo) {
 			info = TrackPlacement.PlacementInfo(result.material) as PlacementInfoAccessor
-			result.error?.let {error ->
-				info.message = error.message.toString()
-				info.valid = false
-			}
 		} else {
 			info = TrackPlacement.PlacementInfo(TrackMaterial.ANDESITE) as PlacementInfoAccessor
+		}
+		result.error?.let { error ->
+			info.message = error.message.toString()
+			info.valid = false
 		}
 		return info as TrackPlacement.PlacementInfo
 	}

@@ -1,18 +1,13 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
 import com.lhwdev.minecraft.railx.utils.*
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.Direction
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.IntTag
-import net.minecraft.nbt.NumericTag
-import net.minecraft.nbt.Tag
+import net.minecraft.nbt.*
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.times
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
 import kotlin.math.*
 
@@ -20,13 +15,16 @@ import kotlin.math.*
 interface FlexiDirection {
 	/*
 	* 2d integer representation of tangent, if available.
-	*  Uses same coordinate system as minecraft; as y increases, it moves to south.
+	* Uses same coordinate system as minecraft; as y increases, it moves to south.
 	*/
 	class Tangent2(val x: Int, val y: Int)
 	
 	val tangent: Vec3
 	val tangent2: Tangent2?
 	val normal: Vec3
+	
+	val tangentAngle: Double
+		get() = Mth.atan2(-tangent.z, tangent.x)
 	
 	infix fun closeToUnsigned(other: FlexiDirection): Boolean =
 		tangent closeToUnsigned other.tangent && normal closeToUnsigned other.normal
@@ -42,14 +40,14 @@ interface FlexiDirection {
 	fun optimize(): FlexiDirection = this
 	
 	
-	operator fun unaryMinus(): Signed = Two(-tangent, normal)
+	operator fun unaryMinus(): FlexiDirection = Two(-tangent, normal)
 	
 	
 	fun write(): CompoundTag
 	
 	
 	interface Signed : FlexiDirection {
-		override fun unaryMinus(): Signed = Two(-tangent, normal)
+		override fun unaryMinus(): FlexiDirection = Two(-tangent, normal)
 	}
 	
 	object Zero : FlexiDirection, Signed {
@@ -72,7 +70,7 @@ interface FlexiDirection {
 		
 		override fun optimize(): Zero = Zero
 		
-		override fun write(): CompoundTag = CompoundTag().also { tag ->
+		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x0)
 		}
 		
@@ -111,8 +109,49 @@ interface FlexiDirection {
 	}
 	
 	
+	abstract class UnsignedKnownVec3(x: Double, y: Double, z: Double) : Vec3(x, y, z) {
+		abstract val known: UnsignedKnown
+	}
+	
+	sealed class UnsignedKnown : Flat() {
+		companion object {
+			fun fromIndex(index: Int): UnsignedKnown {
+				check(index >= 0) { "index < 0" }
+				if(index >= Known.DivisionCount * 2) {
+					TODO("index -> ordinal then approach to nearest ordinal: $index")
+				}
+				return if(index < Known.DivisionCount) {
+					Known.DivisionsByIndex[index]
+				} else {
+					-Known.DivisionsByIndex[index - Known.DivisionCount]
+				}
+			}
+			
+			fun roundFrom(radian: Double): UnsignedKnown {
+				val PI2 = PI * 2
+				val index = (Known.DivisionCount * (radian floorMod PI2) / PI2).roundToInt()
+				val result = Known.DivisionsByOrdinal[index % Known.DivisionCount]
+				return if(index < Known.DivisionCount) result else -result
+			}
+			
+			fun roundFrom(vector: Vec3): UnsignedKnown =
+				roundFrom(radian = Mth.atan2(-vector.z, vector.x))
+			
+			fun read(tag: CompoundTag): UnsignedKnown =
+				fromIndex(tag.getInt("Index"))
+			
+			fun readInt(tag: NumericTag): UnsignedKnown =
+				fromIndex(tag.asInt)
+		}
+		
+		
+		abstract val index: Int
+		
+		abstract override val tangent: UnsignedKnownVec3
+	}
+	
 	// As index increases, tangent goes counter-clockwise, starting from (1, 0).
-	class Known(val index: Int, val ordinal: Int) : Flat(), Normalized, Comparable<Known> {
+	class Known(override val index: Int, val ordinal: Int) : UnsignedKnown(), Comparable<Known> {
 		companion object {
 			private const val DivisionCountBase = 32
 			private const val DivisionRepeat = 1
@@ -146,7 +185,7 @@ interface FlexiDirection {
 			}
 			
 			fun roundFrom(radian: Double): Known {
-				val index = DivisionCount * (-radian floorMod PI) / PI
+				val index = DivisionCount * (radian floorMod PI) / PI
 				return DivisionsByOrdinal[index.roundToInt() % DivisionCount]
 			}
 			
@@ -159,6 +198,10 @@ interface FlexiDirection {
 					TODO("index -> ordinal then approach to nearest ordinal: $index")
 				}
 				return DivisionsByIndex[index]
+			}
+			
+			fun fromOrdinal(ordinal: Int): Known {
+				return DivisionsByOrdinal[ordinal floorMod DivisionCount]
 			}
 			
 			fun read(tag: CompoundTag): Known =
@@ -177,18 +220,21 @@ interface FlexiDirection {
 			get() = if(ordinal % (DivisionCount / 4) == 0) {
 				when(ordinal / (DivisionCount / 4)) {
 					0 -> Tangent2(1, 0)
-					1 -> Tangent2(1, 1)
-					2 -> Tangent2(0, 1)
-					3 -> Tangent2(-1, 0)
+					1 -> Tangent2(1, -1)
+					2 -> Tangent2(0, -1)
+					3 -> Tangent2(-1, -1)
 					else -> error("unreachable")
 				}
 			} else {
 				null
 			}
 		
+		override val tangentAngle: Double
+			get() = angle
+		
 		override fun closeToUnsigned(other: FlexiDirection): Boolean {
 			if(other is Known) return index == other.index
-			return super<Flat>.closeToUnsigned(other)
+			return super.closeToUnsigned(other)
 		}
 		
 		override fun mirror(by: Mirror): Known = when(by) {
@@ -214,7 +260,7 @@ interface FlexiDirection {
 		operator fun minus(other: Known): Int =
 			ordinal - other.ordinal
 		
-		override fun write(): CompoundTag = CompoundTag().also { tag ->
+		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x1)
 			tag.putInt("Index", index)
 		}
@@ -224,47 +270,54 @@ interface FlexiDirection {
 		override fun toString(): String = "FlexiDirection.Known(index=$index, ordinal=$ordinal)"
 	}
 	
-	class KnownVec3(val known: Known) : Vec3(cos(known.angle), 0.0, sin(known.angle))
+	class KnownVec3(override val known: Known) : UnsignedKnownVec3(cos(known.angle), 0.0, -sin(known.angle))
 	
-	class SignedKnown(val from: Known, val sign: Direction.AxisDirection) : Flat(), Signed {
+	class SignedKnown(val from: Known, val sign: Direction.AxisDirection) : UnsignedKnown(), Signed {
 		companion object {
-			fun roundFrom(radian: Double): SignedKnown {
-				val PI2 = PI * 2
-				val index = (DivisionCount * (-radian floorMod PI2) / PI2).roundToInt()
-				return SignedKnown(
-					from = Known.DivisionsByOrdinal[index % DivisionCount],
-					sign = if(index >= DivisionCount) Direction.AxisDirection.NEGATIVE else Direction.AxisDirection.POSITIVE,
-				)
-			}
-			
-			fun roundFrom(vector: Vec3): SignedKnown =
-				roundFrom(radian = Mth.atan2(-vector.z, vector.x))
+			fun read(tag: CompoundTag): SignedKnown = SignedKnown(
+				from = Known.fromIndex(tag.getInt("From")),
+				sign = if(tag.getBoolean("Sign")) Direction.AxisDirection.POSITIVE else Direction.AxisDirection.NEGATIVE,
+			)
 		}
 		
-		override val tangent: Vec3 = from.tangent * sign.step.toDouble()
+		override val index: Int
+			get() = from.index + Known.DivisionCount
+		
+		override val tangent: UnsignedKnownVec3 =
+			if(sign == Direction.AxisDirection.POSITIVE) from.tangent else OppositeKnownVec3(this, from.tangent)
 		override val tangent2: Tangent2?
 			get() = from.tangent2?.let { if(sign == Direction.AxisDirection.POSITIVE) it else Tangent2(-it.x, -it.y) }
 		
 		override fun mirror(by: Mirror): SignedKnown = TODO()
 		override fun rotate(by: Rotation): SignedKnown = TODO()
 		override fun rotateKnown(by: Int): SignedKnown = TODO()
-		override fun optimize(): SignedKnown = this
-		override fun unaryMinus(): SignedKnown = SignedKnown(from, sign.opposite())
+		override fun optimize(): UnsignedKnown = if(sign == Direction.AxisDirection.POSITIVE) from else this
+		override fun unaryMinus(): UnsignedKnown = if(sign == Direction.AxisDirection.POSITIVE) -from else from
 		
-		override fun write(): CompoundTag {
-			TODO("Not yet implemented")
+		override fun write(): CompoundTag = CompoundTag { tag ->
+			tag.putByte("Type", 0x2)
+			tag.putInt("From", from.index)
+			tag.putBoolean("Sign", sign == Direction.AxisDirection.POSITIVE)
 		}
 	}
 	
+	class OppositeKnownVec3(override val known: SignedKnown, tangent: Vec3) :
+		UnsignedKnownVec3(-tangent.x, tangent.y, -tangent.z)
+	
 	
 	class FlatImpl(override val tangent: Vec3) : Flat(), Signed {
+		companion object {
+			fun read(tag: CompoundTag): FlatImpl =
+				FlatImpl(VecHelper.readNBT(tag.get("Tangent") as ListTag))
+		}
+		
 		override fun mirror(by: Mirror): FlatImpl = FlatImpl(by.mirror(tangent))
 		override fun rotate(by: Rotation): FlatImpl = FlatImpl(by.rotate(tangent))
 		override fun rotateKnown(by: Int): Flat =
 			FlatImpl(tangent.yRot(by.toFloat() / Known.DivisionCount * PI.toFloat())).optimize()
 		
 		override fun optimize(): Flat {
-			tangent.asKnownVec3()?.let { return it.known }
+			tangent.asKnown()?.let { return it }
 			val tangent = tangent.optimize()
 			if(tangent != this.tangent) return FlatImpl(tangent)
 			return this
@@ -274,8 +327,9 @@ interface FlexiDirection {
 		
 		override val tangent2: Tangent2? get() = null
 		
-		override fun write(): CompoundTag {
-			TODO("Not yet implemented")
+		override fun write(): CompoundTag = CompoundTag { tag ->
+			tag.putByte("Type", 0x8)
+			tag.put("Tangent", VecHelper.writeNBT(tangent))
 		}
 		
 		override fun toString(): String = "FlexiDirection.FlatImpl(tangent=$tangent)"
@@ -355,7 +409,7 @@ interface FlexiDirection {
 		
 		override fun unaryMinus(): NormalizedImpl = NormalizedImpl(-base as Flat, normal, -tangent)
 		
-		override fun write(): CompoundTag = CompoundTag().also { tag ->
+		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x10)
 			tag.put("Base", if(base is Known) base.writeInt() else base.write())
 			tag.put("Normal", VecHelper.writeNBT(normal))
@@ -365,6 +419,13 @@ interface FlexiDirection {
 	}
 	
 	class Two(override val tangent: Vec3, override val normal: Vec3) : FlexiDirection, Signed {
+		companion object {
+			fun read(tag: CompoundTag): Two = Two(
+				tangent = VecHelper.readNBT(tag.get("Tangent") as ListTag),
+				normal = VecHelper.readNBT(tag.get("Normal") as ListTag),
+			)
+		}
+		
 		init {
 			require(tangent.isNormalized()) { "tangent.length != 1" }
 			require(normal.isNormalized()) { "normal.length != 1" }
@@ -416,6 +477,7 @@ interface FlexiDirection {
 		
 		override fun optimize(): FlexiDirection {
 			val tangent = tangent.optimize()
+			if(normal.x similarTo 0.0 && normal.z similarTo 0.0) FlatImpl(tangent).optimize()
 			val normal = normal.optimize()
 			if(tangent !== this.tangent || normal !== this.normal) Two(tangent, normal)
 			return this
@@ -425,8 +487,10 @@ interface FlexiDirection {
 		
 		override fun unaryMinus(): Two = Two(-tangent, normal)
 		
-		override fun write(): CompoundTag {
-			TODO("Not yet implemented")
+		override fun write(): CompoundTag = CompoundTag { tag ->
+			tag.putByte("Type", 0x20)
+			tag.put("Tangent", VecHelper.writeNBT(tangent))
+			tag.put("Normal", VecHelper.writeNBT(normal))
 		}
 		
 		override fun toString(): String = "FlexiDirection.Two(tangent=$tangent, normal=$normal)"
@@ -437,20 +501,27 @@ interface FlexiDirection {
 		fun read(tag: CompoundTag): FlexiDirection = when(tag.getByte("Type").toInt()) {
 			0x0 -> Zero
 			0x1 -> Known.read(tag)
+			0x2 -> SignedKnown.read(tag)
+			0x8 -> FlatImpl.read(tag)
 			0x10 -> NormalizedImpl.read(tag)
+			0x20 -> Two.read(tag)
 			else -> error("unexpected type ${tag.getByte("Type")}")
 		}
 	}
 }
 
 
-val FlexiDirection.tangentAngle: Double
-	get() = tangent2?.let { Mth.atan2(-it.y.toDouble(), it.x.toDouble()) } ?: Mth.atan2(-tangent.z, tangent.x)
+fun Vec3.asKnown(): FlexiDirection.Known? {
+	if(this is FlexiDirection.KnownVec3) return known
+	if(this is FlexiDirection.OppositeKnownVec3) return known.from
+	val known = FlexiDirection.Known.roundFrom(this)
+	return if(known.tangent closeTo this) known else null
+}
 
-fun Vec3.asKnownVec3(): FlexiDirection.KnownVec3? {
-	if(this is FlexiDirection.KnownVec3) return this
-	val known = FlexiDirection.Known.roundFrom(this).tangent
-	return if(known closeTo this) known else null
+fun Vec3.asKnownSigned(): FlexiDirection.UnsignedKnown? {
+	if(this is FlexiDirection.UnsignedKnownVec3) return known
+	val known = FlexiDirection.UnsignedKnown.roundFrom(this)
+	return if(known.tangent closeTo this) known else null
 }
 
 infix fun Vec3.closeToUnsigned(to: Vec3): Boolean = closeTo(to) || closeTo(-to)

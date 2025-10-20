@@ -20,10 +20,16 @@ object MiddleTrackClient {
 	 * Note: called from mixin; called after `LevelRenderer.compileSections`
 	 */
 	fun tick() {
-		if(RailXConfig.Server.middleTrack.enabled.getOrNull() != true) return
-		
 		val minecraft = Minecraft.getInstance()
 		val level = minecraft.level ?: return
+		
+		if(RailXConfig.Server.middleTrack.enabled.getOrNull() != true) {
+			if(LoadedTracks.isEmpty()) return
+			
+			LoadedTracks = emptySet()
+			MiddleTrackVisuals.tickDisable(level)
+			return
+		}
 		
 		val tracks = mutableSetOf<BlockPos>()
 		minecraft.levelRenderer.iterateVisibleBlockEntities { be ->
@@ -32,7 +38,6 @@ object MiddleTrackClient {
 		}
 		
 		LoadedTracks = tracks
-		
 		MiddleTrackVisuals.tick(level)
 	}
 }

@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
-import com.lhwdev.minecraft.railx.flexiTrack.tangentAngle
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
@@ -16,7 +15,7 @@ data class FlexiTrackRotation(
 ) {
 	fun rotationValue(): Quaterniond =
 		Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)/* .rotateX(tilt)*//* .rotateY(direction) */
-		// Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)
+	// Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)
 }
 
 

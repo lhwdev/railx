@@ -4,7 +4,6 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.map
 import com.lhwdev.minecraft.railx.flexiTrack.optimize
-import com.lhwdev.minecraft.railx.flexiTrack.tangentAngle
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
@@ -14,7 +13,6 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.BlockHitResult
 import kotlin.math.PI
-import kotlin.math.roundToInt
 
 
 class FlexiRotationScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :

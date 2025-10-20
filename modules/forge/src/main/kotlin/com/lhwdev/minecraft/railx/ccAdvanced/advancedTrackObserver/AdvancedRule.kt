@@ -1,9 +1,8 @@
 package com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver
 
+import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.simibubi.create.content.trains.entity.Train
 import net.minecraft.nbt.CompoundTag
-import org.apache.commons.io.input.ReaderInputStream
-import java.io.StringReader
 
 
 open class AdvancedRule {
@@ -14,7 +13,7 @@ open class AdvancedRule {
 		code = tag.getString("Code")
 	}
 	
-	fun write(): CompoundTag = CompoundTag().also { tag ->
+	fun write(): CompoundTag = CompoundTag { tag ->
 		if(code.length <= 512) {
 			tag.putString("Code", code)
 		} else {

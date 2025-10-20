@@ -41,8 +41,13 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		// TODO: we do not use accelerationMod,
 		val acceleration = train.acceleration() /* * accelerationMod */
-		return if(train.manualTick) {
-			train.leaveStation()
+		return if(train.navigation.destination != null) {
+			approachAcceleration = 0.0
+			false // run pre-mixin original code,
+			// if(previousSpeed < target) train.speed = min(previousSpeed + acceleration, target)
+			// else train.speed = max(previousSpeed - acceleration, target)
+		} else {
+			// train.leaveStation() // handled by handleTickSpeed() -> calculateSpeed()
 			approachAcceleration = if(targetSpeedSource != 0.0) {
 				sign(targetSpeed - currentSpeed) * acceleration * 400
 			} else {
@@ -50,25 +55,19 @@ class RealisticTrainSpeed(private val train: Train) {
 				0.0
 			}
 			true
-		} else {
-			approachAcceleration = 0.0
-			false
-			// if(previousSpeed < target) train.speed = min(previousSpeed + acceleration, target)
-			// else train.speed = max(previousSpeed - acceleration, target)
 		}
 	}
 	
 	fun handleTickSpeed(): Boolean {
 		if(!config.enabled.asBoolean) return false
 		
-		if(train.navigation.destination != null) {
-			// TODO: do nothing
-			skipCount = 0
-			stoppedFor = 0
-		} else {
-			val speed = calculateSpeed(train.speed)
-			train.speed = speed
-		}
+		currentSpeed = train.speed
+		// if(train.navigation.destination != null) {
+		// 	skipCount = 0
+		// 	stoppedFor = 0
+		// } else {
+		val speed = calculateSpeed()
+		train.speed = speed
 		train.manualTick = false
 		return true
 	}
@@ -123,13 +122,12 @@ class RealisticTrainSpeed(private val train: Train) {
 		debug("railx:rs[name=${train.name.tryCollapseToString()}] $key: $log")
 	}
 	
-	fun calculateSpeed(previousSpeed: Double): Double {
+	fun calculateSpeed(): Double {
 		handleTargetSpeed()
 		
 		val threshold = if(stoppedFor >= 20) 40 else config.updateTickRate.asInt
 		val willUpdate = skipCount >= threshold || approachAcceleration != 0.0
 		if(willUpdate) {
-			currentSpeed = previousSpeed
 			updateSpeed()
 			skipCount = 0
 		}
@@ -137,7 +135,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		val acceleration = netWheelAcceleration + netEnvironmentalAcceleration
 		val slowdown = netWheelSlowdown + netEnvironmentalSlowdown
-		var speed = previousSpeed + acceleration / 400
+		var speed = currentSpeed + acceleration / 400
 		
 		fun applySlowdown(s: Double) = if(s > 0) {
 			(s - slowdown / 400).coerceAtLeast(0.0)
@@ -152,13 +150,10 @@ class RealisticTrainSpeed(private val train: Train) {
 		} else {
 			speed = applySlowdown(speed)
 		}
-		
-		fun Double.simple() = round(this * 1000000) / 1000000
-		onResult(
-			"result",
-			0.0,
-			"acc=${acceleration.simple()} slow=${slowdown.simple()} delta=${(speed - previousSpeed).simple()}"
-		)
+		train.currentStation?.let { station ->
+			if(abs(speed) < 0.01) return@let
+			train.leaveStation()
+		}
 		
 		if(skipCount != Int.MAX_VALUE) skipCount++
 		if(speed == 0.0) {
@@ -234,6 +229,8 @@ class RealisticTrainSpeed(private val train: Train) {
 		netEnvironmentalSlowdown = 0.0
 		netWheelSlowdown = 0.0
 		
+		if(train.presentDimensions.isEmpty()) return
+		
 		ensureTrainProps()
 		updatePhysicalState()
 		
@@ -245,14 +242,14 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		handleSlip()
 		
-		if(debugEnabled && debugCounter == 0 && stoppedFor <= 20)
-			for((key, value) in debugEntries) println("$key = $value")
-		debugEntries.keys.forEach { debugEntries[it] = "" }
+		// if(debugEnabled && debugCounter == 0 && stoppedFor <= 20)
+		// 	for((key, value) in debugEntries) println("$key = $value")
+		// debugEntries.keys.forEach { debugEntries[it] = "" }
 	}
 	
-	private val debugEntries = mutableMapOf<String, String>()
+	// private val debugEntries = mutableMapOf<String, String>()
 	private fun onResult(key: String, value: Double, debug: String = ""): Double {
-		debugEntries[key] = "$value $debug"
+		// debugEntries[key] = "$value $debug"
 		return value
 	}
 	
@@ -475,6 +472,11 @@ class RealisticTrainSpeed(private val train: Train) {
 	private fun handleBrake() {
 		val factor = config.brakeAcceleration.asDouble
 		if(factor == 0.0) return
+		
+		var brake = this.brake
+		if(config.automaticBrakeAtStation.asBoolean && train.currentStation != null && approachAcceleration == 0.0) {
+			brake = max(brake, 1.0)
+		}
 		netWheelSlowdown += brake * factor
 	}
 	

@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.utils
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
-import com.lhwdev.minecraft.railx.flexiTrack.asKnownVec3
+import com.lhwdev.minecraft.railx.flexiTrack.asKnown
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.TrackMaterial
 import net.createmod.catnip.data.Couple
@@ -166,7 +166,7 @@ object CompactBezierConnection {
 		return bc
 	}
 	
-	fun write(bc: BezierConnection, localTo: BlockPos): CompoundTag = CompoundTag().also { tag ->
+	fun write(bc: BezierConnection, localTo: BlockPos): CompoundTag = CompoundTag { tag ->
 		val bytes = ByteArrayOutputStream()
 		val output = DataOutputStream(bytes)
 		output.write(1) // version
@@ -214,8 +214,9 @@ object CompactBezierConnection {
 		
 		fun writeAxis(axis: Vec3, flagIndex: Int) {
 			// data: i) known -> 10?????? ????????, ii) known opposite ->  11?????? ????????
-			axis.asKnownVec3()?.let { return output.writeShort(it.known.index or 0x8000) }
-			(-axis).asKnownVec3()?.let { return output.writeShort(it.known.index or 0xc000) }
+			// TODO: use asKnownSigned() on next upgrade
+			axis.asKnown()?.let { return output.writeShort(it.index or 0x8000) }
+			(-axis).asKnown()?.let { return output.writeShort(it.index or 0xc000) }
 			
 			output.writeByte(0)
 			writeMaybeFlat(axis, flagIndex)

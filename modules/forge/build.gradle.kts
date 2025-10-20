@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
 	id("java-library")
 	id("maven-publish")
@@ -13,6 +15,10 @@ version = "1.0-SNAPSHOT"
 
 base {
 	archivesName = modId
+}
+
+val runClientSources by sourceSets.registering {
+	configurations[runtimeClasspathConfigurationName].extendsFrom(configurations.runtimeClasspath.get())
 }
 
 neoForge {
@@ -38,6 +44,7 @@ neoForge {
 			client()
 			systemProperty("neoforge.enabledGameTestNamespaces", modId)
 			
+			sourceSet = runClientSources
 			// jvmArguments.add("-Dmixin.debug.export=true")
 		}
 		
@@ -129,6 +136,10 @@ repositories {
 		}
 	}
 	
+	maven(url = "https://maven.enginehub.org/repo/") {
+		content { includeGroupAndSubgroups("com.sk89q") }
+	}
+	
 	maven(url = "https://repo.spongepowered.org/repository/maven-public/") {
 		name = "Sponge"
 		content {
@@ -138,6 +149,14 @@ repositories {
 }
 
 dependencies {
+	fun runClientOnly(dependencyNotation: Any) =
+		add(runClientSources.get().runtimeOnlyConfigurationName, dependencyNotation)
+	
+	fun optionalModDependency(dependencyNotation: Any): Dependency? {
+		val dependency = compileOnly(dependencyNotation) ?: return null
+		return add(runClientSources.get().runtimeOnlyConfigurationName, dependency)
+	}
+	
 	implementation(project(":cc-asm"))
 	
 	// kfflib>=5.8.0 won't resolve extension functions: https://github.com/thedarkcolour/KotlinForForge/issues/131
@@ -154,8 +173,16 @@ dependencies {
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+62")
 	
 	// for mod compatibility
-	compileOnly("maven.modrinth:framedblocks:10.4.0")
-	compileOnly("maven.modrinth:copycats:3.0.2+mc.1.21.1-neoforge")
+	optionalModDependency("maven.modrinth:framedblocks:10.4.0")
+	optionalModDependency("maven.modrinth:copycats:3.0.2+mc.1.21.1-neoforge")
+	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_NeoForge_1.21")
+	
+	// optional mod dependencies
+	compileOnly("com.sk89q.worldedit:worldedit-neoforge-mc1.21:7.3.8") {
+		exclude(group = "com.google.guava", module = "guava") // version conflict
+	}
+	
+	runClientOnly("maven.modrinth:worldedit:7.3.8")
 }
 
 file("build/mod_output_path.txt").let { output ->

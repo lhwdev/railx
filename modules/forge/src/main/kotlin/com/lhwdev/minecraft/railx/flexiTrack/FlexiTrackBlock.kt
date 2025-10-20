@@ -207,7 +207,7 @@ class FlexiTrackBlock(
 		lookVec: Vec3,
 	): FlexiDirection? {
 		var best: FlexiDirection? = null
-		var bestDiff = Double.Companion.MAX_VALUE
+		var bestDiff = Double.MAX_VALUE
 		for(axis in flexiShape(world, pos).axes) {
 			for(opposite in Iterate.positiveAndNegative) {
 				val distanceTo = axis.tangent.distanceTo(lookVec.scale(opposite.toDouble()))
@@ -217,7 +217,7 @@ class FlexiTrackBlock(
 			}
 		}
 		if(best == null) return null
-		return if(lookVec.dot(best.tangent.multiply(1.0, 0.0, 1.0)) < 0) {
+		return if(lookVec.dot(best.tangent.multiply(1.0, 0.0, 1.0)) >= 0) {
 			best
 		} else {
 			-best

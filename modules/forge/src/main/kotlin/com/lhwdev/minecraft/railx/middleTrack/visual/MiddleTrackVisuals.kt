@@ -37,4 +37,12 @@ object MiddleTrackVisuals {
 		for(removed in previousLoadedTracks - loadedTracks) connections.getAll(removed).forEach(manager::queueUpdate)
 		previousLoadedTracks = loadedTracks
 	}
+	
+	fun tickDisable(level: LevelAccessor) {
+		if(!VisualizationManager.supportsVisualization(level)) return
+		val manager = MiddleTrackVisualManager.of(level) ?: return
+		for(middle in previousMiddles) manager.queueRemove(middle)
+		previousLoadedTracks = emptySet()
+		previousMiddles = emptyList()
+	}
 }

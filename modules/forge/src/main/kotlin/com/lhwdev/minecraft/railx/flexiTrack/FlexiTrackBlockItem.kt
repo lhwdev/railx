@@ -92,7 +92,7 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 				return InteractionResult.FAIL
 			}
 			
-			is FlexiTrackPlacement.FlexiPlacementInfo -> {}
+			is FlexiPlacementInfo -> {}
 		}
 		
 		
@@ -126,7 +126,7 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 			.scale((if(nearestTrackAxis.getSecond() == Direction.AxisDirection.POSITIVE) -1 else 1).toDouble())
 		val normal = block.getUpNormal(world, pos, blockState).normalize()
 		
-		heldItem.set(AllDataComponents.TrackConnectingFrom, FlexiTrackPlacement.TrackPoint(pos, axis, normal))
+		heldItem.set(AllDataComponents.TrackConnectingFrom, FlexiPlacementInfo.TrackPoint(pos, axis, normal))
 		return true
 	}
 	

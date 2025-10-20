@@ -1,26 +1,20 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
+import com.lhwdev.minecraft.railx.buildTrack.BuildTrak
+import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.registry.AllDataComponents
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.similarTo
-import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import com.simibubi.create.foundation.utility.BlockHelper
 import com.simibubi.create.foundation.utility.CreateLang
-import com.simibubi.create.infrastructure.config.AllConfigs as CreateConfigs
-import io.netty.buffer.ByteBuf
-import net.createmod.catnip.codecs.stream.CatnipStreamCodecs
-import net.createmod.catnip.data.Couple
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.network.codec.StreamCodec
 import net.minecraft.tags.BlockTags
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
@@ -33,104 +27,29 @@ import net.minecraft.world.level.block.EntityBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.sign
 import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllTags as CreateTags
 import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
+import com.simibubi.create.infrastructure.config.AllConfigs as CreateConfigs
 
 
 object FlexiTrackPlacement {
-	data class TrackPoint(val pos: BlockPos, val tangent: Vec3, val normal: Vec3) {
-		companion object {
-			val CODEC: Codec<TrackPoint> = RecordCodecBuilder.create {
-				it.group(
-					BlockPos.CODEC.fieldOf("pos").forGetter(TrackPoint::pos),
-					Vec3.CODEC.fieldOf("tangent").forGetter(TrackPoint::tangent),
-					Vec3.CODEC.fieldOf("normal").forGetter(TrackPoint::normal),
-				).apply(it, ::TrackPoint)
-			}
-			val STREAM_CODEC: StreamCodec<ByteBuf, TrackPoint> = StreamCodec.composite(
-				BlockPos.STREAM_CODEC, TrackPoint::pos,
-				CatnipStreamCodecs.VEC3, TrackPoint::tangent,
-				CatnipStreamCodecs.VEC3, TrackPoint::normal,
-				::TrackPoint
-			)
-		}
-	}
-	
-	data class TrackEnd(val block: ITrackBlock, val pos: BlockPos, val end: Vec3, val tangent: Vec3, val normal: Vec3) {
-		var state: BlockState = (block as Block).defaultBlockState()
-		
-		fun toPoint(): TrackPoint = TrackPoint(pos, tangent, normal)
-		
-		fun toKnownDirection(): FlexiDirection {
-			if(normal.x similarTo 0.0 && normal.z similarTo 0.0) return FlexiDirection.Known.roundFrom(tangent)
-			val normalized = FlexiDirection.Two(tangent, normal).toNormalized()
-			return FlexiDirection.NormalizedImpl(FlexiDirection.Known.roundFrom(normalized.tangent), normalized.normal)
-		}
-	}
-	
-	
 	sealed interface PlaceResult {
 		val valid: Boolean
-	}
-	
-	class FlexiPlacementInfo(
-		val material: TrackMaterial,
-		val trackItem: ItemStack,
-		val from: TrackEnd,
-		val to: TrackEnd,
-		val fromExtent: Double = 0.0,
-		val toExtent: Double = 0.0,
-	) : PlaceResult {
-		val flexiMaterial: FlexiTrackMaterial?
-			get() = material as? FlexiTrackMaterial
 		
-		var addToPlan: Boolean = false
-		var girder: Boolean = false
-		
-		val fromOffset = from.end + from.tangent.scale(fromExtent)
-		val toOffset = to.end + to.tangent.scale(toExtent)
-		
-		lateinit var curve: BezierConnection
-		var requiredTracks: Int = 0
-		var pavementItem: BlockItem
-		var requiredPavement: Int = 0
-		var hasRequiredTracks: Boolean = true
-		var hasRequiredPavement: Boolean = true
-		
-		var error: PlaceError? = null
-		override val valid: Boolean get() = error == null
-		
-		fun createCurve(): BezierConnection = BezierConnection(
-			Couple.create(from.pos, to.pos),
-			Couple.create(from.end, to.end),
-			Couple.create(from.tangent, to.tangent),
-			Couple.create(from.normal, to.normal),
-			true,
-			girder,
-			material,
-		)
-		
-		fun placeError(text: String) = placeError(Component.literal(text))
-		fun placeErrorCreate(key: String) = placeError(CreateLang.translateDirect("track.$key"))
-		fun placeError(text: MutableComponent) = placeError(PlaceError(text))
-		fun placeError(error: PlaceError) = this.also { this.error = error }
-		
-		fun noOverlay(): FlexiPlacementInfo {
-			error = error?.noOverlay()
-			return this
-		}
+		val error: PlaceError?
 	}
 	
 	open class PlaceError(val message: MutableComponent, val noOverlay: Boolean = false) : PlaceResult {
 		override val valid: Boolean
 			get() = false
+		
+		override val error: PlaceError
+			get() = this
 		
 		fun noOverlay(): PlaceError = PlaceError(message, noOverlay = true)
 		
@@ -142,24 +61,36 @@ object FlexiTrackPlacement {
 	fun PlaceErrorCreate(key: String): PlaceError = PlaceError(CreateLang.translateDirect("track.$key"))
 	
 	private class Cached(
-		val cached: FlexiPlacementInfo,
+		val cached: PlaceResult,
 		val pos: BlockPos,
-		val angle: FlexiDirection.Known,
-		val lastItem: ItemStack,
-	)
-	
-	private class CachedOld(
-		val cached: PlacementInfoAccessor,
-		val pos: BlockPos,
-		val maxed: Boolean,
 		val angle: FlexiDirection.Known,
 		val lastItem: ItemStack,
 	)
 	
 	private var cached: Cached? = null
-	private var cachedOld: CachedOld? = null
 	
 	fun tryConnect(
+		level: Level,
+		player: Player,
+		toPos: BlockPos,
+		toState: BlockState,
+		item: ItemStack,
+		girder: Boolean,
+	): PlaceResult {
+		val info = resolveConnection(level, player, toPos, toState, item, girder)
+		val lookDirection = FlexiDirection.Known.roundFrom(vector = player.lookAngle)
+		cached = Cached(info, pos = toPos, angle = lookDirection, lastItem = item)
+		if(info !is FlexiPlacementInfo || !info.valid) return info
+		
+		if(info.addToPlan) {
+			if(info.pavementBlock != null) return info.placeError("pavement not supported for track plan")
+			if(!level.isClientSide) BuildTrak.currentPlan.addSegment(info)
+			return info
+		}
+		return connect(info, level, player)
+	}
+	
+	fun resolveConnection(
 		level: Level,
 		player: Player,
 		toPos: BlockPos,
@@ -180,40 +111,45 @@ object FlexiTrackPlacement {
 			?: return PlaceError("internal error: block at 'to' is not ITrackBlock")
 		
 		val toPoint = if(previousToState.block is ITrackBlock || toState.block is TrackBlock) {
-			TrackPoint(
+			FlexiPlacementInfo.TrackPoint(
 				pos = toPos,
 				tangent = track.getNearestTrackAxis(level, toPos, toState, player.lookAngle).first,
 				normal = track.getUpNormal(level, toPos, toState).normalize()
 			)
 		} else {
-			val direction = FlexiDirection.Known.roundFrom(vector = player.lookAngle)
-			TrackPoint(
+			val lookDirection = FlexiDirection.Known.roundFrom(vector = player.lookAngle)
+			FlexiPlacementInfo.TrackPoint(
 				pos = toPos,
-				tangent = direction.tangent,
-				normal = direction.normal,
+				tangent = lookDirection.tangent,
+				normal = lookDirection.normal,
 			)
 		}
 		
-		val info = resolveTrackEnd(level, fromPoint, toPoint, toState, item)
-		if(info !is FlexiPlacementInfo) return info
+		var info = resolveTrackEnd(level, fromPoint, toPoint, toState, item)
+		if(info !is FlexiPlacementInfo || !info.valid) return info
 		
 		info.girder = girder
+		
+		val offhandItem = player.offhandItem.item
+		val shouldPave = offhandItem is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
+		if(shouldPave) info.pavementBlock = offhandItem.block
+		
 		info.curve = info.createCurve()
 		
-		return connect(info, level, player)
+		info = prepareConnect(info, level, player)
+		return info
 	}
 	
 	private fun FlexiPlacementInfo.validateConnect(level: Level): FlexiPlacementInfo {
 		val distSqr = from.pos.distSqr(to.pos)
 		if(distSqr > CreateConfigs.server().trains.maxTrackPlacementLength.get().pow2()) {
-			if(
-				RailXConfig.Server.buildTrak.enabled.asBoolean &&
-				distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()
-			) {
+			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()) {
 				addToPlan = true
 			} else {
 				return placeErrorCreate("too_far").noOverlay()
 			}
+		} else {
+			if(BuildTrak.enabled && BuildTrak.currentPlan.addPlacedTracks) addToPlan = true
 		}
 		
 		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)
@@ -227,7 +163,7 @@ object FlexiTrackPlacement {
 			if(from.tangent.dot(to.tangent) > 0) // illegal curve
 				return placeError(PlaceError.TooSharp().noOverlay())
 			
-			if(curve.radius < RailXConfig.Server.flexiTrak.minRadius.asInt)
+			if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.asInt)
 				return placeError(PlaceError.TooSharp())
 		} else {
 			val fromCross = from.tangent.cross(Vec3(0.0, 1.0, 0.0))
@@ -239,46 +175,41 @@ object FlexiTrackPlacement {
 				// straight line
 			} else {
 				// s curve
-				val maxT = max(v, 1.0) / (RailXConfig.Server.flexiTrak.minRadius.asInt / 4) // IDK about this
-				if(t > maxT) return placeError(PlaceError.TooSharp())
+				// val maxT = max(v, 1.0) / (RailXConfig.Server.flexiTrak.minRadius.asInt / 4) // IDK about this
+				// if(t > maxT) return placeError(PlaceError.TooSharp())
+				
+				if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.asInt)
+					return placeError(PlaceError.TooSharp())
 			}
 		}
 		return this
 	}
 	
-	private fun FlexiPlacementInfo.prepareConnect(level: Level, player: Player): PlaceResult {
-		validateConnect(level)
-		if(error != null) return this
+	private fun prepareConnect(info: FlexiPlacementInfo, level: Level, player: Player): PlaceResult {
+		info.validateConnect(level)
+		if(info.error != null) return info
 		
-		placeTracks(level, simulate = true)
+		info.placeTracks(level, simulate = true)
 		
-		val offhandItem = player.offhandItem.copy()
-		val shouldPave = offhandItem.item is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
-		if(shouldPave) {
-			val paveItem = offhandItem.item as BlockItem
-			paveTracks(level, paveItem.block, simulate = true)
+		info.pavementBlock?.let { pavement ->
+			info.paveTracks(level, pavement, simulate = true)
 		}
 		
-		if(!player.isCreative) {
-			if(!useTrackItem(level, player, simulate = true))
-				return placeErrorCreate("not_enough_tracks").noOverlay()
-		}
+		if(!info.useTrackItem(level, player, simulate = true) && !player.isCreative)
+			return info.placeErrorCreate("not_enough_tracks").noOverlay()
 		
-		return this
+		return info
 	}
 	
-	fun connect(info: FlexiPlacementInfo, level: Level, player: Player): PlaceResult =
-		info.connectInternal(level, player)
-	
-	private fun FlexiPlacementInfo.connectInternal(level: Level, player: Player): PlaceResult {
+	fun connect(info: FlexiPlacementInfo, level: Level, player: Player): PlaceResult {
 		if(!player.isCreative) {
-			useTrackItem(level, player, simulate = false)
+			info.useTrackItem(level, player, simulate = false)
 		}
 		if(!level.isClientSide) {
-			if(shouldPave) paveTracks(level, offhandItem.item as BlockItem, simulate = false)
-			placeTracks(level, simulate = false)
+			info.pavementBlock?.let { block -> info.paveTracks(level, block, simulate = false) }
+			info.placeTracks(level, simulate = false)
 		}
-		return this
+		return info
 	}
 	
 	private fun FlexiPlacementInfo.useTrackItem(level: Level, player: Player, simulate: Boolean): Boolean {
@@ -290,26 +221,23 @@ object FlexiTrackPlacement {
 		for(j in 0..size + 1) {
 			var i = j
 			val offhand = j == size + 1
-			if(j == size)
-				i = inv.selected
-			else if(offhand)
-				i = 0
-			else if(j == inv.selected)
-				continue
+			if(j == size) i = inv.selected
+			else if(offhand) i = 0
+			else if(j == inv.selected) continue
 			
 			val stackInSlot = (if(offhand) inv.offhand else inv.items)[i]
-			val isTrack =
-				CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
-			if(!isTrack && (!shouldPave || offhandItem.item != stackInSlot.item))
-				continue
+			val isTrack = CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
+			if(!isTrack) {
+				val item = stackInSlot.item as? BlockItem
+				if(item != null && pavementBlock != item.block) continue
+			}
 			if(if(isTrack) tracks >= requiredTracks else pavements >= requiredPavement) continue
 			
 			val count = stackInSlot.count
 			
 			if(!simulate) {
 				val remainingItems = count -
-					(if(isTrack) requiredTracks - tracks else requiredPavement - pavements)
-						.coerceAtMost(count)
+					(if(isTrack) requiredTracks - tracks else requiredPavement - pavements).coerceAtMost(count)
 				if(i == inv.selected) {
 					stackInSlot.remove(AllDataComponents.TrackConnectingFrom)
 					stackInSlot.remove(CreateDataComponents.TRACK_CONNECTING_FROM)
@@ -332,7 +260,7 @@ object FlexiTrackPlacement {
 	}
 	
 	
-	private fun tryMatchCache(player: Player, item: ItemStack, toPos: BlockPos): FlexiPlacementInfo? {
+	private fun tryMatchCache(player: Player, item: ItemStack, toPos: BlockPos): PlaceResult? {
 		val lookVec = player.lookAngle.multiply(1.0, 0.0, 1.0)
 		val lookAngle = if(Mth.equal(lookVec.lengthSqr(), 0.0)) {
 			player.yRot.toDouble()
@@ -348,8 +276,8 @@ object FlexiTrackPlacement {
 	
 	private fun resolveTrackEnd(
 		level: Level,
-		from: TrackPoint,
-		to: TrackPoint,
+		from: FlexiPlacementInfo.TrackPoint,
+		to: FlexiPlacementInfo.TrackPoint,
 		toState: BlockState,
 		item: ItemStack,
 	): PlaceResult {
@@ -365,57 +293,69 @@ object FlexiTrackPlacement {
 		//    3-1. S curve: make u of intersect(A, B.rotY(90)) > 0, then make A dot B < 0
 		//    3-2. on same line: yeah just line
 		
-		val fromTangent: Vec3
-		val toTangent: Vec3
-		
-		// find sign of tangent
-		run {
-			// NOTE: fromTangent/toTangent may be FlexiDirection.KnownVec3
-			val fromVec = fromBlock.getCurveStart(level, from.pos, fromState, from.tangent)
-			val toVec = toBlock.getCurveStart(level, to.pos, toState, to.tangent)
-			val intersect = VecHelper.intersect(fromVec, toVec, from.tangent, to.tangent, Direction.Axis.Y)
+		fun tryResolve(fromVec: Vec3, toVec: Vec3, fromTangent: Vec3, toTangent: Vec3): FlexiPlacementInfo? {
+			var fromTangent = fromTangent
+			var toTangent = toTangent
+			
+			val intersect = VecHelper.intersect(fromVec, toVec, fromTangent, toTangent, Direction.Axis.Y)
 			if(intersect != null) {
-				fromTangent = from.tangent.scale(sign(intersect[0]))
-				toTangent = to.tangent.scale(sign(intersect[1]))
+				if(fromTangent.dot(toTangent) > 0) // illegal curve
+					return null
+				
+				fromTangent = fromTangent.scale(sign(intersect[0]))
+				toTangent = toTangent.scale(sign(intersect[1]))
 			} else {
 				val crossIntersect = VecHelper.intersect(
 					fromVec, toVec,
-					from.tangent, to.tangent.cross(Vec3(0.0, 1.0, 0.0)),
+					fromTangent, toTangent.cross(Vec3(0.0, 1.0, 0.0)),
 					Direction.Axis.Y
 				)
 				if(crossIntersect != null) {
-					fromTangent = from.tangent.scale(sign(crossIntersect[0]))
-					toTangent = to.tangent.scale(-sign(fromTangent.dot(to.tangent)))
+					fromTangent = fromTangent.scale(sign(crossIntersect[0]))
+					toTangent = toTangent.scale(-sign(fromTangent.dot(toTangent)))
 				} else { // generally mostly impossible for Known; why use flexi for straight line
 					fromTangent = (toVec - fromVec).normalize()
 					toTangent = -fromTangent
 				}
 			}
+			
+			
+			val fromEnd = FlexiPlacementInfo.TrackEnd(
+				block = fromBlock,
+				pos = from.pos,
+				end = fromBlock.getCurveStart(level, from.pos, fromState, fromTangent),
+				tangent = fromTangent,
+				normal = from.normal,
+			)
+			fromEnd.state = fromState
+			val toEnd = FlexiPlacementInfo.TrackEnd(
+				block = toBlock,
+				pos = to.pos,
+				end = toBlock.getCurveStart(level, to.pos, toState, toTangent),
+				tangent = toTangent,
+				normal = to.normal,
+			)
+			toEnd.state = toState
+			
+			return FlexiPlacementInfo(
+				material = TrackMaterial.fromItem(item.item),
+				trackItem = item,
+				from = fromEnd,
+				to = toEnd,
+			)
 		}
 		
-		val fromEnd = TrackEnd(
-			block = fromBlock,
-			pos = from.pos,
-			end = fromBlock.getCurveStart(level, from.pos, fromState, fromTangent),
-			tangent = fromTangent,
-			normal = from.normal,
-		)
-		fromEnd.state = fromState
-		val toEnd = TrackEnd(
-			block = toBlock,
-			pos = to.pos,
-			end = toBlock.getCurveStart(level, to.pos, toState, toTangent),
-			tangent = toTangent,
-			normal = to.normal,
-		)
-		toEnd.state = toState
 		
-		return FlexiPlacementInfo(
-			material = TrackMaterial.fromItem(item.item),
-			trackItem = item,
-			from = fromEnd,
-			to = toEnd,
-		)
+		val fromVec1 = fromBlock.getCurveStart(level, from.pos, fromState, from.tangent)
+		val fromVec2 = fromBlock.getCurveStart(level, from.pos, fromState, -from.tangent)
+		val toVec1 = toBlock.getCurveStart(level, to.pos, toState, to.tangent)
+		val toVec2 = toBlock.getCurveStart(level, to.pos, toState, -to.tangent)
+		
+		tryResolve(fromVec1, toVec1, from.tangent, to.tangent)?.let { return it }
+		tryResolve(fromVec1, toVec2, from.tangent, -to.tangent)?.let { return it }
+		tryResolve(fromVec2, toVec1, -from.tangent, to.tangent)?.let { return it }
+		tryResolve(fromVec2, toVec2, -from.tangent, -to.tangent)?.let { return it }
+		return PlaceError.TooSharp().noOverlay()
 	}
 	
 	private fun FlexiPlacementInfo.placeTracks(level: Level, simulate: Boolean) {
@@ -438,7 +378,7 @@ object FlexiTrackPlacement {
 					level.setBlock(
 						pos, ProperWaterloggedBlock.withWater(
 							level,
-							stateAtPos.setValue(TrackBlock.HAS_BE, true), pos
+							stateAtPos.trySetValue(TrackBlock.HAS_BE, true), pos
 						), 3
 					)
 				}
@@ -453,11 +393,6 @@ object FlexiTrackPlacement {
 				}
 			}
 		}
-		
-		check(fromExtent == 0.0) { TODO() }
-		check(toExtent == 0.0) { TODO() }
-		
-		// TODO: place extents
 		
 		if(!simulate) {
 			placeTrack(from.pos, from.state, from.toKnownDirection())
@@ -496,5 +431,5 @@ object FlexiTrackPlacement {
 }
 
 
-fun TrackPlacement.ConnectingFrom.convertToFlexi(): FlexiTrackPlacement.TrackPoint =
-	FlexiTrackPlacement.TrackPoint(pos = pos, tangent = axis, normal = normal)
+fun TrackPlacement.ConnectingFrom.convertToFlexi(): FlexiPlacementInfo.TrackPoint =
+	FlexiPlacementInfo.TrackPoint(pos = pos, tangent = axis, normal = normal)

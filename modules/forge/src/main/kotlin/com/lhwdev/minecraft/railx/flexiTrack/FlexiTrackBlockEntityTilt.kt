@@ -15,6 +15,7 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 	
 	private var previousSmoothingHandles: List<Handle>? = null
 	
+	// TODO: why no edge between center-axis/2 -> center+axis/2
 	override fun tryApplySmoothing() {
 		if(state.tilt != null) return
 		
@@ -67,7 +68,7 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 			val otherPosition = connection.key
 			val otherState = level.getBlockState(otherPosition)
 			if(otherState.block !is ITrackBlock) return
-			level.setBlockAndUpdate(otherPosition, otherState.setValue(TrackBlock.HAS_BE, true))
+			level.setBlockAndUpdate(otherPosition, otherState.trySetValue(TrackBlock.HAS_BE, true))
 			val otherBE = level.getBlockEntity(otherPosition)
 			if(otherBE is TrackBlockEntity) {
 				blockEntity.addConnection(connection)

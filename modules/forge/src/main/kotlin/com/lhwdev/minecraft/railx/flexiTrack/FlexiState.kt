@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
+import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.maybeCompound
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.nbt.CompoundTag
@@ -30,7 +31,8 @@ class FlexiState(
 	
 	class AxisCache(direction: FlexiDirection) {
 		val rotation = direction.toRotation()
-		val rotationValue = Quaternionf(rotation.rotationValue())
+		val rotationValueDouble = rotation.rotationValue()
+		val rotationValue = Quaternionf(rotationValueDouble)
 	}
 	
 	
@@ -42,18 +44,48 @@ class FlexiState(
 		tilt = tilt,
 	)
 	
-	fun write(): CompoundTag = CompoundTag().also { tag ->
-		tag.put("Shape", shape.write())
+	fun write(): CompoundTag = CompoundTag { tag ->
+		tag.putByte("V", 1)
+		tag.put("Shape", baseShape.write())
 		if(tilt != null) tag.put("Tilt", tilt.write())
 	}
 	
 	companion object {
 		val Base = FlexiState()
 		
-		fun read(tag: CompoundTag): FlexiState = FlexiState(
-			baseShape = FlexiShape.read(tag.getCompound("Shape")),
-			tilt = tag.maybeCompound("Tilt") { FlexiShapeTilt.read(it) },
-		)
+		fun read(tag: CompoundTag): FlexiState {
+			val version = tag.getByte("V").toInt()
+			return when(version) {
+				0 -> FlexiState(
+					baseShape = FlexiShape.read(tag.getCompound("Shape"))
+						.map {
+							fun mapKnown(from: FlexiDirection.Known) =
+								FlexiDirection.Known.fromOrdinal(FlexiDirection.Known.DivisionCount - from.ordinal)
+							
+							when(it) {
+								is FlexiDirection.Known -> mapKnown(it)
+								is FlexiDirection.Normalized -> {
+									val base = it.base
+									FlexiDirection.NormalizedImpl(
+										base = if(base is FlexiDirection.Known) mapKnown(base) else base,
+										normal = it.normal
+									)
+								}
+								
+								else -> it
+							}
+						},
+					tilt = tag.maybeCompound("Tilt") { FlexiShapeTilt.read(it) },
+				)
+				
+				1 -> FlexiState(
+					baseShape = FlexiShape.read(tag.getCompound("Shape")),
+					tilt = tag.maybeCompound("Tilt") { FlexiShapeTilt.read(it) },
+				)
+				
+				else -> error("unknown version")
+			}
+		}
 	}
 }
 
@@ -87,7 +119,7 @@ data class FlexiShapeTilt(val axis: Vec3, val rotation: Double) {
 	
 	fun applyTo(vec: Vec3): Vec3 = vec.toVector3d().rotate(rotationValue).toVec3()
 	
-	fun write(): CompoundTag = CompoundTag().also { tag ->
+	fun write(): CompoundTag = CompoundTag { tag ->
 		tag.put("Axis", VecHelper.writeNBT(axis))
 		tag.putDouble("Rotation", rotation)
 	}

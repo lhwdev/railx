@@ -13,11 +13,13 @@ import net.minecraft.world.level.block.state.BlockState
 
 
 class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
-	FakeTrackBlockEntity(type, pos, state) {
+	FakeTrackBlockEntity(type, pos, state), MiddleTrackLikeBlockEntity {
 	
 	var connections: List<BezierConnection> = emptyList()
 		private set
 	
+	override fun getConnectionValues(): List<BezierConnection> =
+		connections
 	
 	private var pendingConnections: List<BezierConnection>? = null
 	
@@ -64,10 +66,9 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	override fun setRemoved() {
 		super.setRemoved()
 		
-		val level = level
-		if(level != null) {
-			GlobalConnections[level].removeMiddle(this)
-		}
+		val level = level!!
+		GlobalConnections[level].removeMiddle(this)
+		connections = emptyList()
 	}
 	
 	

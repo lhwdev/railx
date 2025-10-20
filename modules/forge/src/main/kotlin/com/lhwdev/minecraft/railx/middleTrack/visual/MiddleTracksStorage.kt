@@ -15,5 +15,5 @@ class MiddleTracksStorage : Storage<ConnectionMiddleState>() {
 		visualizationContext: VisualizationContext,
 		obj: ConnectionMiddleState,
 		partialTick: Float,
-	): MiddleTrackVisual? = MiddleTrackVisual(context = visualizationContext, connection = obj)
+	): MiddleTrackVisual = MiddleTrackVisual(context = visualizationContext, connection = obj)
 }

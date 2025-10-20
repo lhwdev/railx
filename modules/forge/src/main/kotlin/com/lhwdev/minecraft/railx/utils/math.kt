@@ -16,6 +16,9 @@ inline fun Int.pow2(): Int =
 inline fun Double.pow2(): Double =
 	this * this
 
+inline fun Double.pow3(): Double =
+	this * this * this
+
 inline infix fun Int.floorMod(by: Int): Int =
 	Math.floorMod(this, by)
 

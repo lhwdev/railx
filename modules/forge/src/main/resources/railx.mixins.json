@@ -6,11 +6,13 @@
   "refmap": "railx.refmap.json",
   "mixins": [
     "ccAdvanced.CarriageMixin",
+    "common.BezierConnectionMixin",
     "common.TrackPlacementOverlayMixin",
     "flexiTrack.BezierConnectionMixin",
     "flexiTrack.BlockAccessor",
     "flexiTrack.BlueprintOverlayRendererMixin",
     "flexiTrack.GameDataMixin",
+    "flexiTrack.ITrackBlockMixin",
     "flexiTrack.PlacementInfoAccessor",
     "flexiTrack.TrackBlockEntityAccessor",
     "flexiTrack.TrackBlockItemMixin",

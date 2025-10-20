@@ -53,6 +53,7 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		RailXRegistry.registerEventListeners(bus)
 		AllBlocks.register()
 		AllBlockEntityTypes.register()
+		AllItems.register()
 		AllCreativeModeTabs.register()
 		AllPackets.register()
 		AllDataComponents.register()

@@ -60,6 +60,10 @@ object RailXConfig {
 				.comment("Define acceleration of brake; braking is disabled if set to 0.")
 				.defineInRange("realistic_speed.brake_acceleration", 1.3, 0.0, 100.0)
 			
+			val automaticBrakeAtStation: BooleanValue = builder
+				.comment("Applies brake automatically if train is at train station.")
+				.define("realistic_speed.brake_at_station", true)
+			
 			val rollingResistance: DoubleValue = builder
 				.comment("Rolling resistance factor; how much trains are decelerated when given no other force")
 				.defineInRange("realistic_speed.passive_deceleration", 0.01, 0.0, 1.0)
