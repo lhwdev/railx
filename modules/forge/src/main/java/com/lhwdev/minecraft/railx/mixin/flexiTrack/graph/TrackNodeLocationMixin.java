@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -73,6 +74,13 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 			TrackNodeLocationDelta otherDelta = ((TrackNodeLocationMixin) (Object) node).railx$location;
 			cir.setReturnValue(Objects.equals(railx$location, otherDelta));
 		}
+	}
+	
+	@Unique
+	@Override
+	public @NotNull String toString() {
+		Vec3 location = getLocation();
+		return "TrackNodeLocation(x=" + location.x + ", y=" + location.y + ", z=" + location.z + ")";
 	}
 	
 	

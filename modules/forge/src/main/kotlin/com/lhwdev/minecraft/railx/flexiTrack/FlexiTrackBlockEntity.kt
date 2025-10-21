@@ -51,12 +51,16 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	}
 	
 	
+	override fun onLoad() {
+		super.onLoad()
+		if(state.isEmpty() && connections.isEmpty()) level!!.destroyBlock(blockPos, false)
+	}
+	
 	@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 	override fun setBlockState(blockState: BlockState) {
 		super.setBlockState(blockState)
 		
-		if(blockState is FlexiBlockState.Update) {
-			println("railx:update from $blockState")
+		if(blockState is FlexiBlockState.Update) { // barely called; unless some people put flexi track in schematics
 			updateState(blockState.mapState(state))
 		}
 	}

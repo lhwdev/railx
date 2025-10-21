@@ -52,6 +52,14 @@ class TrackNodeLocationDelta private constructor(
 	)
 	
 	fun toByteArray(): ByteArray = byteArrayOf((x + HBase).toByte(), y.toByte(), (z + HBase).toByte())
+	
+	override fun hashCode(): Int = (x * 31 + y) * 31 + z
+	
+	override fun equals(other: Any?): Boolean = when {
+		this === other -> true
+		other !is TrackNodeLocationDelta -> false
+		else -> x == other.x && y == other.y && z == other.z
+	}
 }
 
 private fun Vec3.isIntTrackNodeLocation(): Boolean {

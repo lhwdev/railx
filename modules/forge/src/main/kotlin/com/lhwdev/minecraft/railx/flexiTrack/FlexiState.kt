@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
+import com.lhwdev.minecraft.railx.flexiTrack.rotate.rotationValue
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.maybeCompound
 import net.createmod.catnip.math.VecHelper
@@ -27,12 +27,16 @@ class FlexiState(
 	}
 	
 	
-	val shapeCache: List<AxisCache> by lazy(LazyThreadSafetyMode.NONE) { shape.axes.map { AxisCache(it) } }
+	fun isEmpty(): Boolean =
+		baseShape == FlexiShape.Empty && tilt == null
+	
+	val shapeCache: List<AxisCache> by lazy(LazyThreadSafetyMode.NONE) {
+		shape.axes.map { AxisCache(it) }
+	}
 	
 	class AxisCache(direction: FlexiDirection) {
-		val rotation = direction.toRotation()
-		val rotationValueDouble = rotation.rotationValue()
-		val rotationValue = Quaternionf(rotationValueDouble)
+		val rotationValueDouble: Quaterniond = direction.rotationValue()
+		val rotationValue: Quaternionf = Quaternionf(rotationValueDouble)
 	}
 	
 	

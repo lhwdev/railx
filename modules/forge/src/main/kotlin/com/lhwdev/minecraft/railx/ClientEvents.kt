@@ -10,6 +10,7 @@ import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers
 
+
 @EventBusSubscriber(Dist.CLIENT)
 object ClientEvents {
 	@SubscribeEvent

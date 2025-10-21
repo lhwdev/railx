@@ -14,8 +14,7 @@ data class FlexiTrackRotation(
 	val tilt: Double, // -0.5PI for left 90 degree (normal facing left), +0.5PI for right 90 degree (normal facing right)
 ) {
 	fun rotationValue(): Quaterniond =
-		Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)/* .rotateX(tilt)*//* .rotateY(direction) */
-	// Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)
+		Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)
 }
 
 
@@ -28,6 +27,9 @@ val FlexiDirection.gradient: Double
 // point on tangent-plane: (normal dot directionRight=z,0,-x), normal dot directionUp=0,1,0)
 val FlexiDirection.tilt: Double
 	get() = Mth.atan2(normal.dot(Vec3(tangent.z, 0.0, -tangent.x).normalize()), normal.y)
+
+fun FlexiDirection.rotationValue(): Quaterniond =
+	Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)
 
 
 fun FlexiDirection.toRotation(): FlexiTrackRotation = FlexiTrackRotation(

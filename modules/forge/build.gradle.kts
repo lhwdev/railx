@@ -18,7 +18,14 @@ base {
 }
 
 val runClientSources by sourceSets.registering {
-	configurations[runtimeClasspathConfigurationName].extendsFrom(configurations.runtimeClasspath.get())
+	configurations {
+		get(compileClasspathConfigurationName).extendsFrom(compileClasspath.get())
+		get(runtimeClasspathConfigurationName).extendsFrom(runtimeClasspath.get())
+	}
+	tasks {
+		named(classesTaskName) { dependsOn(classes) }
+		named(processResourcesTaskName) { dependsOn(processResources) }
+	}
 }
 
 neoForge {
