@@ -5,6 +5,7 @@ import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackShape
 import com.simibubi.create.content.trains.track.TrackVisual
 import dev.engine_room.flywheel.api.instance.Instance
+import dev.engine_room.flywheel.api.visual.LightUpdatedVisual
 import dev.engine_room.flywheel.api.visualization.VisualizationContext
 import dev.engine_room.flywheel.lib.instance.InstanceTypes
 import dev.engine_room.flywheel.lib.instance.TransformedInstance
@@ -16,8 +17,8 @@ import java.util.function.Consumer
 
 
 class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEntity, partialTick: Float) :
-	TrackVisual(context, track, partialTick) {
-	protected val blockEntity: FlexiTrackBlockEntity
+	TrackVisual(context, track, partialTick), LightUpdatedVisual {
+	protected val be: FlexiTrackBlockEntity
 		get() = super.blockEntity as FlexiTrackBlockEntity
 	
 	private var blockVisual: BlockVisual? = null
@@ -44,7 +45,6 @@ class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEnti
 	}
 	
 	override fun updateLight(partialTick: Float) {
-		super.updateLight(partialTick)
 		blockVisual?.updateLight()
 	}
 	
@@ -58,7 +58,7 @@ class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEnti
 		private val blocks: List<TransformedInstance>
 		
 		init {
-			val trackBlock = blockEntity.block.material.block
+			val trackBlock = be.block.material.block
 			val trackState = trackBlock.defaultBlockState()
 				.setValue(TrackBlock.SHAPE, TrackShape.XO)
 			
@@ -66,11 +66,11 @@ class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEnti
 				.instancer(InstanceTypes.TRANSFORMED, Models.block(trackState))
 			
 			val center = Vector3f(0.5f, 0.125f, 0.5f)
-			blocks = blockEntity.state.shapeCache.map { axis ->
+			blocks = be.state.shapeCache.map { axis ->
 				val block = instancer.createInstance()
 				val pose = PoseStack()
 				TransformStack.of(pose)
-					.translate(visualPosition)
+					.translate(visualPos)
 					.rotateAround(axis.rotationValue, center)
 				
 				block.setTransform(pose)

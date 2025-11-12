@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.3.0-Beta2" # cannot use 2.2: https://youtrack.jetbrains.com/projects/KT/issues/KT-72039
 minecraft = "1.21.1"
 
 

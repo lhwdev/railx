@@ -32,9 +32,9 @@ object AllBlockEntityTypes {
 		.register()
 	
 	val FlexiTrack: BlockEntityEntry<FlexiTrackBlockEntity> = Registry
-		.blockEntity("track", ::FlexiTrackBlockEntity)
+		.blockEntity("flexi_track", ::FlexiTrackBlockEntity)
 		.visual { SimpleBlockEntityVisualizer.Factory(::FlexiTrackVisual) }
 		.renderer { NonNullFunction(::FlexiTrackRenderer) }
-		.validBlocks(AllBlocks.FlexiTrack)
+		.validBlocks(AllBlocks.FlexiTrack, AllBlocks.FlexiSplitGraphTrack)
 		.register()
 }

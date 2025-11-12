@@ -2,8 +2,10 @@ package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.RailX
 import com.simibubi.create.foundation.data.CreateRegistrate
+import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.entry.RegistryEntry
+import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.BuiltInRegistries
@@ -11,11 +13,14 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.state.BlockBehaviour
 
 
 val RailXRegistry = RailXRegistrate(RailX.Id)
 
 
+@Suppress("UNCHECKED_CAST")
 class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	init {
 		@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
@@ -34,6 +39,14 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 		@Suppress("UNCHECKED_CAST")
 		get() = getAll(Registries.BLOCK) as List<BlockEntry<*>>
 	
+	
+	inline fun <T : Block> block(
+		name: String,
+		factory: NonNullFunction<BlockBehaviour.Properties, T>,
+		block: BlockBuilder<T, RailXRegistrate>.() -> Unit,
+	): BlockEntry<T> = (block(name, factory) as BlockBuilder<T, RailXRegistrate>)
+		.apply(block)
+		.register()
 	
 	fun <T> dataComponentType(
 		name: String,

@@ -1,49 +1,40 @@
 package com.lhwdev.minecraft.railx.mixin.realisticSpeed;
 
-import com.lhwdev.minecraft.railx.realisticSpeed.IContraptionBlockEntity;
+import com.lhwdev.minecraft.railx.realisticSpeed.ClientSideContraptionBlockEntities;
+import com.lhwdev.minecraft.railx.realisticSpeed.ContraptionBlockEntities;
+import com.lhwdev.minecraft.railx.realisticSpeed.ContraptionWithBlockEntity;
+import com.lhwdev.minecraft.railx.realisticSpeed.ServerSideContraptionBlockEntities;
 import com.simibubi.create.content.contraptions.Contraption;
-import net.minecraft.nbt.CompoundTag;
+import com.simibubi.create.content.contraptions.render.ClientContraption;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Invoker;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(Contraption.class)
-public abstract class ContraptionMixin implements IContraptionBlockEntity {
+public abstract class ContraptionMixin implements ContraptionWithBlockEntity {
+	@Shadow
+	public abstract ClientContraption getOrCreateClientContraptionLazy();
+	
 	@Unique
-	private boolean railx$requiresBlockEntity = false;
+	private ServerSideContraptionBlockEntities railx$serverSideBlockEntities;
 	
 	@Override
-	public boolean getRequiresBlockEntity() {
-		return railx$requiresBlockEntity;
+	public @NotNull ServerSideContraptionBlockEntities railx$serverSideBlockEntities(@NotNull Level level) {
+		if(railx$serverSideBlockEntities == null) {
+			railx$serverSideBlockEntities = new ServerSideContraptionBlockEntities((Contraption) (Object) this, level);
+		}
+		return railx$serverSideBlockEntities;
 	}
 	
 	@Override
-	public void setRequiresBlockEntity(boolean b) {
-		railx$requiresBlockEntity = b;
-	}
-	
-	@Override
-	@Invoker("readBlockEntity")
-	public abstract @Nullable BlockEntity onReadBlockEntity(
-		@NotNull Level level,
-		@NotNull StructureTemplate.StructureBlockInfo info,
-		@NotNull CompoundTag tag
-	);
-	
-	@Redirect(method = "lambda$readBlocksCompound$15", at = @At(value = "FIELD", target = "Lnet/minecraft/world" +
-		"/level" +
-		"/Level;isClientSide:Z", opcode = Opcodes.GETFIELD))
-	boolean willLoadBlockEntities(Level instance) {
-		return railx$requiresBlockEntity || instance.isClientSide;
+	public @NotNull ContraptionBlockEntities railx$blockEntities(@NotNull Level level) {
+		if(level.isClientSide) {
+			return new ClientSideContraptionBlockEntities(getOrCreateClientContraptionLazy());
+		} else {
+			return railx$serverSideBlockEntities(level);
+		}
 	}
 }

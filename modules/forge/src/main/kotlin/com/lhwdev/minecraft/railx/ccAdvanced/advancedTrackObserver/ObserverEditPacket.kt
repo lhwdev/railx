@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver
 
 import com.lhwdev.minecraft.railx.registry.AllPackets
-import com.lhwdev.minecraft.railx.registry.RailXPacket
+import com.lhwdev.minecraft.railx.registry.RailXPacketType
 import com.simibubi.create.foundation.networking.BlockEntityConfigurationPacket
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.minecraft.core.BlockPos
@@ -12,7 +12,7 @@ import net.minecraft.server.level.ServerPlayer
 
 class ObserverEditPacket(pos: BlockPos, val code: String) :
 	BlockEntityConfigurationPacket<AdvancedTrackObserverBlockEntity>(pos) {
-	companion object : RailXPacket<ObserverEditPacket>() {
+	companion object : RailXPacketType<ObserverEditPacket>() {
 		override val streamCodec = StreamCodec.composite(
 			BlockPos.STREAM_CODEC, { it.pos },
 			ByteBufCodecs.STRING_UTF8, { it.code },

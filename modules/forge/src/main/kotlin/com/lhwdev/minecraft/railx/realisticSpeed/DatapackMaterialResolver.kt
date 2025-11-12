@@ -95,7 +95,7 @@ object DatapackMaterialResolver : BlockMaterialResolver {
 			val tag = BuiltInRegistries.BLOCK.getTag(TagKey.create(Registries.BLOCK, item.tag))
 				?: continue
 			if(!tag.isPresent) {
-				RailX.Logger.warn("RealisticTrainSpeed.MaterialsLoader: cannot find tag $tag")
+				RailX.Logger.warn("RealisticTrainSpeed.MaterialsLoader: cannot find tag ${item.tag}")
 				continue
 			}
 			for(block in tag.get()) {

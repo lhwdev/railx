@@ -4,9 +4,24 @@ package com.lhwdev.minecraft.railx.common
 
 import com.lhwdev.minecraft.railx.utils.pow3
 import com.simibubi.create.content.trains.track.BezierConnection
+import net.createmod.catnip.data.Couple
+import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.times
+
+
+val BezierConnection.from: BlockPos
+	get() = bePositions.first
+
+val BezierConnection.to: BlockPos
+	get() = bePositions.second
+
+fun BezierConnection.asPrimary(): BezierConnection =
+	if(primary) this else secondary()
+
+val BezierConnection.primaryPositions: Couple<BlockPos>
+	get() = if(primary) bePositions else bePositions.swap()
 
 
 internal interface IBezierConnectionExtension {

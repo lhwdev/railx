@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.common.addIfConnected
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.BlockAccessor
-import com.lhwdev.minecraft.railx.mixin.flexiTrack.TrackBlockEntityAccessor
 import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
@@ -75,7 +75,7 @@ import com.simibubi.create.AllBlocks as CreateBlocks
 // }
 
 
-class FlexiTrackBlock(
+open class FlexiTrackBlock(
 	properties: Properties,
 	@get:JvmName("getMaterialKt")
 	val material: FlexiTrackMaterial,
@@ -92,15 +92,6 @@ class FlexiTrackBlock(
 	companion object {
 		// val BaseDirection = FlexiDirectionProperty.create("direction")
 		val Waterlogged: BooleanProperty = ProperWaterloggedBlock.WATERLOGGED
-		
-		fun blockEntity(world: BlockGetter, pos: BlockPos): FlexiTrackBlockEntity? =
-			world.getBlockEntity(pos) as? FlexiTrackBlockEntity
-		
-		fun flexiState(world: BlockGetter, pos: BlockPos): FlexiState =
-			blockEntity(world, pos)?.state ?: FlexiState.Base
-		
-		fun flexiShape(world: BlockGetter, pos: BlockPos): FlexiShape =
-			flexiState(world, pos).shape
 	}
 	
 	init {
@@ -119,6 +110,17 @@ class FlexiTrackBlock(
 				.setValue(Waterlogged, false)
 		)
 	}
+	
+	
+	fun blockEntity(world: BlockGetter, pos: BlockPos): FlexiTrackBlockEntity? =
+		world.getBlockEntity(pos) as? FlexiTrackBlockEntity
+	
+	fun flexiState(world: BlockGetter, pos: BlockPos): FlexiState =
+		blockEntity(world, pos)?.state ?: FlexiState.Base
+	
+	fun flexiShape(world: BlockGetter, pos: BlockPos): FlexiShape =
+		flexiState(world, pos).shape
+	
 	
 	private val BlockState.flexi: FlexiBlockState
 		get() = this as FlexiBlockState
@@ -153,8 +155,7 @@ class FlexiTrackBlock(
 		if(pLevel.isClientSide) return pState
 		if(!pPlayer.isCreative) return pState
 		withBlockEntityDo(pLevel, pPos) { be ->
-			@Suppress("CAST_NEVER_SUCCEEDS")
-			(be as TrackBlockEntityAccessor).cancelDrops = true
+			(be as FlexiTrackBlockEntity).willCancelDrop = true
 			be.removeInboundConnections(true)
 		}
 		
@@ -285,24 +286,19 @@ class FlexiTrackBlock(
 		pNewState: BlockState,
 		pIsMoving: Boolean,
 	) {
-		var removeBE = false
-		if(!pState.`is`(pNewState.block)) {
+		if(pState.block != pNewState.block) {
 			val blockEntity = pLevel.getBlockEntity(pPos)
 			if(blockEntity is FlexiTrackBlockEntity && !pLevel.isClientSide) {
 				blockEntity.removeInboundConnections(true)
 			}
-			removeBE = true
 		}
 		
-		if(pNewState.block !== this || pState !== pNewState) {
+		if(pNewState.block != this || pState != pNewState)
 			TrackPropagator.onRailRemoved(pLevel, pPos, pState)
-		}
-		if(removeBE) {
-			pLevel.removeBlockEntity(pPos)
-		}
-		if(!pLevel.isClientSide) {
+		if(!pLevel.isClientSide)
 			updateGirders(pState, pLevel, pPos, pLevel.blockTicks)
-		}
+		
+		super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving)
 	}
 	
 	// No assembly on flexi track
@@ -391,8 +387,7 @@ class FlexiTrackBlock(
 		if(!level.isClientSide && !player.isCreative) {
 			val blockEntity = level.getBlockEntity(context.clickedPos)
 			if(blockEntity is FlexiTrackBlockEntity) {
-				@Suppress("CAST_NEVER_SUCCEEDS")
-				(blockEntity as TrackBlockEntityAccessor).cancelDrops = true
+				blockEntity.willCancelDrop = true
 				blockEntity.connections.values.forEach { it.addItemsToPlayer(player) }
 			}
 		}
@@ -432,33 +427,27 @@ class FlexiTrackBlock(
 		type: TrackTargetingBehaviour.RenderedTrackOverlayType,
 	): PartialModel? {
 		var axis: Vec3? = null
-		var diff: Vec3? = null
-		var normal: Vec3? = null
-		val offset: Vec3?
+		val diff: Vec3
+		val normal: Vec3
 		
 		val be = world.getBlockEntity(pos)
 		if(be !is FlexiTrackBlockEntity) return null
 		if(bezierPoint != null) {
-			val bc = be.connections[bezierPoint.curveTarget()]
-			if(bc != null) {
-				val length = Mth.floor(bc.getLength() * 2).toDouble()
-				val seg = bezierPoint.segment() + 1
-				val t = seg / length
-				val tpre = (seg - 1) / length
-				val tpost = (seg + 1) / length
-				
-				offset = bc.getPosition(t)
-				normal = bc.getNormal(t)
-				diff = bc.getPosition(tpost)
-					.subtract(bc.getPosition(tpre))
-					.normalize()
-				
-				affine.translate(offset.subtract(Vec3.atBottomCenterOf(pos)))
-				affine.translate(0f, -4 / 16f, 0f)
-			} else return null
-		}
-		
-		if(normal == null) {
+			val bc = be.connections[bezierPoint.curveTarget] ?: return null
+			val t = bc.getSegmentT(bezierPoint.segment + 1).toDouble()
+			val tPre = bc.getSegmentT(bezierPoint.segment).toDouble()
+			val tPost = bc.getSegmentT((bezierPoint.segment + 2).coerceAtMost(bc.segmentCount)).toDouble()
+			
+			val offset = bc.getPosition(t)
+			normal = bc.getNormal(t)
+			diff = bc.getPosition(tPost)
+				.subtract(bc.getPosition(tPre))
+				.normalize()
+			
+			affine.translateBack(pos.bottomCenter)
+			affine.translate(offset)
+			affine.translate(0f, -4 / 16f, 0f)
+		} else {
 			axis = be.shape.axis1.tangent
 			diff = axis.scale(direction.step.toDouble()).normalize()
 			normal = getUpNormal(world, pos, state)
@@ -475,7 +464,7 @@ class FlexiTrackBlock(
 			affine.translate(
 				0f,
 				if(axis.y != 0.0) 7 / 16f else 0f,
-				if(axis.y != 0.0) direction.step * 2.5f / 16f else 0f
+				if(axis.y != 0.0) direction.step * 2.5f / 16f else 0f,
 			)
 		} else {
 			affine.translate(0f, 4 / 16f, 0f)
@@ -486,7 +475,7 @@ class FlexiTrackBlock(
 		
 		if(bezierPoint == null && be.isTilted) {
 			var yOffset = 0.0
-			for(bc in be.connections.values) yOffset += bc.starts.getFirst().y - pos.y
+			for(bc in be.connections.values) yOffset += bc.starts.first.y - pos.y
 			affine.center()
 				.rotateXDegrees((-direction.step * be.tilt.smoothingAngle.get()).toFloat())
 				.uncenter()

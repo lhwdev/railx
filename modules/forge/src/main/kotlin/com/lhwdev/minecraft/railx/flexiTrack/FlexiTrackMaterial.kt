@@ -3,15 +3,19 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.registry.AllBlocks
 import com.simibubi.create.Create
+import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.content.trains.track.TrackMaterial.TrackModelHolder
 import com.simibubi.create.content.trains.track.TrackMaterial.TrackType
 import com.simibubi.create.content.trains.track.TrackMaterial.TrackType.TrackBlockFactory
+import com.simibubi.create.foundation.data.recipe.CommonMetal
 import com.tterrag.registrate.util.nullness.NonNullSupplier
 import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.state.BlockState
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.neoforge.common.Tags
@@ -19,13 +23,22 @@ import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
 import java.util.function.Supplier
 import java.util.stream.Stream
 import com.simibubi.create.AllPartialModels as CreatePartialModels
-import com.simibubi.create.AllTags as CreateTags
+
+
+val TrackMaterial.realBlock: ITrackBlock
+	get() = when(this) {
+		is FlexiTrackMaterial -> flexiBlock
+		else -> block
+	}
+
+fun TrackMaterial.defaultBlockState(): BlockState =
+	(realBlock as Block).defaultBlockState()
 
 
 class FlexiTrackMaterial(
 	id: ResourceLocation,
 	langName: String,
-	val flexiBlockSupplier: NonNullSupplier<FlexiTrackBlock>,
+	val flexiBlockSupplier: NonNullSupplier<out FlexiTrackBlock>,
 	particle: ResourceLocation,
 	sleeperIngredient: Ingredient,
 	railsIngredient: Ingredient,
@@ -76,14 +89,14 @@ inline fun FlexiTrackMaterial(id: ResourceLocation, block: FlexiTrackMaterialFac
 class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 	var langName: String? = null
 	
-	var trackBlock: NonNullSupplier<FlexiTrackBlock>? = null
+	var trackBlock: NonNullSupplier<out FlexiTrackBlock>? = null
 	
 	var sleeperIngredient: Ingredient = Ingredient.EMPTY
 	
 	var railsIngredient: Ingredient = Ingredient.fromValues(
 		Stream.of(
 			Ingredient.TagValue(Tags.Items.NUGGETS_IRON),
-			Ingredient.TagValue(CreateTags.commonItemTag("nuggets/zinc"))
+			Ingredient.TagValue(CommonMetal.ZINC.nuggets),
 		)
 	)
 	

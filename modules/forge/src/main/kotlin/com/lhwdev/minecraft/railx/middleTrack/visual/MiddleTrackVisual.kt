@@ -1,13 +1,12 @@
 package com.lhwdev.minecraft.railx.middleTrack.visual
 
+import com.lhwdev.minecraft.railx.common.from
 import com.lhwdev.minecraft.railx.middleTrack.ConnectionMiddleState
 import com.lhwdev.minecraft.railx.utils.createInstances
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
-import com.simibubi.create.content.contraptions.render.ContraptionVisual
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.foundation.render.SpecialModels
-import dev.engine_room.flywheel.api.instance.Instancer
 import dev.engine_room.flywheel.api.visual.LightUpdatedVisual
 import dev.engine_room.flywheel.api.visual.SectionTrackedVisual.SectionCollector
 import dev.engine_room.flywheel.api.visual.ShaderLightVisual
@@ -79,20 +78,20 @@ class MiddleTrackVisual(
 		var maxY = Int.MIN_VALUE
 		var maxZ = Int.MIN_VALUE
 		for(pos in connection.curve.bePositions) {
-			minX = min(minX, pos.x)
-			minY = min(minY, pos.y)
-			minZ = min(minZ, pos.z)
-			maxX = max(maxX, pos.x)
-			maxY = max(maxY, pos.y)
-			maxZ = max(maxZ, pos.z)
+			minX = min(minX, pos.x - 1)
+			minY = min(minY, pos.y - 1)
+			minZ = min(minZ, pos.z - 1)
+			maxX = max(maxX, pos.x + 1)
+			maxY = max(maxY, pos.y + 1)
+			maxZ = max(maxZ, pos.z + 1)
 		}
 		
-		val minSectionX = ContraptionVisual.minLightSection(minX.toDouble())
-		val minSectionY = ContraptionVisual.minLightSection(minY.toDouble())
-		val minSectionZ = ContraptionVisual.minLightSection(minZ.toDouble())
-		val maxSectionX = ContraptionVisual.maxLightSection(maxX.toDouble())
-		val maxSectionY = ContraptionVisual.maxLightSection(maxY.toDouble())
-		val maxSectionZ = ContraptionVisual.maxLightSection(maxZ.toDouble())
+		val minSectionX = SectionPos.blockToSectionCoord(minX.toDouble())
+		val minSectionY = SectionPos.blockToSectionCoord(minY.toDouble())
+		val minSectionZ = SectionPos.blockToSectionCoord(minZ.toDouble())
+		val maxSectionX = SectionPos.blockToSectionCoord(maxX.toDouble())
+		val maxSectionY = SectionPos.blockToSectionCoord(maxY.toDouble())
+		val maxSectionZ = SectionPos.blockToSectionCoord(maxZ.toDouble())
 		
 		val out = LongArraySet()
 		
@@ -133,19 +132,17 @@ class MiddleTrackVisual(
 			right = instancerProvider.instancer(InstanceTypes.TRANSFORMED, SpecialModels.flatChunk(models.rightSegment))
 				.createInstances(segCount)
 			
-			
-			val segments = bc.bakedSegments
-			for(i in 1..<segments.size) {
-				val segment = segments[i]
+			val segment = bc.bakedSegments
+			for(i in 1..<segment.length) {
 				val modelIndex = i - 1
 				
 				ties[modelIndex].setTransform(pose)
-					.mul(segment.tieTransform)
+					.mul(segment.tieTransform[i])
 					.setChanged()
 				
 				for(first in Iterate.trueAndFalse) {
-					val transform = segment.railTransforms[first]
-					(if(first) this.left else this.right)[modelIndex].setTransform(pose)
+					val transform = segment.railTransforms[i][first]
+					(if(first) left else right)[modelIndex].setTransform(pose)
 						.mul(transform)
 						.setChanged()
 				}
@@ -180,11 +177,11 @@ class MiddleTrackVisual(
 		private val lightPos: List<BlockPos>
 		
 		init {
-			val tePosition = bc.bePositions.first
+			val tePosition = bc.from
 			val pose = PoseStack()
 			TransformStack.of(pose)
 				.translate(visualPosition)
-				.nudge(bc.bePositions.first.asLong().toInt())
+				.nudge(bc.from.asLong().toInt())
 			
 			val segCount = bc.segmentCount
 			beams = Couple.create {
@@ -205,21 +202,21 @@ class MiddleTrackVisual(
 			
 			val lightPos = mutableListOf<BlockPos>()
 			
-			val bakedGirders = bc.bakedGirders
-			for(i in 1..<bakedGirders.size) {
-				val segment = bakedGirders[i]
+			val segment = bc.bakedGirders
+			for(i in 1..<segment.length) {
 				val modelIndex = i - 1
-				lightPos += segment.lightPosition.offset(tePosition)
+				lightPos += segment.lightPosition[i].offset(tePosition)
 				
 				for(first in Iterate.trueAndFalse) {
-					val beamTransform = segment.beams.get(first)
-					beams.get(first)[modelIndex].setTransform(pose)
+					val beamTransform = segment.beams[i][first]
+					beams[first][modelIndex]
+						.setTransform(pose)
 						.mul(beamTransform)
 						.setChanged()
 					for(top in Iterate.trueAndFalse) {
-						val beamCapTransform = segment.beamCaps.get(top).get(first)
-						beamCaps.get(top)
-							.get(first)[modelIndex].setTransform(pose)
+						val beamCapTransform = segment.beamCaps[i][top][first]
+						beamCaps[top][first][modelIndex]
+							.setTransform(pose)
 							.mul(beamCapTransform)
 							.setChanged()
 					}
@@ -268,13 +265,3 @@ class MiddleTrackVisual(
 			.setChanged()
 	}
 }
-
-
-class TrackInstancers(
-	val tie: Instancer<TransformedInstance>,
-	val left: Instancer<TransformedInstance>,
-	val right: Instancer<TransformedInstance>,
-	val beam: Instancer<TransformedInstance>,
-	val girderSegmentTop: Instancer<TransformedInstance>,
-	val girderSegmentBottom: Instancer<TransformedInstance>,
-)

@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+
 plugins {
 	id("java-library")
 	id("maven-publish")
@@ -19,8 +20,14 @@ base {
 
 val runClientSources by sourceSets.registering {
 	configurations {
+		val optionalMod = create("runClientSourcesOptionalMod") {
+			isCanBeDeclared = true
+			isCanBeResolved = true
+			isCanBeConsumed = true
+		}
 		get(compileClasspathConfigurationName).extendsFrom(compileClasspath.get())
 		get(runtimeClasspathConfigurationName).extendsFrom(runtimeClasspath.get())
+		get(runtimeClasspathConfigurationName).extendsFrom(optionalMod)
 	}
 	tasks {
 		named(classesTaskName) { dependsOn(classes) }
@@ -157,11 +164,11 @@ repositories {
 
 dependencies {
 	fun runClientOnly(dependencyNotation: Any) =
-		add(runClientSources.get().runtimeOnlyConfigurationName, dependencyNotation)
+		add("runClientSourcesOptionalMod", dependencyNotation)
 	
 	fun optionalModDependency(dependencyNotation: Any): Dependency? {
 		val dependency = compileOnly(dependencyNotation) ?: return null
-		return add(runClientSources.get().runtimeOnlyConfigurationName, dependency)
+		return add("runClientSourcesOptionalMod", dependency)
 	}
 	
 	implementation(project(":cc-asm"))
@@ -170,19 +177,20 @@ dependencies {
 	compileOnly("thedarkcolour:kotlinforforge-neoforge:5.7.0")
 	runtimeOnly("thedarkcolour:kotlinforforge-neoforge:5.10.0")
 	
-	implementation("com.simibubi.create:create-${libs.versions.minecraft.get()}:6.0.6-98:slim") {
+	implementation("com.simibubi.create:create-${libs.versions.minecraft.get()}:6.0.8-168") {
 		isTransitive = false
 	}
 	
-	implementation("net.createmod.ponder:Ponder-NeoForge-${libs.versions.minecraft.get()}:1.0.56")
-	// compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4-27")
-	implementation("dev.engine-room.flywheel:flywheel-neoforge-${libs.versions.minecraft.get()}:1.0.4-27")
-	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+62")
+	implementation("net.createmod.ponder:Ponder-NeoForge-${libs.versions.minecraft.get()}:1.0.64")
+	// compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4")
+	implementation("dev.engine-room.flywheel:flywheel-neoforge-${libs.versions.minecraft.get()}:1.0.5")
+	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+67")
 	
 	// for mod compatibility
 	optionalModDependency("maven.modrinth:framedblocks:10.4.0")
-	optionalModDependency("maven.modrinth:copycats:3.0.2+mc.1.21.1-neoforge")
 	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_NeoForge_1.21")
+	optionalModDependency(files("./libs/copycats-3.0.2+mc.1.21.1-neoforge-build.260.jar"))
+	// optionalModDependency("com.copycatsplus:copycats:3.0.2+mc.1.21.1-neoforge-build.260")
 	
 	// optional mod dependencies
 	compileOnly("com.sk89q.worldedit:worldedit-neoforge-mc1.21:7.3.8") {
@@ -201,6 +209,12 @@ file("build/mod_output_path.txt").let { output ->
 		}
 		jar.finalizedBy(copyModJarToServer)
 	}
+}
+
+// limitation: only optionalMod is supported
+tasks.register<Copy>("modJars") {
+	from(configurations["runClientSourcesOptionalMod"])
+	into(layout.buildDirectory.file("modJars"))
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

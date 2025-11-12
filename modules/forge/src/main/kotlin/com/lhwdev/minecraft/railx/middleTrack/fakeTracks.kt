@@ -46,8 +46,11 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 	var chunkX = blocks.first().x shr 4
 	var chunkZ = blocks.first().z shr 4
 	val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
-	val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.asBoolean
-	val removePrevious = RailXConfig.Server.middleTrack.removePrevious.asBoolean
+	val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.isTrue
+	val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
+	
+	
+	var middlesPlaced = 0
 	
 	for(pos in blocks) {
 		val stateAtPos = level.getBlockState(pos)
@@ -86,20 +89,26 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 		val newChunkZ = pos.z shr 4
 		val middle = abs(newChunkX - chunkX) >= maxGap || abs(newChunkZ - chunkZ) >= maxGap
 		
+		var middlePlaced = false
 		if(placeMiddle && middle) {
 			if(middlePresent) {
-				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity ?: continue
-				if(previous.connections.none { it.bePositions == bc.bePositions })
+				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
+				if(previous != null && previous.connections.none { it.bePositions == bc.bePositions }) {
 					previous.updateConnections(previous.connections.plus<BezierConnection>(bc))
-			} else if(stateAtPos.canBeReplaced()) {
+					middlePlaced = true
+				}
+			}
+			if(!middlePlaced && stateAtPos.canBeReplaced()) {
 				level.setBlock(pos, ProperWaterloggedBlock.withWater(level, AllBlocks.MiddleTrack.defaultState, pos), 3)
 				(level.getBlockEntity(pos) as? MiddleTrackBlockEntity)?.updateConnections(listOf(bc))
-			} else {
-				continue
+				middlePlaced = true
 			}
 			
-			chunkX = newChunkX
-			chunkZ = newChunkZ
+			if(middlePlaced) {
+				chunkX = newChunkX
+				chunkZ = newChunkZ
+				middlesPlaced++
+			}
 		} else if(!fakePresent && !middlePresent && stateAtPos.canBeReplaced()) {
 			level.setBlock(pos, ProperWaterloggedBlock.withWater(level, CreateBlocks.FAKE_TRACK.defaultState, pos), 3)
 		}
@@ -111,27 +120,27 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 
 fun BezierConnection.rasterizeOrdered(): List<BlockPos> {
 	val result = mutableListOf<BlockPos>()
-	val tePosition = bePositions.getFirst()
-	val end1 = starts.getFirst()
+	val tePosition = bePositions.first
+	val end1 = starts.first
 		.subtract(Vec3.atLowerCornerOf(tePosition))
 		.add(0.0, 3.0 / 16, 0.0)
-	val end2 = starts.getSecond()
+	val end2 = starts.second
 		.subtract(Vec3.atLowerCornerOf(tePosition))
 		.add(0.0, 3.0 / 16, 0.0)
-	val axis1 = axes.getFirst()
-	val axis2 = axes.getSecond()
+	val axis1 = axes.first
+	val axis2 = axes.second
 	
-	val handleLength = getHandleLength()
+	val handleLength = handleLength
 	val finish1 = axis1.scale(handleLength)
 		.add(end1)
 	val finish2 = axis2.scale(handleLength)
 		.add(end2)
 	
-	val faceNormal1 = normals.getFirst()
-	val faceNormal2 = normals.getSecond()
+	val faceNormal1 = normals.first
+	val faceNormal2 = normals.second
 	
-	val segCount = getSegmentCount()
-	val lut = getStepLUT()
+	val segCount = segmentCount
+	val lut = stepLUT
 	val samples = ArrayList<Vec3>(segCount)
 	
 	for(i in 0..<segCount) {

@@ -1,4 +1,6 @@
-package com.lhwdev.minecraft.railx.flexiTrack
+@file:JvmName("DiscoveredLocationUtils")
+
+package com.lhwdev.minecraft.railx.common
 
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
@@ -9,11 +11,24 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
+import java.lang.invoke.MethodHandles
 
 
-fun MutableCollection<DiscoveredLocation>.addIfConnected(
+private val lookup = MethodHandles.lookup()
+
+private val CDiscoveredLocation = DiscoveredLocation::class.java
+
+private val DiscoveredLocation_normal = CDiscoveredLocation.getDeclaredField("normal")
+	.also { it.isAccessible = true }
+	.let { lookup.unreflectGetter(it) }
+
+val DiscoveredLocation.normal: Vec3
+	get() = DiscoveredLocation_normal.invokeExact(this) as Vec3
+
+
+fun <T : DiscoveredLocation> MutableCollection<T>.addIfConnected(
 	fromEnd: TrackNodeLocation?,
-	getLocation: (isFirst: Boolean) -> DiscoveredLocation,
+	getLocation: (isFirst: Boolean) -> T,
 ) {
 	val first = getLocation(true)
 	val second = getLocation(false)
@@ -23,11 +38,11 @@ fun MutableCollection<DiscoveredLocation>.addIfConnected(
 	}
 	
 	if(fromEnd != null) {
-		val skipFirst = first == fromEnd
-		val skipSecond = second == fromEnd
-		if(!skipFirst && !skipSecond) return
-		if(!skipFirst) this += first
-		if(!skipSecond) this += second
+		val equalsFirst = first == fromEnd
+		val equalsSecond = second == fromEnd
+		if(!equalsFirst && !equalsSecond) return
+		if(!equalsFirst) this += first
+		if(!equalsSecond) this += second
 	} else {
 		this += first
 		this += second
@@ -37,8 +52,18 @@ fun MutableCollection<DiscoveredLocation>.addIfConnected(
 fun MutableCollection<DiscoveredLocation>.addIfConnected(
 	fromEnd: TrackNodeLocation?,
 	getOffset: (fraction: Double, isFirst: Boolean) -> Vec3,
-	factory: (dimension: ResourceKey<Level>, vec: Vec3) -> DiscoveredLocation = ::DiscoveredLocation,
-	getLocation: DiscoveredLocationFactory.() -> DiscoveredLocation,
+	getLocation: DiscoveredLocationFactory<DiscoveredLocation>.() -> DiscoveredLocation,
+) {
+	addIfConnected(fromEnd) { isFirst ->
+		DiscoveredLocationFactory(::DiscoveredLocation, getOffset, isFirst).getLocation()
+	}
+}
+
+fun <T : DiscoveredLocation> MutableCollection<T>.addIfConnected(
+	fromEnd: TrackNodeLocation?,
+	getOffset: (fraction: Double, isFirst: Boolean) -> Vec3,
+	factory: (dimension: ResourceKey<Level>, vec: Vec3) -> T,
+	getLocation: DiscoveredLocationFactory<T>.() -> T,
 ) {
 	addIfConnected(fromEnd) { isFirst ->
 		DiscoveredLocationFactory(factory, getOffset, isFirst).getLocation()
@@ -46,8 +71,8 @@ fun MutableCollection<DiscoveredLocation>.addIfConnected(
 }
 
 
-class DiscoveredLocationFactory(
-	private val factory: (ResourceKey<Level>, Vec3) -> DiscoveredLocation = ::DiscoveredLocation,
+class DiscoveredLocationFactory<T : DiscoveredLocation>(
+	private val factory: (ResourceKey<Level>, Vec3) -> T,
 	private val getOffset: (fraction: Double, isFirst: Boolean) -> Vec3,
 	val isFirst: Boolean,
 ) {
@@ -72,12 +97,13 @@ class DiscoveredLocationFactory(
 		firstMaterial: TrackMaterial,
 		secondMaterial: TrackMaterial,
 		viaTurn: BezierConnection? = null,
-	): DiscoveredLocation = factory(dimension, offsetCenter)
-		.viaTurn(viaTurn)
-		.materials(firstMaterial, secondMaterial)
-		.withNormal(normal)
-		.withDirection(tangent)
-		.withYOffset(yOffset)
+	): T = factory(dimension, offsetCenter).apply {
+		viaTurn(viaTurn)
+		materials(firstMaterial, secondMaterial)
+		withNormal(normal)
+		withDirection(tangent)
+		withYOffset(yOffset)
+	}
 	
 	fun DiscoveredLocation(
 		level: BlockGetter,
@@ -87,7 +113,7 @@ class DiscoveredLocationFactory(
 		viaTurn: BezierConnection? = null,
 		firstMaterial: TrackMaterial = ITrackBlock.getMaterialSimple(level, offsetStart, viaTurn?.material),
 		secondMaterial: TrackMaterial = ITrackBlock.getMaterialSimple(level, offsetEnd, viaTurn?.material),
-	): DiscoveredLocation = DiscoveredLocation(
+	): T = DiscoveredLocation(
 		dimension = (level as? Level)?.dimension() ?: Level.OVERWORLD,
 		normal = normal,
 		tangent = tangent,

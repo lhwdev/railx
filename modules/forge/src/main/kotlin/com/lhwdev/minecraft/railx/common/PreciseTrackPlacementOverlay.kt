@@ -10,6 +10,7 @@ import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackPlacement
 import net.createmod.catnip.outliner.Outliner
+import net.minecraft.ChatFormatting
 import net.minecraft.client.DeltaTracker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
@@ -23,8 +24,6 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
-import net.neoforged.bus.api.SubscribeEvent
-import net.neoforged.fml.common.EventBusSubscriber
 import net.neoforged.neoforge.client.event.RenderGuiEvent
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.*
 import java.lang.invoke.MethodHandles
@@ -44,15 +43,13 @@ private val TrackPlacement_hoveringPos =
 
 
 @OnlyIn(Dist.CLIENT)
-@EventBusSubscriber(Dist.CLIENT)
 object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	var info: PreciseInfo? = null
 	
 	val infoLineCount: Int
 		get() = info?.lines?.size ?: 0
 	
-	@SubscribeEvent
-	private fun onPreRender(event: RenderGuiEvent.Pre) {
+	fun onPreRender(event: RenderGuiEvent.Pre) {
 		info = preciseInfo()
 	}
 	
@@ -61,10 +58,10 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		val player = mc.player ?: return null
 		if(mc.options.hideGui || mc.gameMode?.playerMode == GameType.SPECTATOR) return null
 		
-		fun flexiTrackPlacementInfo(handItem: TrackBlockItem) = FlexiTrackPlacementClient.lastOverlay?.let {
-			if(handItem !is FlexiTrackBlockItem) return null
-			PrecisePlacementInfo(from = it.from.toPoint(), to = it.to.toPoint(), curve = it.curve)
-		}
+		fun flexiTrackPlacementInfo(handItem: TrackBlockItem): PrecisePlacementInfo? =
+			FlexiTrackPlacementClient.lastOverlay?.let {
+				PrecisePlacementInfo(from = it.from.toPoint(), to = it.to.toPoint(), curve = it.curve)
+			}
 		
 		fun createTrackPlacementInfo(handItem: TrackBlockItem): PrecisePlacementInfo? {
 			if(handItem is FlexiTrackBlockItem) return null
@@ -97,7 +94,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 				point.tangent,
 				point.curve.getNormal(point.curve.getSegmentT(point.segmentIndex).toDouble()),
 			)
-			return PreciseTrackInfo(point.position, direction)
+			return PreciseTrackInfo(point.position, direction, curvePoint = point)
 		}
 		
 		fun trackBlockInfo(hand: InteractionHand, handItem: TrackBlockItem): PreciseTrackInfo? {
@@ -129,7 +126,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 					FlexiDirection.Two(tangent.first.normalize(), track.getUpNormal(level, pos, state).normalize())
 						.optimize()
 				},
-				virtual,
+				virtual = virtual,
 			)
 		}
 		val (hand, handItem) = InteractionHand.entries.map { it to player.getItemInHand(it) }
@@ -202,13 +199,40 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		}
 	}
 	
-	class PreciseTrackInfo(val pos: Vec3, val direction: FlexiDirection, val virtual: Boolean = false) : PreciseInfo() {
+	class PreciseTrackInfo(
+		val pos: Vec3,
+		val direction: FlexiDirection,
+		val curvePoint: TrackBezierPointSelection? = null,
+		virtual: Boolean = false,
+	) : PreciseInfo() {
 		override val targetTrack = TrackPoint(pos, direction.tangent)
 		
-		private val line = Component.empty()
+		override val lines = mutableListOf<Component>()
 		
 		init {
-			line.append("Axis = ${displayPoint(direction)}")
+			lines += Component.literal("Axis = ${displayPoint(direction)}")
+			
+			if(curvePoint != null) {
+				val line = Component.empty()
+				val curve = curvePoint.curve
+				val delta = curve.bePositions.second - curve.bePositions.first
+				
+				line.append(Component.literal("This Curve: ").withStyle(ChatFormatting.WHITE))
+				line.append("Axis = ${displayPoint(direction(curve.axes.first, curve.normals.first))}")
+					.append(" -> ${displayPoint(direction(curve.axes.second, curve.normals.second))}")
+				line.append(", Delta = ${with(delta) { "[$x, $y, $z]" }}")
+				line.append(", R = ${minRadius(curve)}")
+				if(delta.y != 0) line.append(", Grad = ${delta.toVec3().gradient()}")
+				lines += line.withStyle(ChatFormatting.AQUA)
+				
+				val onStraightLine = curve.axes.second.cross(delta.toVec3()).length() < 0.001
+				if(!onStraightLine) {
+					val line2 = Component.empty()
+					line2.append("End Radius = ${radiusAt(curve, offset = 0.0)}")
+						.append(" -> ${radiusAt(curve, offset = 1.0)}")
+					lines += line2.withStyle(ChatFormatting.AQUA)
+				}
+			}
 			
 			if(virtual) {
 				val center = pos.add(0.0, 1.0 / 16.0, 0.0)
@@ -220,8 +244,6 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 					.lineWidth(1 / 8f)
 			}
 		}
-		
-		override val lines = listOf(line)
 	}
 	
 	

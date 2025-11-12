@@ -4,17 +4,19 @@
   "package": "com.lhwdev.minecraft.railx.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "railx.refmap.json",
+  "plugin": "com.lhwdev.minecraft.railx.mixin.MixinPlugin",
   "mixins": [
+    "TrackGraphVisualizerMixin",
     "ccAdvanced.CarriageMixin",
     "common.BezierConnectionMixin",
     "common.TrackPlacementOverlayMixin",
+    "common.TrackTargetingBlockItemMixin",
+    "common.VirtualRenderWorldMixin",
     "flexiTrack.BezierConnectionMixin",
     "flexiTrack.BlockAccessor",
     "flexiTrack.BlueprintOverlayRendererMixin",
     "flexiTrack.GameDataMixin",
-    "flexiTrack.ITrackBlockMixin",
     "flexiTrack.PlacementInfoAccessor",
-    "flexiTrack.TrackBlockEntityAccessor",
     "flexiTrack.TrackBlockItemMixin",
     "flexiTrack.TrackBlockOutlineMixin",
     "flexiTrack.TrackPlacementMixin",
@@ -23,18 +25,41 @@
     "flywheel.VisualizationManagerImplMixin",
     "middleTrack.TrackBlockEntityMixin",
     "middleTrack.TrackBlockOutlineMixin",
+    "middleTrack.TrackTargetingClientMixin",
     "other.ScrollValueRendererMixin",
     "other.VecHelperFixMixin",
     "realisticSpeed.BlockBuilderMixin",
     "realisticSpeed.ContraptionMixin",
     "realisticSpeed.PropertiesMixin",
     "realisticSpeed.TrainHUDMixin",
-    "realisticSpeed.TrainMixin"
+    "realisticSpeed.TrainMixin",
+    "splitGraph.CarriageBogeyMixin",
+    "splitGraph.CarriageContraptionEntityMixin",
+    "splitGraph.CarriageSyncDataMixin",
+    "splitGraph.DestinationInstructionMixin",
+    "splitGraph.EdgeDataMixin",
+    "splitGraph.NavigationMixin",
+    "splitGraph.RailwaySavedDataMixin",
+    "splitGraph.ScheduleRuntimeMixin",
+    "splitGraph.SignalBoundaryMixin",
+    "splitGraph.SignalPropagatorMixin",
+    "splitGraph.TrackGraphHelperMixin",
+    "splitGraph.TrackGraphMixin",
+    "splitGraph.TrackGraphSyncMixin",
+    "splitGraph.TrackGraphSyncPacketMixin",
+    "splitGraph.TrackPropagatorMixin",
+    "splitGraph.TrainMigrationMixin",
+    "splitGraph.TrainMixin",
+    "splitGraph.TrainRelocatorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "middleTrack.LevelRendererMixin"
-  ]
+    "middleTrack.LevelRendererMixin",
+    "trainMap.GuiMapMixin"
+  ],
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  }
 }

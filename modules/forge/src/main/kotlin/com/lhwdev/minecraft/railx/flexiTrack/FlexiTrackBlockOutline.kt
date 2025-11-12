@@ -12,7 +12,6 @@ import kotlin.math.sqrt
 
 object FlexiTrackBlockOutline {
 	fun drawCustomBlockSelection(event: RenderHighlightEvent.Block): Boolean {
-		if(true) return true
 		val mc = Minecraft.getInstance()
 		val level = mc.level!!
 		val target = event.target

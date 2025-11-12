@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.utils.CompactBezierConnection
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.FakeTrackBlockEntity
@@ -24,6 +25,7 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	private var pendingConnections: List<BezierConnection>? = null
 	
 	fun updateConnections(value: List<BezierConnection>) {
+		check(value.all { it.primary }) { "given value is not primary" }
 		val level = level
 		if(level == null || level.getBlockEntity(blockPos) !is MiddleTrackBlockEntity) {
 			pendingConnections = value
@@ -38,9 +40,7 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 		
 		notifyUpdate()
 		
-		if(level.isClientSide) {
-			GlobalConnections[level].updateMiddle(this, value)
-		}
+		GlobalConnections[level].updateMiddle(this, value)
 		connections = value
 	}
 	
@@ -55,6 +55,11 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	
 	override fun onLoad() {
 		super.onLoad()
+		
+		if(connections.isEmpty() || RailXConfig.Server.middleTrack.removePrevious.isTrue) {
+			level!!.destroyBlock(blockPos, false)
+			return
+		}
 		
 		pendingConnections?.let {
 			pendingConnections = null

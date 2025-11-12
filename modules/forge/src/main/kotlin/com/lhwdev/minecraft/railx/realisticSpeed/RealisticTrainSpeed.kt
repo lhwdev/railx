@@ -34,7 +34,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	// NOTE: handleApproachTargetSpeed is called prior to handleTickSpeed
 	//       as, in create:CommonEvents.onServerWorldTick, ControlsServerHandler.tick() then Create.RAILWAYS.tick().
 	fun handleApproachTargetSpeed(@Suppress("unused") accelerationMod: Float): Boolean {
-		if(!config.enabled.asBoolean) return false
+		if(!config.enabled.isTrue) return false
 		
 		currentSpeed = train.speed
 		handleTargetSpeed()
@@ -59,7 +59,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	fun handleTickSpeed(): Boolean {
-		if(!config.enabled.asBoolean) return false
+		if(!config.enabled.isTrue) return false
 		
 		currentSpeed = train.speed
 		// if(train.navigation.destination != null) {
@@ -92,13 +92,12 @@ class RealisticTrainSpeed(private val train: Train) {
 		val props = tag.getByteArray("Props")
 		if(props.isNotEmpty()) {
 			p = TrainProps.read(DataInputStream(ByteArrayInputStream(props)))
-			p?.let { p -> debug("read p=${p.carriageMass.contentToString()} ${p.rollingFactor} ${p.rolling2Factor}") }
 		}
 		if("Power" in tag) powerAmount = tag.getDouble("Power")
 	}
 	
 	fun write(): CompoundTag? {
-		if(config.removePrevious.asBoolean) return null
+		if(config.removePrevious.isTrue) return null
 		val tag = CompoundTag()
 		p?.let { p ->
 			tag.putByteArray("Props", ByteArrayOutputStream().also { p.write(DataOutputStream(it)) }.toByteArray())
@@ -272,7 +271,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		val carriages = train.carriages
 		if(!carriages.all { it.anyAvailableEntity() != null }) return null
 		
-		val preciseMass = config.preciseMass.asBoolean
+		val preciseMass = config.preciseMass.isTrue
 		
 		var netMass = 0
 		val carriageMass = IntArray(carriages.size)
@@ -293,8 +292,8 @@ class RealisticTrainSpeed(private val train: Train) {
 			val blocks = contraption.blocks
 			if(blocks.isEmpty()) continue
 			
-			if(preciseMass) contraption.loadBlockEntities(entity.level())
 			val contraptionLevel = ContraptionLevelReader(entity.level(), contraption)
+			if(preciseMass) contraptionLevel.blockEntities.load()
 			
 			val mass = if(preciseMass) {
 				val cache = Object2DoubleOpenHashMap<Any>()
@@ -474,7 +473,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		if(factor == 0.0) return
 		
 		var brake = this.brake
-		if(config.automaticBrakeAtStation.asBoolean && train.currentStation != null && approachAcceleration == 0.0) {
+		if(config.automaticBrakeAtStation.isTrue && train.currentStation != null && approachAcceleration == 0.0) {
 			brake = max(brake, 1.0)
 		}
 		netWheelSlowdown += brake * factor
@@ -513,7 +512,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		// TODO: tunnel
 		val p = p ?: return
-		if(!config.airResistance.asBoolean) return
+		if(!config.airResistance.isTrue) return
 		
 		// TODO: is speed > 0 means carriage[0] is taking forward? I don't think so
 		val factor = if(speed > 0) p.headAirResistanceFactor else p.tailAirResistanceFactor
@@ -528,7 +527,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	private fun handleSlip() {
 		// slips are not generally happen, but they might happen where gradient is too large
-		if(!config.slipEnabled.asBoolean) {
+		if(!config.slipEnabled.isTrue) {
 			slipAmount = 0.0
 			return
 		}

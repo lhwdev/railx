@@ -14,6 +14,7 @@ object AllTags {
 	
 	object Features {
 		val FlexiTrack = feature("flexi_track")
+		val SplitGraph = feature("split_graph")
 		
 		private fun feature(name: String) = commonTag("feature.$name")
 	}

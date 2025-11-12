@@ -1,9 +1,12 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
+import com.lhwdev.minecraft.railx.other.toTrackEdge
+import com.lhwdev.minecraft.railx.utils.closeTo
 import com.simibubi.create.content.trains.track.BezierConnection
 import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.LevelAccessor
+import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import thedarkcolour.kotlinforforge.neoforge.forge.DIST
 
@@ -28,12 +31,34 @@ class ConnectionMiddleState(
 			true
 		}
 	
+	val allMiddles: Set<BlockPos>
+		get() = value
+	
 	
 	fun addMiddle(middle: BlockPos) {
 		value += middle
+		if(value.size == 1 && !level.isClientSide && !isValid()) {
+			level.destroyBlock(middle, false)
+		}
 	}
 	
 	fun removeMiddle(middle: BlockPos) {
 		value -= middle
 	}
+	
+	fun isValid(): Boolean {
+		// maybe curve was removed; check the curve is still there, by TrackGraph
+		val edge = curve.toTrackEdge(level)?.edge
+		return edge != null && curve.isSameCurve(edge.turn)
+	}
 }
+
+private fun BezierConnection.isSameCurve(other: BezierConnection): Boolean =
+	material == other.material &&
+		coupleEquals(starts, other.starts) &&
+		coupleEquals(axes, other.axes) &&
+		coupleEquals(normals, other.normals)
+
+private fun coupleEquals(a: Couple<Vec3>, b: Couple<Vec3>): Boolean =
+	a.first closeTo b.first &&
+		a.second closeTo b.second

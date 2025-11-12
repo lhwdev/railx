@@ -2,6 +2,8 @@
 
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.flexiTrack.rotate.direction
+import com.lhwdev.minecraft.railx.flexiTrack.rotate.rotationValue
 import com.lhwdev.minecraft.railx.utils.similarTo
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList
 import it.unimi.dsi.fastutil.doubles.DoubleList
@@ -27,14 +29,6 @@ import kotlin.math.max
 import kotlin.math.min
 
 
-val VoxelCenter = Vec3(8.0, 8.0, 8.0)
-
-
-private fun Vec3.normalAsRotation(): Quaterniond = Quaterniond()
-	.rotationZ(Mth.atan2(y, x))
-	.rotateY(Mth.atan2(z, x))
-	.rotateX(Mth.atan2(z, y))
-
 object FlexiTrackVoxelShapes {
 	val collision = Block.box(0.0, 0.0, 0.0, 16.0, 2.0, 16.0)
 	
@@ -55,56 +49,30 @@ object FlexiTrackVoxelShapes {
 	}
 	
 	fun of(shape: FlexiShape, cache: List<FlexiState.AxisCache>? = null): VoxelShape =
-		shape.axes.foldIndexed(Shapes.empty()) { index, acc, axis ->
-			Shapes.or(acc, of(axis, cache = cache?.get(index)))
-		}
+		of(shape.axis1, cache?.get(0))
+	// shape.axes.foldIndexed(Shapes.empty()) { index, acc, axis ->
+	// 	Shapes.or(acc, of(axis, cache = cache?.get(index)))
+	// }
 	
 	fun of(state: FlexiState): VoxelShape =
 		of(state.shape, cache = state.shapeCache)
 	
 	private fun createKnown(direction: FlexiDirection.Known): VoxelShape {
-		var result = Shapes.empty()
-		val rotation = direction.angle
-		
-		base.forAllBoxes { x1, y1, z1, x2, y2, z2 ->
-			var v1 = Vec3(x1, y1, z1).scale(16.0)
-				.subtract(VoxelCenter)
-			var v2 = Vec3(x2, y2, z2).scale(16.0)
-				.subtract(VoxelCenter)
-			
-			v1 = v1.yRot(rotation.toFloat()).add(VoxelCenter)
-			v2 = v2.yRot(rotation.toFloat()).add(VoxelCenter)
-			
-			val rotated = blockBox(v1, v2)
-			result = Shapes.or(result, rotated)
-		}
-		
-		return result
+		val rotation = Quaterniond().rotationY(direction.direction)
+		val info = FlatTrackVoxelInfo(rotation)
+		return FlatTrackVoxelShape(DiscreteTrackVoxelShape(info))
 	}
 	
 	
-	fun createShape(direction: FlexiDirection, cache: FlexiState.AxisCache? = null): VoxelShape =
-		rotatedCopy(base, cache?.rotationValueDouble ?: direction.normal.normalAsRotation())
-	
-	private fun rotatedCopy(shape: VoxelShape, rotation: Quaterniond): VoxelShape {
-		if(rotation == Vec3.ZERO) return shape
-		
-		var result = Shapes.empty()
-		
-		shape.forAllBoxes { x1, y1, z1, x2, y2, z2 ->
-			var v1 = Vec3(x1, y1, z1).scale(16.0)
-				.subtract(VoxelCenter)
-			var v2 = Vec3(x2, y2, z2).scale(16.0)
-				.subtract(VoxelCenter)
-			
-			v1 = rotation.transform(v1.toVector3d()).toVec3().add(VoxelCenter)
-			v2 = rotation.transform(v2.toVector3d()).toVec3().add(VoxelCenter)
-			
-			val rotated = blockBox(v1, v2)
-			result = Shapes.or(result, rotated)
+	fun createShape(direction: FlexiDirection, cache: FlexiState.AxisCache? = null): VoxelShape {
+		val rotation = cache?.rotationValueDouble ?: direction.rotationValue()
+		return if(direction is FlexiDirection.Flat) {
+			val info = FlatTrackVoxelInfo(rotation)
+			FlatTrackVoxelShape(DiscreteTrackVoxelShape(info))
+		} else {
+			val info = TrackVoxelInfo(rotation)
+			TrackVoxelShape(DiscreteTrackVoxelShape(info))
 		}
-		
-		return result
 	}
 	
 	private fun blockBox(v1: Vec3, v2: Vec3): VoxelShape = Block.box(
@@ -120,7 +88,10 @@ object FlexiTrackVoxelShapes {
 
 private const val Step = 0.125
 
-private val Center = Vector3d(0.5, 0.125, 0.5)
+private const val CenterX = 0.5
+private const val CenterY = 0.125
+private const val CenterZ = 0.5
+private val Center = Vector3d(CenterX, CenterY, CenterZ)
 
 // private val BoxCentered = AABB(-0.5, -0.125, -1.375, 0.5, 0.125, 1.375)
 private const val WidthX = 0.5 // half size
@@ -148,45 +119,47 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 	)
 	
 	
-	val range: AABB
 	val bound: TrackVoxelBound
 	protected val lookup: BitSet
 	
 	init {
-		val range = Vector3d(dx).add(dy).add(dz).toVec3().let { AABB(it, -it) }
-		Vector3d(dy).sub(dx).add(dz).let {
-			range.growToInclude(it)
-			range.growToInclude(-it)
-		}
-		Vector3d(dx).sub(dy).add(dz).let {
-			range.growToInclude(it)
-			range.growToInclude(-it)
-		}
-		Vector3d(dx).add(dy).sub(dz).let {
-			range.growToInclude(it)
-			range.growToInclude(-it)
-		}
+		val dxScaled = Vector3d(dx).mul(WidthX)
+		val dyScaled = Vector3d(dy).mul(WidthY)
+		val dzScaled = Vector3d(dz).mul(WidthZ)
+		val buffer = Vector3d()
+		var range = buffer.set(dxScaled).add(dyScaled).add(dzScaled).toVec3().let { AABB(it, -it) }
+		buffer.set(dyScaled).sub(dxScaled).add(dzScaled)
+		range = range.growToInclude(buffer)
+		range = range.growToInclude(buffer.mul(-1.0))
+		buffer.set(dxScaled).sub(dyScaled).add(dzScaled)
+		range = range.growToInclude(buffer)
+		range = range.growToInclude(buffer.mul(-1.0))
+		buffer.set(dxScaled).add(dyScaled).sub(dzScaled)
+		range = range.growToInclude(buffer)
+		range = range.growToInclude(buffer.mul(-1.0))
 		
-		val bound = createBound(range)
+		
+		val rangeOffset = range.move(CenterX, CenterY, CenterZ)
+		val bound = createBound(rangeOffset)
 		val lookup = BitSet(bound.sizeX * bound.sizeY * bound.sizeZ)
-		val currentPos = Vector3d()
+		val currentPos = buffer
 		for(y in 0..<bound.sizeY) {
 			for(z in 0..<bound.sizeZ) {
 				for(x in 0..<bound.sizeX) {
 					val index = x + (z + y * bound.sizeY) * bound.sizeX // ... which just increases by 1
 					currentPos.set(
-						(x + bound.minX + 0.5) * Step,
-						(y + bound.minY + 0.5) * Step,
-						(z + bound.minZ + 0.5) * Step,
+						(x + bound.minX + 0.5) * Step - CenterX,
+						(y + bound.minY + 0.5) * Step - CenterY,
+						(z + bound.minZ + 0.5) * Step - CenterZ,
 					)
 					lookup[index] = isInsideBoxCentered(currentPos)
 				}
 			}
 		}
 		
-		this.range = range
 		this.bound = bound
 		this.lookup = lookup
+		if(true);
 	}
 	
 	
@@ -197,8 +170,8 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 		// if(range.clip(from, to)) // AABB.clip is not that faster than this... I think; need some benchmark? maybe?
 		
 		val offset = pos.toVector3d() + Center
-		val from = from.toVector3d().sub(offset)
 		val delta = to.toVector3d().sub(from.x, from.y, from.z)
+		val from = from.toVector3d().sub(offset)
 		
 		if(isInsideBoxCentered(from)) {
 			return BlockHitResult(
@@ -209,6 +182,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			)
 		}
 		
+		val buffer = Vector3d()
 		var bestT = Double.POSITIVE_INFINITY
 		var bestNormal = dx
 		var bestNormalSign = 1
@@ -220,7 +194,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			// 1. on -x face
 			var t = (-WidthX - fromOnX) / deltaOnX
 			if(t < bestT && t in 0.0..1.0) {
-				val pos = Vector3d(delta).mul(t).add(from)
+				val pos = buffer.set(delta).mul(t).add(from)
 				if(abs(pos.dot(dy)) <= WidthY && abs(pos.dot(dz)) <= WidthZ) {
 					bestT = t
 					bestNormal = dx
@@ -231,7 +205,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			// 2. on +x face
 			t = (WidthX - fromOnX) / deltaOnX
 			if(t < bestT && t in 0.0..1.0) {
-				val pos = Vector3d(delta).mul(t).add(from)
+				val pos = buffer.set(delta).mul(t).add(from)
 				if(abs(pos.dot(dy)) <= WidthY && abs(pos.dot(dz)) <= WidthZ) {
 					bestT = t
 					bestNormal = dx
@@ -247,7 +221,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			// 3. on -y face
 			var t = (-WidthY - fromOnY) / deltaOnY
 			if(t < bestT && t in 0.0..1.0) {
-				val pos = Vector3d(delta).mul(t).add(from)
+				val pos = buffer.set(delta).mul(t).add(from)
 				if(abs(pos.dot(dx)) <= WidthX && abs(pos.dot(dz)) <= WidthZ) {
 					bestT = t
 					bestNormal = dy
@@ -258,7 +232,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			// 4. on +y face
 			t = (WidthY - fromOnY) / deltaOnY
 			if(t < bestT && t in 0.0..1.0) {
-				val pos = Vector3d(delta).mul(t).add(from)
+				val pos = buffer.set(delta).mul(t).add(from)
 				if(abs(pos.dot(dx)) <= WidthX && abs(pos.dot(dz)) <= WidthZ) {
 					bestT = t
 					bestNormal = dy
@@ -273,7 +247,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			// 5. on -z face
 			var t = (-WidthZ - fromOnZ) / deltaOnZ
 			if(t < bestT && t in 0.0..1.0) {
-				val pos = Vector3d(delta).mul(t).add(from)
+				val pos = buffer.set(delta).mul(t).add(from)
 				if(abs(pos.dot(dx)) <= WidthX && abs(pos.dot(dy)) <= WidthY) {
 					bestT = t
 					bestNormal = dz
@@ -284,7 +258,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			// 6. on +z face
 			t = (WidthZ - fromOnZ) / deltaOnZ
 			if(t < bestT && t in 0.0..1.0) {
-				val pos = Vector3d(delta).mul(t).add(from)
+				val pos = buffer.set(delta).mul(t).add(from)
 				if(abs(pos.dot(dx)) <= WidthX && abs(pos.dot(dy)) <= WidthY) {
 					bestT = t
 					bestNormal = dz
@@ -297,13 +271,24 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 			null
 		} else {
 			val location = delta.mul(bestT).add(from).add(offset) // << mutation
-			val normal = Vector3d(bestNormal).mul(bestNormalSign.toDouble())
+			val normal = buffer.set(bestNormal).mul(bestNormalSign.toDouble())
 			BlockHitResult(
 				location.toVec3(),
 				Direction.getNearest(normal.x, normal.y, normal.z),
 				pos,
 				false
 			)
+		}
+	}
+	
+	fun dumpLookupToString(): String = buildString {
+		val y = (bound.minY + bound.maxY - 1) / 2
+		for(x in 0..<bound.sizeX) {
+			for(z in 0..<bound.sizeZ) {
+				val data = lookup(x, y, z)
+				append(if(data) '1' else '0')
+			}
+			append('\n')
 		}
 	}
 }
@@ -339,26 +324,15 @@ private class TrackVoxelBound(
 		x + (z + y * sizeY) * sizeX
 }
 
+private class VoxelRange(val min: Int, override val size: Int) : AbstractDoubleList() {
+	override fun getDouble(index: Int): Double = (min + index) * Step
+}
+
 private class TrackVoxelShape(shape: DiscreteTrackVoxelShape) : VoxelShape(shape) {
-	private object YRange : AbstractDoubleList() {
-		override val size: Int
-			get() = 2
-		
-		override fun getDouble(index: Int): Double = when(index) {
-			0 -> 0.0
-			1 -> WidthY * 2
-			else -> throw NoWhenBranchMatchedException()
-		}
-	}
-	
-	private class Range(val min: Int, override val size: Int) : AbstractDoubleList() {
-		override fun getDouble(index: Int): Double = (min + index) * Step
-	}
-	
 	private val info = shape.info
-	private val listX = Range(info.bound.minX, info.bound.sizeX + 1)
-	private val listY = YRange
-	private val listZ = Range(info.bound.minZ, info.bound.sizeZ + 1)
+	private val listX = VoxelRange(info.bound.minX, info.bound.sizeX + 1)
+	private val listY = VoxelRange(info.bound.minY, info.bound.sizeY + 1)
+	private val listZ = VoxelRange(info.bound.minZ, info.bound.sizeZ + 1)
 	
 	override fun getCoords(axis: Direction.Axis): DoubleList = when(axis) {
 		Direction.Axis.X -> listX
@@ -371,14 +345,21 @@ private class TrackVoxelShape(shape: DiscreteTrackVoxelShape) : VoxelShape(shape
 }
 
 private class FlatTrackVoxelShape(shape: DiscreteTrackVoxelShape) : VoxelShape(shape) {
-	private class Range(val min: Int, override val size: Int) : AbstractDoubleList() {
-		override fun getDouble(index: Int): Double = (min + index) * Step
+	private object YRange : AbstractDoubleList() {
+		override val size: Int
+			get() = 2
+		
+		override fun getDouble(index: Int): Double = when(index) {
+			0 -> 0.0
+			1 -> WidthY * 2
+			else -> throw NoWhenBranchMatchedException()
+		}
 	}
 	
 	private val info = shape.info
-	private val listX = Range(info.bound.minX, info.bound.sizeX)
-	private val listY = Range(info.bound.minY, info.bound.sizeY)
-	private val listZ = Range(info.bound.minZ, info.bound.sizeZ)
+	private val listX = VoxelRange(info.bound.minX, info.bound.sizeX + 1)
+	private val listY = YRange
+	private val listZ = VoxelRange(info.bound.minZ, info.bound.sizeZ + 1)
 	
 	override fun getCoords(axis: Direction.Axis): DoubleList = when(axis) {
 		Direction.Axis.X -> listX
@@ -400,9 +381,9 @@ private class DiscreteTrackVoxelShape(val info: TrackVoxelInfo) :
 	override fun firstFull(axis: Direction.Axis): Int = 0
 	
 	override fun lastFull(axis: Direction.Axis): Int = when(axis) {
-		Direction.Axis.X -> info.bound.sizeX - 1
-		Direction.Axis.Y -> info.bound.sizeY - 1
-		Direction.Axis.Z -> info.bound.sizeZ - 1
+		Direction.Axis.X -> info.bound.sizeX
+		Direction.Axis.Y -> info.bound.sizeY
+		Direction.Axis.Z -> info.bound.sizeZ
 	}
 }
 
@@ -413,5 +394,5 @@ private fun AABB.growToInclude(vec: Vector3d): AABB = AABB(
 	min(minZ, vec.z),
 	max(maxX, vec.x),
 	max(maxY, vec.y),
-	max(maxZ, vec.x),
+	max(maxZ, vec.z),
 )

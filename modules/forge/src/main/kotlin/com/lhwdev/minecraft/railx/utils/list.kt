@@ -15,6 +15,10 @@ inline fun <reified T> List<*>.asAllInstanceOf(): List<T>? =
 	@Suppress("UNCHECKED_CAST")
 	if(this.all { it is T }) this as List<T> else null
 
+fun <T> Array<T?>.asNoNulls(): Array<T>? =
+	@Suppress("UNCHECKED_CAST")
+	if(this.all { it != null }) this as Array<T> else null
+
 fun <T> MutableList<T>.indexOfOrPut(value: T): Int {
 	val index = indexOf(value)
 	return if(index == -1) {

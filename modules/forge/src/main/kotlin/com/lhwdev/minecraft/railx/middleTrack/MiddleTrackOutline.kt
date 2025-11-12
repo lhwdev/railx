@@ -1,16 +1,16 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
-import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.TrackBezierPointSelection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVoxelShapes
-import com.lhwdev.minecraft.railx.utils.getOrDefault
+import com.lhwdev.minecraft.railx.common.primaryPositions
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.AllTags
 import com.simibubi.create.content.trains.track.BezierConnection
+import com.simibubi.create.content.trains.track.BezierTrackPointLocation
 import com.simibubi.create.content.trains.track.TrackBlockOutline
 import com.simibubi.create.content.trains.track.TrackRenderer
 import com.simibubi.create.foundation.utility.RaycastHelper
 import dev.engine_room.flywheel.lib.transform.TransformStack
+import io.netty.buffer.ByteBuf
 import net.createmod.catnip.animation.AnimationTickHolder
 import net.createmod.catnip.math.AngleHelper
 import net.createmod.catnip.math.VecHelper
@@ -20,13 +20,21 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.codec.StreamCodec
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.GameType
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.api.distmarker.OnlyIn
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
+import kotlin.math.PI
 import kotlin.math.min
+import com.simibubi.create.AllShapes as CreateShapes
+import com.simibubi.create.AllTags as CreateTags
 
 
 class MiddleBezierPointSelection(
@@ -35,19 +43,42 @@ class MiddleBezierPointSelection(
 	override val position: Vec3,
 	override val angles: Vec3,
 	override val tangent: Vec3,
-) : TrackBezierPointSelection
+	
+	val bezierSource: MiddleBezierSource,
+) : TrackBezierPointSelection {
+	val fromPos: BlockPos
+		get() = curve.bePositions.first
+	val toPos: BlockPos
+		get() = curve.bePositions.second
+	
+	fun toCreateTrackPointLocation(): BezierTrackPointLocation =
+		BezierTrackPointLocation(toPos, segmentIndex)
+}
 
+class MiddleBezierSource(val middlePos: BlockPos, val index: Int) {
+	companion object {
+		val STREAM_CODEC: StreamCodec<ByteBuf, MiddleBezierSource> = StreamCodec.composite(
+			BlockPos.STREAM_CODEC, MiddleBezierSource::middlePos,
+			ByteBufCodecs.VAR_INT, MiddleBezierSource::index,
+			::MiddleBezierSource,
+		)
+	}
+	
+	fun resolveCurve(level: BlockGetter): BezierConnection? =
+		(level.getBlockEntity(middlePos) as? MiddleTrackLikeBlockEntity)?.let { it.connectionValues[index] }
+}
+
+
+@OnlyIn(Dist.CLIENT)
 object MiddleTrackOutline {
 	var result: MiddleBezierPointSelection? = null
 	
 	
-	// NOTE: Most client behaviors are not implemented for out-of-chunk curves
-	// - not supported: TrackTargetingClient, CurvedTrackInteraction
 	fun pickCurves() {
-		if(
-			RailXConfig.Server.middleTrack.enabled.getOrDefault(false) ||
-			!RailXConfig.Server.middleTrack.enableInteraction.getOrDefault(false)
-		) return
+		result = null
+		if(!MiddleTrackInteraction.enabled) return
+		
+		if(TrackBlockOutline.result != null) return
 		
 		val mc = Minecraft.getInstance()
 		val player = mc.cameraEntity as? LocalPlayer ?: return
@@ -62,18 +93,19 @@ object MiddleTrackOutline {
 		val target = RaycastHelper.getTraceTarget(player, min(maxRange, range) + 1, origin)
 		val connections = GlobalConnections[level]
 		
+		val segmentBounds = CreateShapes.TRACK_ORTHO[Direction.SOUTH].bounds()
+			.let { it.move(-.5, it.ysize / -2, -.5) }
+		
 		for(connection in connections) {
 			if(!connection.isActive) continue
 			val bc = connection.curve
 			if(!bc.isPrimary) continue
 			
-			val bounds = bc.getBounds()
+			val bounds = bc.bounds
 			if(!bounds.contains(origin) && bounds.clip(origin, target).isEmpty) continue
 			
-			val stepLUT = bc.getStepLUT()
+			val stepLUT = bc.stepLUT
 			val segments = (bc.getLength() * 2).toInt()
-			var segmentBounds = FlexiTrackVoxelShapes.base.bounds()
-			segmentBounds = segmentBounds.move(-.5, segmentBounds.ysize / -2, -.5)
 			
 			var bestSegment = -1
 			var bestDistance = Double.MAX_VALUE
@@ -84,8 +116,8 @@ object MiddleTrackOutline {
 				val t1 = stepLUT[i + 1] * (i + 1) / segments
 				val t2 = stepLUT[i + 2] * (i + 2) / segments
 				
-				val v1: Vec3 = bc.getPosition(t.toDouble())
-				val v2: Vec3 = bc.getPosition(t2.toDouble())
+				val v1 = bc.getPosition(t.toDouble())
+				val v2 = bc.getPosition(t2.toDouble())
 				val diff = v2.subtract(v1)
 				val angles = TrackRenderer.getModelAngles(bc.getNormal(t1.toDouble()), diff)
 				
@@ -112,12 +144,18 @@ object MiddleTrackOutline {
 				newMaxRange = distanceToSqr
 				bestDistance = clip.get().distanceToSqr(0.0, 0.25, 0.0)
 				
+				val middlePos = connection.allMiddles.minBy { it.distToCenterSqr(player.position()) }
+				val middle = level.getBlockEntity(middlePos) as? MiddleTrackLikeBlockEntity ?: continue
 				result = MiddleBezierPointSelection(
 					curve = bc,
 					segmentIndex = i,
 					position = anchor,
 					angles = angles,
-					tangent = diff.normalize()
+					tangent = diff.normalize(),
+					bezierSource = MiddleBezierSource(
+						middlePos = middlePos,
+						index = middle.connectionValues.indexOfFirst { it.primaryPositions == bc.bePositions },
+					),
 				)
 			}
 			
@@ -144,11 +182,11 @@ object MiddleTrackOutline {
 		TransformStack.of(ms)
 			.pushPose()
 			.translate(vec.x, vec.y + .125f, vec.z)
-			.rotateY(angles.y.toFloat())
+			.rotateY(angles.y.toFloat() + (PI * 0.5).toFloat())
 			.rotateX(angles.x.toFloat())
 			.translate(-.5, -.125, -.5)
 		
-		val holdingTrack = AllTags.AllBlockTags.TRACKS.matches(Minecraft.getInstance().player!!.mainHandItem)
+		val holdingTrack = CreateTags.AllBlockTags.TRACKS.matches(Minecraft.getInstance().player!!.mainHandItem)
 		TrackBlockOutline.renderShape(FlexiTrackVoxelShapes.base, ms, vb, if(holdingTrack) false else null)
 		
 		ms.popPose()

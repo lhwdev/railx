@@ -39,6 +39,8 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	val block: FlexiTrackBlock
 		get() = blockState.block
 	
+	var willCancelDrop: Boolean = false
+	
 	override fun getBlockState(): FlexiBlockState =
 		super.getBlockState() as FlexiBlockState
 	
@@ -128,6 +130,23 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	override fun removeConnection(target: BlockPos) {
 		if(state.tilt != null) tilt.captureSmoothingHandles()
 		super.removeConnection(target)
+		val removed = connections.remove(target)
+		notifyUpdate()
+		
+		if(removed != null) manageFakeTracksAlong(removed, true)
+		
+		if(connections.isNotEmpty()) return
+	}
+	
+	override fun removeInboundConnections(dropAndDiscard: Boolean) {
+		val level = level!!
+		for(bezierConnection in connections.values) {
+			val tbe = level.getBlockEntity(bezierConnection.key) as? TrackBlockEntity ?: return
+			tbe.removeConnection(bezierConnection.bePositions.first)
+			if(!dropAndDiscard) continue
+			if(!willCancelDrop) bezierConnection.spawnItems(level)
+			bezierConnection.spawnDestroyParticles(level)
+		}
 	}
 	
 	override fun write(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {

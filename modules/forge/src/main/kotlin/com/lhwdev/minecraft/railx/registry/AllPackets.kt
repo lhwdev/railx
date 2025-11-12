@@ -2,6 +2,9 @@ package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.ObserverEditPacket
+import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
+import com.lhwdev.minecraft.railx.splitGraph.SplittingTrackNodeUpdatedPacket
+import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdPacket
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.createmod.catnip.net.base.CatnipPacketRegistry
 import net.minecraft.network.RegistryFriendlyByteBuf
@@ -9,20 +12,29 @@ import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
 
-enum class AllPackets(val base: RailXPacket<*>) : BasePacketPayload.PacketTypeProvider {
+enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTypeProvider {
 	/// client -> server
-	ObserverEdit(ObserverEditPacket);
+	ObserverEdit(ObserverEditPacket),
+	
+	CurvedMiddleTrackSelection(CurvedMiddleTrackSelectionPacket),
+	
+	TrackGraphConnectedId(TrackGraphConnectedIdPacket),
+	SplittingTrackNodeUpdated(SplittingTrackNodeUpdatedPacket),
+	;
 	
 	
 	override fun <T : CustomPacketPayload> getType(): CustomPacketPayload.Type<T> =
 		@Suppress("UNCHECKED_CAST")
-		(base.type.type as CustomPacketPayload.Type<T>)
+		(base.type as CustomPacketPayload.Type<T>)
 	
 	companion object {
 		fun register() {
 			val registry = CatnipPacketRegistry(RailX.Id, 1)
 			for(packet in entries) {
-				registry.registerPacket(packet.base.type)
+				fun <T : BasePacketPayload> RailXPacketType<T>.catnipType() =
+					CatnipPacketRegistry.PacketType<T>(type, typeClass, streamCodec)
+				
+				registry.registerPacket(packet.base.catnipType())
 			}
 			registry.registerAllPackets()
 		}
@@ -30,7 +42,7 @@ enum class AllPackets(val base: RailXPacket<*>) : BasePacketPayload.PacketTypePr
 }
 
 
-abstract class RailXPacket<T : BasePacketPayload> {
+abstract class RailXPacketType<T : BasePacketPayload> {
 	abstract val streamCodec: StreamCodec<in RegistryFriendlyByteBuf, T>
 	
 	val typeClass: Class<T> = calculateTypeClass()
@@ -52,10 +64,5 @@ abstract class RailXPacket<T : BasePacketPayload> {
 		}
 	}
 	
-	
-	val type = CatnipPacketRegistry.PacketType(
-		CustomPacketPayload.Type(RailX.asResource(name)),
-		typeClass,
-		streamCodec,
-	)
+	val type: CustomPacketPayload.Type<T> = CustomPacketPayload.Type(RailX.asResource(name))
 }

@@ -1,5 +1,7 @@
 package com.lhwdev.minecraft.railx.utils
 
+import com.lhwdev.minecraft.railx.realisticSpeed.ContraptionBlockEntities
+import com.lhwdev.minecraft.railx.realisticSpeed.blockEntities
 import com.simibubi.create.content.contraptions.Contraption
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -8,6 +10,7 @@ import net.minecraft.core.RegistryAccess
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.flag.FeatureFlagSet
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.biome.Biome
 import net.minecraft.world.level.biome.BiomeManager
@@ -23,10 +26,13 @@ import net.minecraft.world.level.lighting.LevelLightEngine
 import net.minecraft.world.level.material.FluidState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.shapes.VoxelShape
+import net.neoforged.neoforge.client.model.data.ModelData
 import kotlin.math.abs
 
 
-class ContraptionLevelReader(val level: LevelReader, val contraption: Contraption) : LevelReader {
+class ContraptionLevelReader(val level: Level, val contraption: Contraption) : LevelReader {
+	val blockEntities: ContraptionBlockEntities = contraption.blockEntities(level)
+	
 	private val minY = nextMultipleOf16(contraption.bounds.minY - 1)
 	private val height = nextMultipleOf16(contraption.bounds.maxY + 1) - minY
 	
@@ -65,7 +71,7 @@ class ContraptionLevelReader(val level: LevelReader, val contraption: Contraptio
 	override fun getLightEngine(): LevelLightEngine = TODO()
 	
 	override fun getBlockEntity(pos: BlockPos): BlockEntity? =
-		contraption.presentBlockEntities[pos]
+		blockEntities.blockEntities[pos]
 	
 	
 	override fun getBlockState(pos: BlockPos): BlockState =
@@ -77,4 +83,8 @@ class ContraptionLevelReader(val level: LevelReader, val contraption: Contraptio
 	override fun getWorldBorder(): WorldBorder = TODO()
 	
 	override fun getEntityCollisions(entity: Entity?, collisionBox: AABB): List<VoxelShape> = TODO()
+	
+	
+	override fun getModelData(pos: BlockPos): ModelData =
+		blockEntities.blockEntities[pos]?.modelData ?: ModelData.EMPTY
 }

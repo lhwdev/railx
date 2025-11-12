@@ -1,10 +1,35 @@
 package com.lhwdev.minecraft.railx
 
+import net.neoforged.neoforge.common.ModConfigSpec
 import net.neoforged.neoforge.common.ModConfigSpec.*
 
 
 object RailXConfig {
+	sealed class Client(private val builder: Builder) {
+		val middleTrack = MiddleTrack()
+		
+		
+		inner class MiddleTrack {
+			val debugDisplay: BooleanValue = builder
+				.comment("Whether to show debug display for middle tracks.")
+				.define("middle_track.debug_display", false)
+		}
+		
+		
+		val spec: ModConfigSpec = builder.build()
+		
+		companion object Value : Client(Builder())
+	}
+	
+	sealed class Common(private val builder: Builder) {
+		val spec: ModConfigSpec = builder.build()
+		
+		companion object Value : Common(Builder())
+	}
+	
 	sealed class Server(private val builder: Builder) {
+		val trainMap = TrainMap()
+		
 		val carriageMetadata = CarriageMetadata()
 		
 		val realisticSpeed = RealisticSpeed()
@@ -14,6 +39,22 @@ object RailXConfig {
 		val flexiTrak = FlexiTrak()
 		
 		val buildTrak = BuildTrak()
+		
+		
+		val trackTargetingMaxDistance: IntValue = builder
+			.comment("Overrides max distance at which stations, signals, observers, etc. can be placed, from start of curve.")
+			.defineInRange("track_targeting_max_distance", 128, 64, 1024)
+		
+		
+		inner class TrainMap {
+			val enabled: BooleanValue = builder
+				.comment("Enables train map overlay on third party map mods; currently only supports Xaero's World Map.")
+				.define("train_map.enabled", true)
+			
+			val enableXaeroWorldMap = builder
+				.comment("Allows disabling train map only for Xaero's World Map.")
+				.define("train_map.xaero.enabled", true)
+		}
 		
 		
 		inner class CarriageMetadata {
@@ -129,7 +170,7 @@ object RailXConfig {
 					"Whether to show outline, relocate train, etc. for curves with out-of-chunk end node. " +
 						"Some features like breaking curve are still restricted."
 				)
-				.define("middle_track.enable_interaction", false)
+				.define("middle_track.enable_interaction", true)
 		}
 		
 		inner class FlexiTrak {
@@ -164,7 +205,7 @@ object RailXConfig {
 				.defineInRange("flexi_trak.max_placement_length", 1024, 0, 25565)
 		}
 		
-		val spec = builder.build()
+		val spec: ModConfigSpec = builder.build()
 		
 		companion object Value : Server(Builder())
 	}
