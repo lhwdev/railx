@@ -26,6 +26,19 @@ much larger than expected; minimum radii of some high speed train railway is 800
 different curvature resistance according to gauge; monorail track of Steam 'n' Rails should have less resistance than
 standard gauge.
 
+### `middleTrack`
+
+Stage: **Alpha**; most things are implemented, but not tested thoroughly.
+
+Renders track curve when curve is longer than expected. Track curves are rendered by 'primary' track block. That means,
+if 'primary' end is out of chunk and other end is inside chunk, curve won't be rendered. In combination with other
+features RailX provides, curve can span hundreds of blocks, making it flashing while moving. This feature is to fix
+this problem.
+
+When placing tracks, 'Middle Track' is placed sparsely along the curve. If this block is loaded into chunk and 'primary'
+track block is not loaded, this block will render the curve instead of you. You can control the gap how sparsely these
+'Middle Track' is placed, but each middle track copies curve information from track block so it takes more space.
+
 ### `splitGraph`
 
 Allows 'splitting' track graph into two or more. Uses specialized `Split Track Block` to separate graph from one end to
