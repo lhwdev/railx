@@ -14,3 +14,10 @@ fun <T> ModConfigSpec.ConfigValue<T>.getOrDefault(default: T): T = try {
 } catch(_: IllegalStateException) {
 	default
 }
+
+val ModConfigSpec.BooleanValue.orFalse: Boolean
+	get() = try {
+		isTrue
+	} catch(_: IllegalStateException) {
+		false
+	}

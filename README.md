@@ -5,11 +5,25 @@ this mod.
 
 ## Features
 
-### `flexiTrack`
+Every feature can be turned on/off in config.
 
-Stage: **Alpha**; most things are implemented, but not tested thoroughly. Some known bugs exist.
+### Common Features
+
+- Precise Track Overlay: Displays delta position, track angle, curve radius, gradient etc. for track blocks, curves,
+  and track placement.
+
+- Reserved Signal Marking: When scheduled train moves, it reserves several blocks ahead. This feature replaces previous
+  behavior where it marks reserved signal red, with marking it with green color in connected Nixie Tube.
+
+### `flexiTrak`
+
+Stage: **Alpha**; most things are implemented. Quite stable for me to use, but not tested thoroughly. Some known bugs
+exist.
 
 Allows train tracks to be placed at any angle.
+Flexi tracks can be rotated by holding wrench then dragging the number. Clicking the number will cycle between
+Direction, Gradient, Tilt. BTW this rotation features has serious bug where track and curve rotate in opposite direction
+to each other...
 
 ### `realisticSpeed`
 
@@ -37,7 +51,8 @@ this problem.
 
 When placing tracks, 'Middle Track' is placed sparsely along the curve. If this block is loaded into chunk and 'primary'
 track block is not loaded, this block will render the curve instead of you. You can control the gap how sparsely these
-'Middle Track' is placed, but each middle track copies curve information from track block so it takes more space.
+'Middle Track' is placed, but each middle track copies curve information from track block so it takes more space in
+world file.
 
 ### `splitGraph`
 

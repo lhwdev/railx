@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.mixin.middleTrack;
 
+import com.lhwdev.minecraft.railx.common.FakeTracks;
 import com.lhwdev.minecraft.railx.middleTrack.ConnectionMiddlesKt;
-import com.lhwdev.minecraft.railx.middleTrack.FakeTracks;
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackLikeBlockEntity;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;

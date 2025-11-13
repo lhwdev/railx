@@ -1,10 +1,13 @@
 package com.lhwdev.minecraft.railx.common
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.*
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
+import com.lhwdev.minecraft.railx.utils.orFalse
 import com.lhwdev.minecraft.railx.utils.pow3
 import com.lhwdev.minecraft.railx.utils.similarTo
+import com.simibubi.create.AllDataComponents
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
@@ -18,6 +21,7 @@ import net.minecraft.client.gui.LayeredDraw
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.GameType
 import net.minecraft.world.phys.BlockHitResult
@@ -54,17 +58,23 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	}
 	
 	private fun preciseInfo(): PreciseInfo? {
+		if(RailXConfig.Server.common.preciseOverlay.orFalse) return null
+		
 		val mc = Minecraft.getInstance()
 		val player = mc.player ?: return null
 		if(mc.options.hideGui || mc.gameMode?.playerMode == GameType.SPECTATOR) return null
 		
-		fun flexiTrackPlacementInfo(handItem: TrackBlockItem): PrecisePlacementInfo? =
+		class HandItem<T>(val hand: InteractionHand, val stack: ItemStack, val item: T)
+		
+		fun flexiTrackPlacementInfo(): PrecisePlacementInfo? =
 			FlexiTrackPlacementClient.lastOverlay?.let {
 				PrecisePlacementInfo(from = it.from.toPoint(), to = it.to.toPoint(), curve = it.curve)
 			}
 		
-		fun createTrackPlacementInfo(handItem: TrackBlockItem): PrecisePlacementInfo? {
-			if(handItem is FlexiTrackBlockItem) return null
+		fun createTrackPlacementInfo(handItem: HandItem<TrackBlockItem>): PrecisePlacementInfo? {
+			if(handItem.item is FlexiTrackBlockItem) return null
+			if(!handItem.stack.has(AllDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS)) return null
+			
 			val info = TrackPlacement_cached.invokeExact() as TrackPlacement.PlacementInfo? as? PlacementInfoAccessor
 			if(info?.curve == null) return null
 			
@@ -129,15 +139,18 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 				virtual = virtual,
 			)
 		}
-		val (hand, handItem) = InteractionHand.entries.map { it to player.getItemInHand(it) }
-			.firstNotNullOfOrNull { (it.second.item as? TrackBlockItem)?.let { item -> it.first to item } }
+		
+		val handItem = InteractionHand.entries.map { it to player.getItemInHand(it) }
+			.firstNotNullOfOrNull {
+				(it.second.item as? TrackBlockItem)?.let { item -> HandItem(it.first, it.second, item) }
+			}
 			?: return null
 		
-		flexiTrackPlacementInfo(handItem)?.let { return it }
+		flexiTrackPlacementInfo()?.let { return it }
 		createTrackPlacementInfo(handItem)?.let { return it }
 		
 		trackCurveInfo()?.let { return it }
-		trackBlockInfo(hand, handItem)?.let { return it }
+		trackBlockInfo(handItem.hand, handItem.item)?.let { return it }
 		return null
 	}
 	

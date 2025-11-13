@@ -28,6 +28,8 @@ object RailXConfig {
 	}
 	
 	sealed class Server(private val builder: Builder) {
+		val common = Common()
+		
 		val trainMap = TrainMap()
 		
 		val carriageMetadata = CarriageMetadata()
@@ -44,6 +46,17 @@ object RailXConfig {
 		val trackTargetingMaxDistance: IntValue = builder
 			.comment("Overrides max distance at which stations, signals, observers, etc. can be placed, from start of curve.")
 			.defineInRange("track_targeting_max_distance", 128, 64, 1024)
+		
+		
+		inner class Common {
+			val preciseOverlay: BooleanValue = builder
+				.comment("Displays precise information about track blocks, curves, and track placement.")
+				.define("common.precise_overlay", true)
+			
+			val reservedSignal: BooleanValue = builder
+				.comment("Marks reserved signals with green color in nixie tube, instead of red.")
+				.define("common.reserved_signal", false)
+		}
 		
 		
 		inner class TrainMap {
@@ -189,6 +202,14 @@ object RailXConfig {
 			val longPlacement: IntValue = builder
 				.comment("Enable long placement feature in client. Theoretically can place infinite length of track. Set to 0 to disable.")
 				.defineInRange("flexi_trak.long_placement", 512, 0, 25565)
+			
+			val longPlacementFakeTrack: BooleanValue = builder
+				.comment(
+					"Whether to place fake track block for long placement. Fake tracks are useful for some " +
+						"map mods without Create train integration, but when chunk containing end of curve is not " +
+						"loaded, fake tracks may not work well."
+				)
+				.define("flexi_trak.long_placement_fake_track", false)
 			
 			val minRadius: IntValue = builder
 				.comment("Minimum radius at which flexi tracks can be placed.")

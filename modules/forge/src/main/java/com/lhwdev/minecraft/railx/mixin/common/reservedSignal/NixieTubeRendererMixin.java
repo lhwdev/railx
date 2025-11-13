@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.mixin.common.reservedSignal;
 
+import com.lhwdev.minecraft.railx.RailXConfig;
 import com.lhwdev.minecraft.railx.common.ReservedSignalNixieTubeRenderer;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.redstone.nixieTube.NixieTubeBlockEntity;
@@ -23,6 +24,8 @@ public class NixieTubeRendererMixin {
 		BlockState referenceState,
 		@Local(index = 1, argsOnly = true) NixieTubeBlockEntity be
 	) {
+		if(RailXConfig.Server.Value.getCommon().getReservedSignal().isFalse())
+			return CachedBuffers.partial(partial, referenceState);
 		var result = ReservedSignalNixieTubeRenderer.INSTANCE.partialModelBase(be, partial, referenceState);
 		return result != null ? result : CachedBuffers.partial(partial, referenceState);
 	}
