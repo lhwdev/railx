@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.buildTrack.BuildTrak
 import com.lhwdev.minecraft.railx.common.minRadius
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult.PlaceError
 import com.lhwdev.minecraft.railx.registry.AllDataComponents
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.similarTo
@@ -14,7 +15,6 @@ import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.MutableComponent
 import net.minecraft.tags.BlockTags
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
@@ -38,30 +38,12 @@ import com.simibubi.create.infrastructure.config.AllConfigs as CreateConfigs
 
 
 object FlexiTrackPlacement {
-	sealed interface PlaceResult {
-		val valid: Boolean
-		
-		val error: PlaceError?
-	}
-	
-	open class PlaceError(val message: MutableComponent, val noOverlay: Boolean = false) : PlaceResult {
-		override val valid: Boolean
-			get() = false
-		
-		override val error: PlaceError
-			get() = this
-		
-		fun noOverlay(): PlaceError = PlaceError(message, noOverlay = true)
-		
-		class SecondPoint : PlaceError(message = CreateLang.translateDirect("track.second_point"), noOverlay = true)
-		class TooSharp : PlaceError(message = CreateLang.translateDirect("track.too_sharp"))
-	}
 	
 	fun PlaceError(message: String): PlaceError = PlaceError(Component.literal(message))
 	fun PlaceErrorCreate(key: String): PlaceError = PlaceError(CreateLang.translateDirect("track.$key"))
 	
 	private class Cached(
-		val cached: PlaceResult,
+		val cached: FlexiPlaceResult,
 		val pos: BlockPos,
 		val angle: FlexiDirection.Known,
 		val lastItem: ItemStack,
@@ -76,7 +58,7 @@ object FlexiTrackPlacement {
 		toState: BlockState,
 		item: ItemStack,
 		girder: Boolean,
-	): PlaceResult {
+	): FlexiPlaceResult {
 		val info = resolveConnection(level, player, toPos, toState, item, girder)
 		val lookDirection = FlexiDirection.Known.roundFrom(vector = player.lookAngle)
 		cached = Cached(info, pos = toPos, angle = lookDirection, lastItem = item)
@@ -87,6 +69,15 @@ object FlexiTrackPlacement {
 			if(!level.isClientSide) BuildTrak.currentPlan.addSegment(info)
 			return info
 		}
+		
+		val error = info.error
+		when(error) {
+			is PlaceError.TooFar -> {
+				return info.placeError("TODO: long placement feature is under progress")
+				// return info
+			}
+		}
+		
 		return connect(info, level, player)
 	}
 	
@@ -97,7 +88,7 @@ object FlexiTrackPlacement {
 		toState: BlockState,
 		item: ItemStack,
 		girder: Boolean,
-	): PlaceResult {
+	): FlexiPlaceResult {
 		tryMatchCache(player = player, item = item, toPos = toPos)?.let { return it }
 		
 		val fromPoint = item.get(AllDataComponents.TrackConnectingFrom)
@@ -146,7 +137,7 @@ object FlexiTrackPlacement {
 			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()) {
 				addToPlan = true
 			} else {
-				return placeErrorCreate("too_far").noOverlay()
+				return placeError(PlaceError.TooFar(valid = RailXConfig.Server.flexiTrak.longPlacement.asInt != 0))
 			}
 		} else {
 			if(BuildTrak.enabled && BuildTrak.currentPlan.addPlacedTracks) addToPlan = true
@@ -185,7 +176,7 @@ object FlexiTrackPlacement {
 		return this
 	}
 	
-	private fun prepareConnect(info: FlexiPlacementInfo, level: Level, player: Player): PlaceResult {
+	private fun prepareConnect(info: FlexiPlacementInfo, level: Level, player: Player): FlexiPlaceResult {
 		info.validateConnect(level)
 		if(info.error != null) return info
 		
@@ -201,7 +192,7 @@ object FlexiTrackPlacement {
 		return info
 	}
 	
-	fun connect(info: FlexiPlacementInfo, level: Level, player: Player): PlaceResult {
+	fun connect(info: FlexiPlacementInfo, level: Level, player: Player): FlexiPlaceResult {
 		if(!player.isCreative) {
 			info.useTrackItem(level, player, simulate = false)
 		}
@@ -260,7 +251,7 @@ object FlexiTrackPlacement {
 	}
 	
 	
-	private fun tryMatchCache(player: Player, item: ItemStack, toPos: BlockPos): PlaceResult? {
+	private fun tryMatchCache(player: Player, item: ItemStack, toPos: BlockPos): FlexiPlaceResult? {
 		val lookVec = player.lookAngle.multiply(1.0, 0.0, 1.0)
 		val lookAngle = if(Mth.equal(lookVec.lengthSqr(), 0.0)) {
 			player.yRot.toDouble()
@@ -280,7 +271,7 @@ object FlexiTrackPlacement {
 		to: FlexiPlacementInfo.TrackPoint,
 		toState: BlockState,
 		item: ItemStack,
-	): PlaceResult {
+	): FlexiPlaceResult {
 		val fromState = level.getBlockState(from.pos)
 		val fromBlock = fromState.block as? ITrackBlock ?: return PlaceErrorCreate("original_missing")
 		

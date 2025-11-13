@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.common.minRadius
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement.PlaceError
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement.tryConnect
 import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
 import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer
@@ -18,6 +17,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.phys.BlockHitResult
@@ -89,8 +89,8 @@ object FlexiTrackPlacementClient {
 		val maxTurns = minecraft.options.keySprint.isDown()
 		val info = tryConnect(level, player, pos, hitState, stack, false)
 		if(info !is FlexiPlacementInfo) {
-			if(info is PlaceError) {
-				if(info is PlaceError.SecondPoint) {
+			if(info is FlexiPlaceResult.PlaceError) {
+				if(info is FlexiPlaceResult.PlaceError.SecondPoint) {
 					player.displayClientMessage(info.message.withStyle(ChatFormatting.WHITE), true)
 				} else {
 					player.displayClientMessage(info.message.withStyle(ChatFormatting.RED), true)
@@ -112,13 +112,22 @@ object FlexiTrackPlacementClient {
 		)
 		
 		val error = info.error
-		if(error != null) {
-			player.displayClientMessage(error.message.withStyle(ChatFormatting.RED), true)
-		} else {
-			player.displayClientMessage(
+		when(error) {
+			null -> player.displayClientMessage(
 				CreateLang.translateDirect("track.valid_connection").withStyle(ChatFormatting.GREEN),
 				true,
 			)
+			
+			is FlexiPlaceResult.PlaceError.TooFar -> player.displayClientMessage(
+				Component.empty()
+					.append("Can Connect in ")
+					.append(Component.literal("Long Placement").withStyle(ChatFormatting.WHITE))
+					.append(" Mode ✔")
+					.withStyle(ChatFormatting.GREEN),
+				true,
+			)
+			
+			else -> player.displayClientMessage(error.message.withStyle(ChatFormatting.RED), true)
 		}
 		
 		var hints = hints

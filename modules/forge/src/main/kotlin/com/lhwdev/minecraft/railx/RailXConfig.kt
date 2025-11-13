@@ -186,6 +186,10 @@ object RailXConfig {
 			// 	)
 			// 	.define("flexi_trak.blend", false)
 			
+			val longPlacement: IntValue = builder
+				.comment("Enable long placement feature in client. Theoretically can place infinite length of track. Set to 0 to disable.")
+				.defineInRange("flexi_trak.long_placement", 512, 0, 25565)
+			
 			val minRadius: IntValue = builder
 				.comment("Minimum radius at which flexi tracks can be placed.")
 				.defineInRange("flexi_trak.min_radius", 32, 5, 1000)

@@ -86,7 +86,7 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 		val info = FlexiTrackPlacement.tryConnect(level, player, pos, state, stack, hasGirder)
 		
 		when(info) {
-			is FlexiTrackPlacement.PlaceError -> {
+			is FlexiPlaceResult.PlaceError -> {
 				player.displayClientMessage(info.message, true)
 				CreateSoundEvents.DENY.playFrom(player, 1f, 1f)
 				return InteractionResult.FAIL

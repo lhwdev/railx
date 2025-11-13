@@ -12,6 +12,8 @@
     "common.TrackPlacementOverlayMixin",
     "common.TrackTargetingBlockItemMixin",
     "common.VirtualRenderWorldMixin",
+    "common.reservedSignal.NixieTubeRendererMixin",
+    "common.reservedSignal.SignalBlockEntityMixin",
     "flexiTrack.BezierConnectionMixin",
     "flexiTrack.BlockAccessor",
     "flexiTrack.BlueprintOverlayRendererMixin",

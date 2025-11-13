@@ -28,12 +28,35 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 
 
+sealed interface FlexiPlaceResult {
+	val valid: Boolean
+	
+	val error: PlaceError?
+	
+	
+	open class PlaceError(val message: MutableComponent, val noOverlay: Boolean = false) :
+		FlexiPlaceResult {
+		override val valid: Boolean
+			get() = false
+		
+		override val error: PlaceError
+			get() = this
+		
+		fun noOverlay(): PlaceError = PlaceError(message, noOverlay = true)
+		
+		class SecondPoint : PlaceError(message = CreateLang.translateDirect("track.second_point"), noOverlay = true)
+		class TooSharp : PlaceError(message = CreateLang.translateDirect("track.too_sharp"))
+		class TooFar(override val valid: Boolean) : PlaceError(message = CreateLang.translateDirect("track.too_far"))
+	}
+	
+}
+
 class FlexiPlacementInfo(
 	val material: TrackMaterial,
 	val trackItem: ItemStack,
 	val from: TrackEnd,
 	val to: TrackEnd,
-) : FlexiTrackPlacement.PlaceResult {
+) : FlexiPlaceResult {
 	val flexiMaterial: FlexiTrackMaterial?
 		get() = material as? FlexiTrackMaterial
 	
@@ -48,8 +71,8 @@ class FlexiPlacementInfo(
 	var hasRequiredTracks: Boolean = true
 	var hasRequiredPavement: Boolean = true
 	
-	override var error: FlexiTrackPlacement.PlaceError? = null
-	override val valid: Boolean get() = error == null
+	override var error: FlexiPlaceResult.PlaceError? = null
+	override val valid: Boolean get() = error?.valid ?: true
 	
 	fun copy(): FlexiPlacementInfo {
 		val info = FlexiPlacementInfo(material, trackItem, from, to)
@@ -77,8 +100,8 @@ class FlexiPlacementInfo(
 	
 	fun placeError(text: String) = placeError(Component.literal(text))
 	fun placeErrorCreate(key: String) = placeError(CreateLang.translateDirect("track.$key"))
-	fun placeError(text: MutableComponent) = placeError(FlexiTrackPlacement.PlaceError(text))
-	fun placeError(error: FlexiTrackPlacement.PlaceError) = this.also { this.error = error }
+	fun placeError(text: MutableComponent) = placeError(FlexiPlaceResult.PlaceError(text))
+	fun placeError(error: FlexiPlaceResult.PlaceError) = this.also { this.error = error }
 	
 	fun noOverlay(): FlexiPlacementInfo {
 		error = error?.noOverlay()

@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.registry
 
+import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackRenderer
@@ -10,10 +11,14 @@ import com.simibubi.create.content.trains.observer.TrackObserverVisual
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer
+import net.minecraft.core.registries.BuiltInRegistries
 
 
 object AllBlockEntityTypes {
-	fun register() {}
+	fun register() {
+		// migration of old FlexiTrackBlockEntity name
+		BuiltInRegistries.BLOCK_ENTITY_TYPE.addAlias(RailX.asResource("track"), RailX.asResource("flexi_track"))
+	}
 	
 	val Registry = RailXRegistry
 	
