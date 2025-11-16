@@ -10,7 +10,6 @@
     "ccAdvanced.CarriageMixin",
     "common.BezierConnectionMixin",
     "common.TrackPlacementOverlayMixin",
-    "common.TrackTargetingBlockItemMixin",
     "common.VirtualRenderWorldMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
     "common.reservedSignal.SignalBlockEntityMixin",

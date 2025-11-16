@@ -199,17 +199,9 @@ object RailXConfig {
 			// 	)
 			// 	.define("flexi_trak.blend", false)
 			
-			val longPlacement: IntValue = builder
-				.comment("Enable long placement feature in client. Theoretically can place infinite length of track. Set to 0 to disable.")
-				.defineInRange("flexi_trak.long_placement", 512, 0, 25565)
-			
-			val longPlacementFakeTrack: BooleanValue = builder
-				.comment(
-					"Whether to place fake track block for long placement. Fake tracks are useful for some " +
-						"map mods without Create train integration, but when chunk containing end of curve is not " +
-						"loaded, fake tracks may not work well."
-				)
-				.define("flexi_trak.long_placement_fake_track", false)
+			val placementLength: IntValue = builder
+				.comment("How long track can placed.")
+				.defineInRange("flexi_trak.placement_length", 128, 1, 2048)
 			
 			val minRadius: IntValue = builder
 				.comment("Minimum radius at which flexi tracks can be placed.")
@@ -227,7 +219,7 @@ object RailXConfig {
 			
 			val maxPlacementLength: IntValue = builder
 				.comment("Maximum placement length for each curve.")
-				.defineInRange("flexi_trak.max_placement_length", 1024, 0, 25565)
+				.defineInRange("build_trak.max_placement_length", 1024, 0, 25565)
 		}
 		
 		val spec: ModConfigSpec = builder.build()

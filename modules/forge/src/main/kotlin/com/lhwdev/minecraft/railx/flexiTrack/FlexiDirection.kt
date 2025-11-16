@@ -244,10 +244,10 @@ interface FlexiDirection {
 		}
 		
 		override fun rotate(by: Rotation): Known =
-			DivisionsByOrdinal[(2 * DivisionCount + ordinal - by.ordinal * (DivisionCount / 2)) % DivisionCount]
+			DivisionsByOrdinal[(2 * DivisionCount + ordinal + by.ordinal * (DivisionCount / 2)) % DivisionCount]
 		
 		override fun rotateKnown(by: Int): Known =
-			DivisionsByOrdinal[(ordinal - by) floorMod DivisionCount]
+			DivisionsByOrdinal[(ordinal + by) floorMod DivisionCount]
 		
 		override fun optimize(): Known = this
 		
@@ -270,7 +270,17 @@ interface FlexiDirection {
 		override fun toString(): String = "FlexiDirection.Known(index=$index, ordinal=$ordinal)"
 	}
 	
-	class KnownVec3(override val known: Known) : UnsignedKnownVec3(cos(known.angle), 0.0, -sin(known.angle))
+	class KnownVec3(override val known: Known) : UnsignedKnownVec3(
+		x = cos(known.angle).optimize(),
+		y = 0.0,
+		z = -sin(known.angle).optimize(),
+	) {
+		override fun scale(factor: Double): Vec3 = when(factor) {
+			1.0 -> this
+			-1.0 -> known.unaryMinus().tangent
+			else -> super.scale(factor)
+		}
+	}
 	
 	class SignedKnown(val from: Known, val sign: Direction.AxisDirection) : UnsignedKnown(), Signed {
 		companion object {
@@ -302,7 +312,13 @@ interface FlexiDirection {
 	}
 	
 	class OppositeKnownVec3(override val known: SignedKnown, tangent: Vec3) :
-		UnsignedKnownVec3(-tangent.x, tangent.y, -tangent.z)
+		UnsignedKnownVec3(-tangent.x, tangent.y, -tangent.z) {
+		override fun scale(factor: Double): Vec3 = when(factor) {
+			1.0 -> this
+			-1.0 -> known.from.tangent
+			else -> super.scale(factor)
+		}
+	}
 	
 	
 	class FlatImpl(override val tangent: Vec3) : Flat(), Signed {
@@ -536,7 +552,8 @@ fun Vec3.optimize(): Vec3 {
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Double.optimize(): Double {
-	if(this < 1e-7 && this > -1e-7) return 0.0
-	if(this < 1 + 1e-7 && this > -1 - 1e-7) return 1.0
+	if(this < 1e-5 && this > -1e-5) return 0.0
+	if(this < 1 + 1e-5 && this > 1 - 1e-5) return 1.0
+	if(this < -1 + 1e-5 && this > -1 - 1e-5) return -1.0
 	return this
 }

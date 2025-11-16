@@ -58,7 +58,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	}
 	
 	private fun preciseInfo(): PreciseInfo? {
-		if(RailXConfig.Server.common.preciseOverlay.orFalse) return null
+		if(!RailXConfig.Server.common.preciseOverlay.orFalse) return null
 		
 		val mc = Minecraft.getInstance()
 		val player = mc.player ?: return null
@@ -128,7 +128,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 					if(virtual) {
 						FlexiDirection.Known.roundFrom(player.lookAngle)
 					} else {
-						track.getNearestTrackDirection(level, pos, state, player.lookAngle)
+						track.getNearestTrackDirection(level, pos, state, player.lookAngle)?.axis
 							?: return null
 					}
 				} else {

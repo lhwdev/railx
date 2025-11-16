@@ -29,7 +29,7 @@ class FlexiDirectionScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTran
 	}
 	
 	init {
-		value = offset
+		value = FlexiDirection.Known.DivisionCount - offset
 	}
 	
 	override fun formatValue(): String {
@@ -44,14 +44,14 @@ class FlexiDirectionScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTran
 		label,
 		FlexiDirection.Known.DivisionCount,
 		8,
-		listOf(Component.literal("Direction").withStyle(ChatFormatting.BOLD)),
+		listOf(Component.literal("Direction \u27f3").withStyle(ChatFormatting.BOLD)),
 		ValueSettingsFormatter { v ->
 			val value = v.value
 			if(axis is FlexiDirection.Known) {
-				Component.literal("K$value")
+				Component.literal("K${FlexiDirection.Known.DivisionCount - value}")
 			} else {
 				val angle = ((axis.rotateKnown(value).tangentAngle * 180 / PI + 360) % 360).roundToInt()
-				Component.literal("${angle}°")
+				Component.literal("${FlexiDirection.Known.DivisionCount - angle}°")
 			}
 		},
 	)
@@ -63,7 +63,7 @@ class FlexiDirectionScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTran
 	) {
 		val be = be
 		val level = be.level!!
-		val delta = -(valueSetting.value - offset)
+		val delta = (FlexiDirection.Known.DivisionCount - valueSetting.value) - offset
 		
 		be.updateEachConnections {
 			be.updateState(be.state.copy(baseShape = be.shape.map { direction -> direction.rotateKnown(delta) }))

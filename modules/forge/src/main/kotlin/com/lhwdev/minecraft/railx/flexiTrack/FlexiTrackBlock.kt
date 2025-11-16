@@ -201,12 +201,16 @@ open class FlexiTrackBlock(
 	}
 	
 	
+	class NearestAxis(val axis: FlexiDirection, val sign: Direction.AxisDirection) {
+		val signedAxis: FlexiDirection get() = if(sign == Direction.AxisDirection.POSITIVE) axis else -axis
+	}
+	
 	fun getNearestTrackDirection(
 		world: BlockGetter,
 		pos: BlockPos,
 		state: BlockState,
 		lookVec: Vec3,
-	): FlexiDirection? {
+	): NearestAxis? {
 		var best: FlexiDirection? = null
 		var bestDiff = Double.MAX_VALUE
 		for(axis in flexiShape(world, pos).axes) {
@@ -218,11 +222,12 @@ open class FlexiTrackBlock(
 			}
 		}
 		if(best == null) return null
-		return if(lookVec.dot(best.tangent.multiply(1.0, 0.0, 1.0)) >= 0) {
-			best
+		val direction = if(lookVec.dot(best.tangent.multiply(1.0, 0.0, 1.0)) >= 0) {
+			Direction.AxisDirection.POSITIVE
 		} else {
-			-best
+			Direction.AxisDirection.NEGATIVE
 		}
+		return NearestAxis(best, direction)
 	}
 	
 	

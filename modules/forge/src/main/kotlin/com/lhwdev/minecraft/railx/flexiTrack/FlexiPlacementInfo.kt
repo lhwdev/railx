@@ -46,7 +46,7 @@ sealed interface FlexiPlaceResult {
 		
 		class SecondPoint : PlaceError(message = CreateLang.translateDirect("track.second_point"), noOverlay = true)
 		class TooSharp : PlaceError(message = CreateLang.translateDirect("track.too_sharp"))
-		class TooFar(override val valid: Boolean) : PlaceError(message = CreateLang.translateDirect("track.too_far"))
+		class TooFar : PlaceError(message = CreateLang.translateDirect("track.too_far"))
 	}
 	
 }

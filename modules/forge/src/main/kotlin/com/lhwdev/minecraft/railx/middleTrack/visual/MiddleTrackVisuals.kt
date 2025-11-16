@@ -28,7 +28,7 @@ object MiddleTrackVisuals {
 		val middles = connections.toSet()
 		for(added in middles - previousMiddles) {
 			manager.queueAdd(added)
-			manager.queueUpdate(added)
+			// manager.queueUpdate(added)
 		}
 		for(removed in previousMiddles - middles) manager.queueRemove(removed)
 		previousMiddles = middles

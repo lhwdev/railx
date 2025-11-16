@@ -34,11 +34,9 @@ import kotlin.math.sign
 import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllTags as CreateTags
 import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
-import com.simibubi.create.infrastructure.config.AllConfigs as CreateConfigs
 
 
 object FlexiTrackPlacement {
-	
 	fun PlaceError(message: String): PlaceError = PlaceError(Component.literal(message))
 	fun PlaceErrorCreate(key: String): PlaceError = PlaceError(CreateLang.translateDirect("track.$key"))
 	
@@ -68,14 +66,6 @@ object FlexiTrackPlacement {
 			if(info.pavementBlock != null) return info.placeError("pavement not supported for track plan")
 			if(!level.isClientSide) BuildTrak.currentPlan.addSegment(info)
 			return info
-		}
-		
-		val error = info.error
-		when(error) {
-			is PlaceError.TooFar -> {
-				return info.placeError("TODO: long placement feature is under progress")
-				// return info
-			}
 		}
 		
 		return connect(info, level, player)
@@ -133,11 +123,11 @@ object FlexiTrackPlacement {
 	
 	private fun FlexiPlacementInfo.validateConnect(level: Level): FlexiPlacementInfo {
 		val distSqr = from.pos.distSqr(to.pos)
-		if(distSqr > CreateConfigs.server().trains.maxTrackPlacementLength.get().pow2()) {
+		if(distSqr > RailXConfig.Server.flexiTrak.placementLength.asInt.pow2()) {
 			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()) {
 				addToPlan = true
 			} else {
-				return placeError(PlaceError.TooFar(valid = RailXConfig.Server.flexiTrak.longPlacement.asInt != 0))
+				return placeError(PlaceError.TooFar())
 			}
 		} else {
 			if(BuildTrak.enabled && BuildTrak.currentPlan.addPlacedTracks) addToPlan = true
@@ -285,16 +275,16 @@ object FlexiTrackPlacement {
 		//    3-2. on same line: yeah just line
 		
 		fun tryResolve(fromVec: Vec3, toVec: Vec3, fromTangent: Vec3, toTangent: Vec3): FlexiPlacementInfo? {
-			var fromTangent = fromTangent
-			var toTangent = toTangent
+			val fromSign: Double
+			val toSign: Double
 			
 			val intersect = VecHelper.intersect(fromVec, toVec, fromTangent, toTangent, Direction.Axis.Y)
 			if(intersect != null) {
 				if(fromTangent.dot(toTangent) > 0) // illegal curve
 					return null
 				
-				fromTangent = fromTangent.scale(sign(intersect[0]))
-				toTangent = toTangent.scale(sign(intersect[1]))
+				fromSign = sign(intersect[0])
+				toSign = sign(intersect[1])
 			} else {
 				val crossIntersect = VecHelper.intersect(
 					fromVec, toVec,
@@ -302,11 +292,11 @@ object FlexiTrackPlacement {
 					Direction.Axis.Y
 				)
 				if(crossIntersect != null) {
-					fromTangent = fromTangent.scale(sign(crossIntersect[0]))
-					toTangent = toTangent.scale(-sign(fromTangent.dot(toTangent)))
+					fromSign = sign(crossIntersect[0])
+					toSign = -sign(fromTangent.dot(toTangent))
 				} else { // generally mostly impossible for Known; why use flexi for straight line
-					fromTangent = (toVec - fromVec).normalize()
-					toTangent = -fromTangent
+					fromSign = sign(fromTangent.dot(toVec - fromVec))
+					toSign = -fromSign
 				}
 			}
 			
@@ -315,7 +305,7 @@ object FlexiTrackPlacement {
 				block = fromBlock,
 				pos = from.pos,
 				end = fromBlock.getCurveStart(level, from.pos, fromState, fromTangent),
-				tangent = fromTangent,
+				tangent = fromTangent.scale(fromSign),
 				normal = from.normal,
 			)
 			fromEnd.state = fromState
@@ -323,7 +313,7 @@ object FlexiTrackPlacement {
 				block = toBlock,
 				pos = to.pos,
 				end = toBlock.getCurveStart(level, to.pos, toState, toTangent),
-				tangent = toTangent,
+				tangent = toTangent.scale(toSign),
 				normal = to.normal,
 			)
 			toEnd.state = toState

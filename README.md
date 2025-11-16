@@ -34,11 +34,11 @@ resistance, air resistance, wheel slip. However implementation of air resistance
 kind of simplest CFD.
 
 Most aspect of this properties is configurable. Note that `realisticSpeed` considers one block length as one meter, and
-1 second (=20 game tick) as one second. So something will seem to work weird; if you build curve as you would normally
-build, train won't be able to speed up as its curvature is too steep. In real life, minimum curve radius of railway is
-much larger than expected; minimum radii of some high speed train railway is 8000 m. Of course, I'm planning to apply
-different curvature resistance according to gauge; monorail track of Steam 'n' Rails should have less resistance than
-standard gauge.
+1 second (=20 game tick) as one second.
+You might think something work weird; if you build curve as you would normally build in vanilla Create mod, train won't
+be able to speed up as its curvature is too steep. In real life, minimum curve radius of railway is much larger than
+expected. Of course, I'm planning to apply different curvature resistance according to gauge; monorail track of
+Steam 'n' Rails should have less resistance than standard gauge.
 
 ### `middleTrack`
 

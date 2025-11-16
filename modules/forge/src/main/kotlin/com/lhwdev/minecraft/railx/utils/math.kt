@@ -2,7 +2,6 @@
 
 package com.lhwdev.minecraft.railx.utils
 
-import com.lhwdev.minecraft.railx.RailX
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniondc
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
@@ -33,7 +32,5 @@ inline infix fun Double.similarTo(to: Double): Boolean =
 	abs(this - to) < 1e-10
 
 fun Quaterniondc.transform(vec: Vec3): Vec3 = transform(vec.toVector3d()).toVec3()
-	.also { require(vec.isNormalized() == it.isNormalized()) { RailX.errorBreakpoint() } }
 
 fun Quaterniondc.transformUnit(vec: Vec3): Vec3 = transformUnit(vec.toVector3d()).toVec3()
-	.also { require(vec.isNormalized() == it.isNormalized()) { RailX.errorBreakpoint() } }

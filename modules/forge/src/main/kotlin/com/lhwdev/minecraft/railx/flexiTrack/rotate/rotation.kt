@@ -8,6 +8,8 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 
+// NOTE: assuming there is no gradient=90deg rail, so that no gimbal lock happens
+
 data class FlexiTrackRotation(
 	val direction: Double, // 0 ~ 2PI, counter-clockwise, (1,0) -> (0,-1) -> (-1,0) -> (0,1)
 	val gradient: Double, // positive for tangent going upward; 0.5PI for 90 degree upward.
@@ -24,9 +26,16 @@ val FlexiDirection.direction: Double
 val FlexiDirection.gradient: Double
 	get() = Mth.atan2(tangent.y, tangent.horizontalDistance())
 
-// point on tangent-plane: (normal dot directionRight=z,0,-x), normal dot directionUp=0,1,0)
+// tilt is derived by normal in tangent plane. think normal as a point inside tangent plane.
+// -> Let normal = a * u + b * v, where a,b is scalar, and u,v is basis of plane s.t. they are orthogonal and
+//    u corresponds to normal of direction, which is modified so that tilt becomes 0.
+// -> u = normalize(project(standardNormal on tangent plane)) where standardNormal=(0,1,0),
+//    v = normalize(tangent cross u)
+// -> a = normal dot u, b = normal dot v
+//    thus u = (0, 1, 0), v = normalize((tx, ty, tz) cross (0, 1, 0) = (-tz, 0, tx))
+// -> tilt = atan(b / a)
 val FlexiDirection.tilt: Double
-	get() = Mth.atan2(normal.dot(Vec3(tangent.z, 0.0, -tangent.x).normalize()), normal.y)
+	get() = Mth.atan2(normal.dot(Vec3(-tangent.z, 0.0, tangent.x).normalize()), normal.y)
 
 fun FlexiDirection.rotationValue(): Quaterniond =
 	Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)

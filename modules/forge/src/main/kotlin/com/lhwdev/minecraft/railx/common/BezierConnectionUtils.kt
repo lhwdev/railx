@@ -11,10 +11,10 @@ import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
 import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.times
 
 
-val BezierConnection.from: BlockPos
+inline val BezierConnection.from: BlockPos
 	get() = bePositions.first
 
-val BezierConnection.to: BlockPos
+inline val BezierConnection.to: BlockPos
 	get() = bePositions.second
 
 fun BezierConnection.asPrimary(): BezierConnection =

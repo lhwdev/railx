@@ -23,26 +23,96 @@ import kotlin.math.abs
 import com.simibubi.create.AllBlocks as CreateBlocks
 
 
-interface LongFakeTrackState {
-
+abstract class LongFakeTrackState {
+	
+	
+	protected abstract fun placeFakeTracks(level: Level, segments: IntRange, remove: Boolean)
+	
+	
 }
 
 
-class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrackState {
-	init {
+private const val MiddlePlacementBaseGap = 16
+
+class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrackState() {
+	private val middles = bc.rasterizeMiddlesOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
 	
+	
+	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
+	
+	private val pos = BlockPos.MutableBlockPos()
+	
+	override fun placeFakeTracks(level: Level, segments: IntRange, remove: Boolean) {
+		for(index in segments) {
+			if(index % 16 != 0) continue
+			pos.set(middles.getLong(index))
+			val state = level.getBlockState(pos)
+			if(remove) removeFakeTrack(level, state) else placeFakeTrack(level, state)
+		}
 	}
 	
+	private fun placeFakeTrack(level: Level, stateAtPos: BlockState) {
+		val fluidState = stateAtPos.fluidState
+		if(!fluidState.isEmpty && !fluidState.isSourceOfType(Fluids.WATER)) return
+		
+		val pos = pos
+		var middlePlaced = false
+		if(AllBlocks.MiddleTrack.has(stateAtPos)) {
+			val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
+			if(previous != null && previous.connections.none { it.bePositions == bc.bePositions }) {
+				previous.updateConnections(previous.connections.plus<BezierConnection>(bc))
+				middlePlaced = true
+			}
+		}
+		if(!middlePlaced && stateAtPos.canBeReplaced()) {
+			level.setBlock(
+				pos,
+				ProperWaterloggedBlock.withWater(level, AllBlocks.MiddleTrack.defaultState, pos),
+				3
+			)
+			(level.getBlockEntity(pos) as? MiddleTrackBlockEntity)?.updateConnections(listOf(bc))
+		}
+		
+		FakeTrackBlock.keepAlive(level, pos)
+	}
+	
+	private fun removeFakeTrack(level: Level, stateAtPos: BlockState) {
+		val pos = pos
+		val fakePresent = CreateBlocks.FAKE_TRACK.has(stateAtPos)
+		val middlePresent = AllBlocks.MiddleTrack.has(stateAtPos)
+		
+		if(fakePresent) level.removeBlock(pos, false)
+		if(middlePresent) {
+			if(removePrevious) {
+				level.removeBlock(pos, false)
+				return
+			}
+			val middle = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
+			if(middle == null) {
+				level.removeBlock(pos, false)
+				return
+			}
+			val previous = middle.connections.indexOfFirst { it.bePositions == bc.bePositions }
+			if(previous != -1) {
+				val connections = middle.connections.toMutableList().also { it.removeAt(previous) }
+				if(connections.isEmpty()) {
+					level.removeBlock(pos, false)
+				} else {
+					middle.updateConnections(connections)
+				}
+			}
+		}
+	}
 }
 
-class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackState {
-	private val blocks: LongArrayList = bc.rasterizeOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
+class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackState() {
+	private val blocks = bc.rasterizeOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
 	
 	private val middleIndices: IntArrayList = IntArrayList().also { indices ->
 		val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
 		var chunkX = BlockPos.getX(blocks.getLong(0)) shr 4
 		var chunkZ = BlockPos.getZ(blocks.getLong(0)) shr 4
-		for(index in blocks.indices) {
+		for(index in blocks.indices step MiddlePlacementBaseGap) {
 			val pos = blocks.getLong(index)
 			val newChunkX = BlockPos.getX(pos) shr 4
 			val newChunkZ = BlockPos.getZ(pos) shr 4
@@ -61,12 +131,11 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 	private val pos = BlockPos.MutableBlockPos()
 	
 	
-	fun placeFakeTracks(level: Level, remove: Boolean) {
-		val pos = BlockPos.MutableBlockPos()
-		
-		for(index in blocks.indices) {
+	override fun placeFakeTracks(level: Level, segments: IntRange, remove: Boolean) {
+		for(index in segments) {
 			pos.set(blocks.getLong(index))
-			
+			val state = level.getBlockState(pos)
+			if(remove) removeFakeTrack(level, state) else placeFakeTrack(level, index, state)
 		}
 	}
 	
@@ -76,7 +145,7 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 		
 		val pos = pos
 		var middlePlaced = false
-		if(placeMiddle && middleIndices.contains(index)) {
+		if(index % MiddlePlacementBaseGap == 0 && placeMiddle && middleIndices.contains(index)) {
 			if(AllBlocks.MiddleTrack.has(stateAtPos)) {
 				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
 				if(previous != null && previous.connections.none { it.bePositions == bc.bePositions }) {
@@ -239,13 +308,28 @@ fun BezierConnection.rasterizeMiddlesOrdered(offset: Vec3i): LongArrayList {
 	val segCount = segmentCount
 	val lut = stepLUT
 	
-	val center = end1.add(end2).scale(0.5)
-	
 	val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
-	var chunkX = BlockPos.getX(blocks.getLong(0)) shr 4
-	var chunkZ = BlockPos.getZ(blocks.getLong(0)) shr 4
-	for(i in 0..<segCount step 16) {
-		
+	
+	var chunkX: Int
+	var chunkZ: Int
+	run {
+		val t = 0.5f / segCount
+		val point = VecHelper.bezier(end1, end2, finish1, finish2, t)
+		val derivative = VecHelper.bezierDerivative(end1, end2, finish1, finish2, t)
+			.normalize()
+		val faceNormal =
+			if(faceNormal1 == faceNormal2) faceNormal1 else VecHelper.slerp(t, faceNormal1, faceNormal2)
+		val normal = faceNormal.cross(derivative)
+			.normalize()
+		val below = point.add(faceNormal.scale(-.25))
+		val rail1 = below.add(normal.scale(.05))
+		val rail2 = below.subtract(normal.scale(.05))
+		val railMiddle = rail1.add(rail2).scale(.5)
+		chunkX = Mth.floor(railMiddle.x) + offset.x shr 4
+		chunkZ = Mth.floor(railMiddle.z) + offset.z shr 4
+	}
+	
+	for(i in MiddlePlacementBaseGap..<segCount step MiddlePlacementBaseGap) {
 		val t = Mth.clamp((i + 0.5f) * lut[i] / segCount, 0f, 1f)
 		val point = VecHelper.bezier(end1, end2, finish1, finish2, t)
 		val derivative = VecHelper.bezierDerivative(end1, end2, finish1, finish2, t)

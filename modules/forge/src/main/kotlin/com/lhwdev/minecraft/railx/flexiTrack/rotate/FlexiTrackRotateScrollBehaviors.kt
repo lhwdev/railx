@@ -3,11 +3,14 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackTargetingBehavior
 import com.lhwdev.minecraft.railx.other.ScrollValueBehaviorExtension
+import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
+import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.minecraft.ChatFormatting
+import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.HolderLookup
@@ -21,6 +24,7 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import kotlin.math.PI
 
 
 class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
@@ -123,4 +127,19 @@ class FlexiRotationValueBox : ValueBoxTransform.Sided() {
 	
 	override fun isSideActive(state: BlockState, direction: Direction): Boolean =
 		direction == Direction.UP
+	
+	override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+		val blockEntity = level.getBlockEntity(pos) as? FlexiTrackBlockEntity ?: return
+		val direction = blockEntity.state.shape.axis1
+		val directionCache = blockEntity.state.shapeCache.firstOrNull() ?: return
+		val player = Minecraft.getInstance().player ?: return
+		val sign = player.lookAngle.dot(direction.tangent)
+		
+		val halfPi = PI.toFloat() * 0.5f
+		TransformStack.of(ms)
+			.rotate(directionCache.rotationValue)
+			.rotateY(if(sign < 0) halfPi else halfPi * 3)
+		
+		super.rotate(level, pos, state, ms)
+	}
 }

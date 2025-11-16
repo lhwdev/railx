@@ -1,8 +1,8 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
 import com.lhwdev.minecraft.railx.common.TrackBezierPointSelection
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVoxelShapes
 import com.lhwdev.minecraft.railx.common.primaryPositions
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVoxelShapes
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.BezierTrackPointLocation
@@ -66,6 +66,7 @@ class MiddleBezierSource(val middlePos: BlockPos, val index: Int) {
 	
 	fun resolveCurve(level: BlockGetter): BezierConnection? =
 		(level.getBlockEntity(middlePos) as? MiddleTrackLikeBlockEntity)?.let { it.connectionValues[index] }
+			?.let { if(it.primary) it else it.secondary() }
 }
 
 

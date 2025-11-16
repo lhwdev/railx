@@ -17,7 +17,6 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.phys.BlockHitResult
@@ -115,15 +114,6 @@ object FlexiTrackPlacementClient {
 		when(error) {
 			null -> player.displayClientMessage(
 				CreateLang.translateDirect("track.valid_connection").withStyle(ChatFormatting.GREEN),
-				true,
-			)
-			
-			is FlexiPlaceResult.PlaceError.TooFar -> player.displayClientMessage(
-				Component.empty()
-					.append("Can Connect in ")
-					.append(Component.literal("Long Placement").withStyle(ChatFormatting.WHITE))
-					.append(" Mode ✔")
-					.withStyle(ChatFormatting.GREEN),
 				true,
 			)
 			

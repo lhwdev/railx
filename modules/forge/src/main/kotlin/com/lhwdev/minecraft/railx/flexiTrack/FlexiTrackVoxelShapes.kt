@@ -48,6 +48,7 @@ object FlexiTrackVoxelShapes {
 		else -> createShape(direction, cache)
 	}
 	
+	// TODO: support multiple directions? is this needed?
 	fun of(shape: FlexiShape, cache: List<FlexiState.AxisCache>? = null): VoxelShape =
 		of(shape.axis1, cache?.get(0))
 	// shape.axes.foldIndexed(Shapes.empty()) { index, acc, axis ->
@@ -159,7 +160,6 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 		
 		this.bound = bound
 		this.lookup = lookup
-		if(true);
 	}
 	
 	

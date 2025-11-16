@@ -1,12 +1,12 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
 import com.simibubi.create.content.trains.graph.EdgePointType
 import com.simibubi.create.content.trains.track.BezierTrackPointLocation
 import com.simibubi.create.content.trains.track.TrackTargetingBlockItem
 import com.simibubi.create.foundation.utility.CreateLang
-import com.simibubi.create.infrastructure.config.AllConfigs
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.createmod.catnip.net.base.ServerboundPacketPayload
 import net.minecraft.ChatFormatting
@@ -70,7 +70,7 @@ class CurvedMiddleTrackSelectionPacket(
 		if(
 			!fromPos.closerThan(
 				player.blockPosition(),
-				(AllConfigs.server().trains.maxTrackPlacementLength.get() + 16).toDouble()
+				(RailXConfig.Server.flexiTrak.placementLength.asInt + 16).toDouble()
 			)
 		) return
 		
