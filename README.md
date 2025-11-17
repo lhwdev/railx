@@ -17,13 +17,11 @@ Every feature can be turned on/off in config.
 
 ### `flexiTrak`
 
-Stage: **Alpha**; most things are implemented. Quite stable for me to use, but not tested thoroughly. Some known bugs
-exist.
+Stage: **Beta**; most things are implemented. Quite stable for me to use, but not tested thoroughly.
 
 Allows train tracks to be placed at any angle.
-Flexi tracks can be rotated by holding wrench then dragging the number. Clicking the number will cycle between
-Direction, Gradient, Tilt. BTW this rotation features has serious bug where track and curve rotate in opposite direction
-to each other...
+Flexi tracks can be rotated by holding wrench then dragging the number. Short clicking the number will cycle between
+Direction, Gradient, Tilt.
 
 ### `realisticSpeed`
 
@@ -56,8 +54,23 @@ world file.
 
 ### `splitGraph`
 
+Stage: **In Development**; features are quite complete, but not optimized or tested enough.
+
 Allows 'splitting' track graph into two or more. Uses specialized `Split Track Block` to separate graph from one end to
 another. This will help improving performance of modifying railway on huge graph.
+
+### `buildTrak`
+
+Stage: **Idea**. This is my pure imagination, and if there is someone who is smart enough please make it real.
+
+Plans and builds huge railway. Integrates with existing map mod to show planned railway and plan more. Has overlay for
+height/gradient slice view; longitudinal section, contour map, speed limit view etc. Automatically calculates tilt if
+needed.
+
+Can be integrated with special SchematicCannon-Train. In planning stage, if track exceeds specific height difference to
+ground, creates tunnel or bridge. May automatically or manually assign special schematics which is optimized for
+curved and repeated placement. While building, you may build your custom train that handles building. common parts
+may be automated by roller or deployer, while cannon handles special complicated parts.
 
 ### 🚧 `carriageMetadata`
 

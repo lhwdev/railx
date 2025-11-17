@@ -1,14 +1,15 @@
 package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
+import com.lhwdev.minecraft.railx.utils.similarTo
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
+import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.sign
 import kotlin.math.sin
 
-
-// NOTE: assuming there is no gradient=90deg rail, so that no gimbal lock happens
 
 data class FlexiTrackRotation(
 	val direction: Double, // 0 ~ 2PI, counter-clockwise, (1,0) -> (0,-1) -> (-1,0) -> (0,1)
@@ -24,7 +25,14 @@ val FlexiDirection.direction: Double
 	get() = tangentAngle
 
 val FlexiDirection.gradient: Double
-	get() = Mth.atan2(tangent.y, tangent.horizontalDistance())
+	get() {
+		val h = tangent.horizontalDistance()
+		return if(h similarTo 0.0) {
+			PI * 0.5 * sign(tangent.y)
+		} else {
+			Mth.atan2(tangent.y, h)
+		}
+	}
 
 // tilt is derived by normal in tangent plane. think normal as a point inside tangent plane.
 // -> Let normal = a * u + b * v, where a,b is scalar, and u,v is basis of plane s.t. they are orthogonal and
@@ -35,7 +43,11 @@ val FlexiDirection.gradient: Double
 //    thus u = (0, 1, 0), v = normalize((tx, ty, tz) cross (0, 1, 0) = (-tz, 0, tx))
 // -> tilt = atan(b / a)
 val FlexiDirection.tilt: Double
-	get() = Mth.atan2(normal.dot(Vec3(-tangent.z, 0.0, tangent.x).normalize()), normal.y)
+	get() = if(normal.y similarTo 0.0) {
+		0.0
+	} else {
+		Mth.atan2(normal.dot(Vec3(-tangent.z, 0.0, tangent.x).normalize()), normal.y)
+	}
 
 fun FlexiDirection.rotationValue(): Quaterniond =
 	Quaterniond().rotationY(direction).rotateX(tilt).rotateZ(gradient)
@@ -51,5 +63,5 @@ private val NormalBase = Vec3(0.0, 1.0, 0.0)
 
 fun FlexiTrackRotation.toDirection(): FlexiDirection = FlexiDirection.Two(
 	tangent = Vec3(cos(gradient), sin(gradient), 0.0).yRot(direction.toFloat()),
-	normal = NormalBase.zRot(-gradient.toFloat()).xRot(tilt.toFloat()).yRot(direction.toFloat()),
+	normal = NormalBase.zRot(-gradient.toFloat()).xRot(-tilt.toFloat()).yRot(direction.toFloat()),
 )
