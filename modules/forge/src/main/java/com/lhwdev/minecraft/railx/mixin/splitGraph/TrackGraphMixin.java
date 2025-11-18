@@ -134,7 +134,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 	@ModifyExpressionValue(method = "removeNode", at = @At("MIXINEXTRAS:EXPRESSION"))
 	boolean isTrainReachableForRemoveNode(boolean original, @Local(index = 7) Train train) {
 		if(train.graph instanceof MergedTrackGraph merged) {
-			return MergedTrackGraph.contains(merged, (TrackGraph) (Object) this);
+			return !MergedTrackGraph.contains(merged, (TrackGraph) (Object) this);
 		}
 		return original;
 	}

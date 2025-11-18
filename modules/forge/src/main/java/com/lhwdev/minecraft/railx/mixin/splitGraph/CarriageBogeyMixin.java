@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
-import com.lhwdev.minecraft.railx.splitGraph.TravellingPointForSplit;
+import com.lhwdev.minecraft.railx.splitGraph.MovingTravellingPoint;
 import com.simibubi.create.content.trains.entity.CarriageBogey;
 import com.simibubi.create.content.trains.entity.TravellingPoint;
 import com.simibubi.create.content.trains.graph.DimensionPalette;
@@ -18,7 +18,7 @@ public class CarriageBogeyMixin {
 		"ZLnet/minecraft/nbt/CompoundTag;)V", at = @At(value = "NEW", target = "()Lcom/simibubi/create/content" +
 		"/trains/entity/TravellingPoint;"))
 	private static TravellingPoint travellingPointForCtor() {
-		return new TravellingPointForSplit();
+		return new MovingTravellingPoint();
 	}
 	
 	@Redirect(method = "<init>(Lcom/simibubi/create/content/trains/bogey/AbstractBogeyBlock;" +
@@ -27,12 +27,12 @@ public class CarriageBogeyMixin {
 		"/createmod/catnip/data/Couple;create(Ljava/lang/Object;Ljava/lang/Object;)" +
 		"Lnet/createmod/catnip/data/Couple;", ordinal = 0))
 	Couple<TravellingPoint> mapTravellingPointsForCtor(Object point, Object point2) {
-		TravellingPointForSplit p, p2;
-		if(point instanceof TravellingPointForSplit split) p = split;
-		else p = new TravellingPointForSplit((TravellingPoint) point);
+		MovingTravellingPoint p, p2;
+		if(point instanceof MovingTravellingPoint split) p = split;
+		else p = new MovingTravellingPoint((TravellingPoint) point);
 		
-		if(point2 instanceof TravellingPointForSplit split) p2 = split;
-		else p2 = new TravellingPointForSplit((TravellingPoint) point2);
+		if(point2 instanceof MovingTravellingPoint split) p2 = split;
+		else p2 = new MovingTravellingPoint((TravellingPoint) point2);
 		
 		return Couple.create(p, p2);
 	}
@@ -42,8 +42,10 @@ public class CarriageBogeyMixin {
 		"Lcom/simibubi/create/content/trains/graph/TrackGraph;" +
 		"Lcom/simibubi/create/content/trains/graph/DimensionPalette;)" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;"))
-	private static TravellingPoint readTravellingPoint(CompoundTag tag, TrackGraph graph,
-		DimensionPalette dimensions) {
-		return TravellingPointForSplit.read(tag, graph, dimensions);
+	private static TravellingPoint readTravellingPoint(
+		CompoundTag tag, TrackGraph graph,
+		DimensionPalette dimensions
+	) {
+		return MovingTravellingPoint.read(tag, graph, dimensions);
 	}
 }

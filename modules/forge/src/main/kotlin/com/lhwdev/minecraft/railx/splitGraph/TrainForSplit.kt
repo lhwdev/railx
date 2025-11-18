@@ -83,7 +83,7 @@ object TrainSplitUtils {
 		}
 		
 		val locations = (result.asNoNulls() ?: return null).let { array ->
-			if(allGraphs.size > 1) TravellingPointForSplit.MigrateTo().also { it += array }
+			if(allGraphs.size > 1) MovingTravellingPoint.MigrateTo().also { it += array }
 			else array.toMutableList()
 		}
 		forEachTravellingPoint { it.migrateTo(locations) }

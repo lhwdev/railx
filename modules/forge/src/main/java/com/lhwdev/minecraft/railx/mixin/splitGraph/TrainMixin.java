@@ -85,6 +85,7 @@ public abstract class TrainMixin implements TrainForSplit {
 	void onTick(Level level, CallbackInfo ci) {
 		var previous = this.graph;
 		if(previous == null || previous != railx$graph) {
+			// TODO: some guessing needed?
 			railx$setAllPointDestinations(null);
 			railx$graph = previous;
 			return;
@@ -92,11 +93,11 @@ public abstract class TrainMixin implements TrainForSplit {
 		
 		var found = new ReferenceArraySet<@Nullable TrackGraph>();
 		for(var carriage : carriages) {
-			found.add(((TravellingPointForSplit) carriage.bogeys.getFirst().leading()).getDestinationGraph());
-			found.add(((TravellingPointForSplit) carriage.bogeys.getFirst().trailing()).getDestinationGraph());
+			found.add(TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getFirst().leading()));
+			found.add(TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getFirst().trailing()));
 			if(!carriage.isOnTwoBogeys()) continue;
-			found.add(((TravellingPointForSplit) carriage.bogeys.getSecond().leading()).getDestinationGraph());
-			found.add(((TravellingPointForSplit) carriage.bogeys.getSecond().trailing()).getDestinationGraph());
+			found.add(TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getSecond().leading()));
+			found.add(TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getSecond().trailing()));
 		}
 		
 		if(previous instanceof MergedTrackGraph mergedBase) {
@@ -172,26 +173,26 @@ public abstract class TrainMixin implements TrainForSplit {
 	@Unique
 	private void railx$setAllPointDestinations(TrackGraph to) {
 		for(var carriage : carriages) {
-			((TravellingPointForSplit) carriage.bogeys.getFirst().leading()).setDestinationGraph(to);
-			((TravellingPointForSplit) carriage.bogeys.getFirst().trailing()).setDestinationGraph(to);
+			TravelingPointSplitUtils.setDestinationGraph((carriage.bogeys.getFirst().leading()), to);
+			TravelingPointSplitUtils.setDestinationGraph((carriage.bogeys.getFirst().trailing()), to);
 			if(!carriage.isOnTwoBogeys()) continue;
-			((TravellingPointForSplit) carriage.bogeys.getSecond().leading()).setDestinationGraph(to);
-			((TravellingPointForSplit) carriage.bogeys.getSecond().trailing()).setDestinationGraph(to);
+			TravelingPointSplitUtils.setDestinationGraph((carriage.bogeys.getSecond().leading()), to);
+			TravelingPointSplitUtils.setDestinationGraph((carriage.bogeys.getSecond().trailing()), to);
 		}
 	}
 	
 	@Unique
 	private void railx$replaceAllPointDestinations(TrackGraph from, TrackGraph to) {
 		for(var carriage : carriages) {
-			if(from == ((TravellingPointForSplit) carriage.bogeys.getFirst().leading()).getDestinationGraph())
-				((TravellingPointForSplit) carriage.bogeys.getFirst().leading()).setDestinationGraph(to);
-			if(from == ((TravellingPointForSplit) carriage.bogeys.getFirst().trailing()).getDestinationGraph())
-				((TravellingPointForSplit) carriage.bogeys.getFirst().trailing()).setDestinationGraph(to);
+			if(from == TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getFirst().leading()))
+				TravelingPointSplitUtils.setDestinationGraph(carriage.bogeys.getFirst().leading(), to);
+			if(from == TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getFirst().trailing()))
+				TravelingPointSplitUtils.setDestinationGraph(carriage.bogeys.getFirst().trailing(), to);
 			if(!carriage.isOnTwoBogeys()) continue;
-			if(from == ((TravellingPointForSplit) carriage.bogeys.getSecond().leading()).getDestinationGraph())
-				((TravellingPointForSplit) carriage.bogeys.getSecond().leading()).setDestinationGraph(to);
-			if(from == ((TravellingPointForSplit) carriage.bogeys.getSecond().trailing()).getDestinationGraph())
-				((TravellingPointForSplit) carriage.bogeys.getSecond().trailing()).setDestinationGraph(to);
+			if(from == TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getSecond().leading()))
+				TravelingPointSplitUtils.setDestinationGraph(carriage.bogeys.getSecond().leading(), to);
+			if(from == TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getSecond().trailing()))
+				TravelingPointSplitUtils.setDestinationGraph(carriage.bogeys.getSecond().trailing(), to);
 		}
 	}
 	
@@ -223,7 +224,7 @@ public abstract class TrainMixin implements TrainForSplit {
 		double position,
 		boolean upsideDown
 	) {
-		return new TravellingPointForSplit(node1, node2, edge, position, upsideDown);
+		return new MovingTravellingPoint(node1, node2, edge, position, upsideDown);
 	}
 	
 	
@@ -240,7 +241,7 @@ public abstract class TrainMixin implements TrainForSplit {
 	void createTrainMigration(TravellingPoint tp, CallbackInfo ci) {
 		if(!(graph instanceof MergedTrackGraph merged)) return;
 		var migration = new TrainMigration(tp);
-		var pointGraph = ((TravellingPointForSplit) tp).getDestinationGraph();
+		var pointGraph = TravelingPointSplitUtils.getDestinationGraph(tp);
 		((TrainMigrationForSplit) migration)
 			.railx$setGraphIndex(pointGraph == null ? 0 : CollectionsKt.indexOf(merged.getGraphs(), pointGraph));
 		migratingPoints.add(migration);

@@ -60,6 +60,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	fun handleTickSpeed(): Boolean {
 		if(!config.enabled.isTrue) return false
+		if(train.derailed) return false
 		
 		currentSpeed = train.speed
 		// if(train.navigation.destination != null) {
@@ -386,6 +387,13 @@ class RealisticTrainSpeed(private val train: Train) {
 	private fun updatePhysicalState() {
 		val p = p ?: return
 		mass = p.carriageMass.sumOf { it.toDouble() }
+		
+		if(train.carriages.any {
+				it.leadingBogey().leading().edge == null ||
+					it.leadingBogey().trailing().edge == null ||
+					it.trailingBogey().leading().edge == null ||
+					it.trailingBogey().trailing().edge == null
+			}) return
 		
 		fun calculateBogeyGradient(bogey: CarriageBogey): Double {
 			val graph = bogey.carriage.train.graph

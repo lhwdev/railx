@@ -51,7 +51,8 @@
     "splitGraph.TrackPropagatorMixin",
     "splitGraph.TrainMigrationMixin",
     "splitGraph.TrainMixin",
-    "splitGraph.TrainRelocatorMixin"
+    "splitGraph.TrainRelocatorMixin",
+    "splitGraph.TravellingPointMixin"
   ],
   "injectors": {
     "defaultRequire": 1

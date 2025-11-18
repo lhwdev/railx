@@ -47,12 +47,6 @@ class NavigationMixin implements SplittingNavigation {
 		return railx$currentPathGraph;
 	}
 	
-	@Redirect(method = "<init>", at = @At(value = "NEW", target = "()Lcom/simibubi/create/content/trains/entity" +
-		"/TravellingPoint;"))
-	TravellingPoint createSignalScout() {
-		return new TravellingPointForSplitScout();
-	}
-	
 	@Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains/entity/Train;" +
 		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 1))
 	TrackGraph trackGraphForTick(Train train) {
@@ -233,7 +227,7 @@ class NavigationMixin implements SplittingNavigation {
 			instance.carriages.getFirst().getLeadingPoint(),
 			instance.carriages.getLast().getTrailingPoint()
 		).map(tp -> {
-			var graph = ((TravellingPointForSplit) tp).getDestinationGraph();
+			var graph = TravelingPointSplitUtils.getDestinationGraph(tp);
 			if(graph == null) graph = this.train.graph;
 			return new SlotObjects.TrainEndpointEdge(graph, tp);
 		});

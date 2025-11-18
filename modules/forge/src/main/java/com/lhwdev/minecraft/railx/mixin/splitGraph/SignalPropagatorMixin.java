@@ -38,7 +38,7 @@ public class SignalPropagatorMixin {
 		@Local(index = 0, argsOnly = true) TrackGraph graph
 	) {
 		if(train.graph instanceof MergedTrackGraph merged) {
-			return MergedTrackGraph.contains(merged, graph);
+			return !MergedTrackGraph.contains(merged, graph);
 		}
 		return original;
 	}

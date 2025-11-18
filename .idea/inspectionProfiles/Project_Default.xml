@@ -15,9 +15,11 @@
     <inspection_tool class="JoinDeclarationAndAssignment" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="reportWithComplexInitializationOfMemberProperties" value="false" />
     </inspection_tool>
+    <inspection_tool class="LocalMayUseName" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="LocalVariableName" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="namePattern" value="[A-Za-z\d]*" />
     </inspection_tool>
+    <inspection_tool class="ModifyVariableMayUseName" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PropertyName" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="namePattern" value="[A-Za-z\d]*" />
     </inspection_tool>
