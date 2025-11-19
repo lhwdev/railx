@@ -5,12 +5,11 @@ plugins {
 	id("java-library")
 	id("maven-publish")
 	id("idea")
-	id("net.neoforged.moddev") version "2.0.95"
+	id("railx.neoforged.moddev.asDeps")
 	kotlin("jvm")
 }
 
 val modId = "railx"
-val neoVersion = "21.1.209"
 
 version = "1.0-SNAPSHOT"
 
@@ -36,21 +35,12 @@ val runClientSources by sourceSets.registering {
 }
 
 neoForge {
-	version = neoVersion
-	
-	parchment {
-		mappingsVersion = "2024.11.17"
-		minecraftVersion = libs.versions.minecraft
-	}
+	enable {}
 	
 	mods {
 		register(modId) {
 			sourceSet(sourceSets.main.get())
 		}
-	}
-	
-	accessTransformers {
-		file("src/main/resources/META-INF/accesstransformer.cfg")
 	}
 	
 	runs {
@@ -109,60 +99,9 @@ sourceSets.main.configure {
 	resources.srcDir("src/generated/resources")
 }
 
-repositories {
-	val central = mavenCentral()
-	remove(central)
-	add(0, central)
-	
-	exclusiveContent {
-		forRepository { maven(url = "https://api.modrinth.com/maven") }
-		filter { includeGroup("maven.modrinth") }
-	}
-	
-	maven(url = "https://thedarkcolour.github.io/KotlinForForge/") {
-		name = "Kotlin for Forge"
-		content { includeGroup("thedarkcolour") }
-	}
-	
-	maven(url = "https://maven.createmod.net/") {
-		content {
-			includeGroup("com.simibubi.create")
-			includeGroup("dev.engine-room.flywheel")
-			includeGroup("net.createmod.catnip")
-			includeGroup("net.createmod.ponder")
-		}
-	}
-	
-	maven(url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/") {
-		content { includeGroup("fuzs.forgeconfigapiport") }
-	}
-	
-	maven(url = "https://mvn.devos.one/snapshots") {
-		content {
-			includeGroup("com.tterrag.registrate")
-		}
-	}
-	
-	maven(url = "https://squiddev.cc/maven/") {
-		content {
-			includeGroup("cc.tweaked")
-			includeGroup("org.squiddev")
-		}
-	}
-	
-	maven(url = "https://maven.enginehub.org/repo/") {
-		content { includeGroupAndSubgroups("com.sk89q") }
-	}
-	
-	maven(url = "https://repo.spongepowered.org/repository/maven-public/") {
-		name = "Sponge"
-		content {
-			includeGroup("org.spongepowered")
-		}
-	}
-}
-
 dependencies {
+	val v = libs.versions
+	
 	fun runClientOnly(dependencyNotation: Any) =
 		add("runClientSourcesOptionalMod", dependencyNotation)
 	
@@ -171,19 +110,19 @@ dependencies {
 		return add("runClientSourcesOptionalMod", dependency)
 	}
 	
-	implementation(project(":cc-asm"))
+	implementation(projects.ccAsm)
 	
 	// kfflib>=5.8.0 won't resolve extension functions: https://github.com/thedarkcolour/KotlinForForge/issues/131
 	compileOnly("thedarkcolour:kotlinforforge-neoforge:5.7.0")
 	runtimeOnly("thedarkcolour:kotlinforforge-neoforge:5.10.0")
 	
-	implementation("com.simibubi.create:create-${libs.versions.minecraft.get()}:6.0.8-168") {
+	implementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}") {
 		isTransitive = false
 	}
 	
-	implementation("net.createmod.ponder:Ponder-NeoForge-${libs.versions.minecraft.get()}:1.0.64")
+	implementation("net.createmod.ponder:Ponder-NeoForge-${v.minecraft.get()}:${v.ponder.get()}")
 	// compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4")
-	implementation("dev.engine-room.flywheel:flywheel-neoforge-${libs.versions.minecraft.get()}:1.0.5")
+	implementation("dev.engine-room.flywheel:flywheel-neoforge-${v.minecraft.get()}:${v.flywheel.get()}")
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+67")
 	
 	// for mod compatibility
@@ -223,7 +162,7 @@ var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
 	var replaceProperties = mapOf(
 		"minecraft_version" to libs.versions.minecraft.get(),
 		"minecraft_version_range" to "[1.21.1,1.22)",
-		"neo_version" to neoVersion,
+		"neo_version" to libs.versions.neoForge.get(),
 		"neo_version_range" to "[21,)",
 		"loader_version_range" to "[5.3,)",
 		"mod_id" to modId,

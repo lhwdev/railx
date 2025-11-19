@@ -1,16 +1,15 @@
+@file:Suppress("UnstableApiUsage")
+
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
 	kotlin("jvm") version libs.versions.kotlin apply false
 }
 
+
+group = "com.lhwdev.minecraft.railx"
+
 subprojects {
-	group = "com.lhwdev.minecraft.railx"
-	
-	repositories {
-		mavenCentral()
-	}
-	
 	afterEvaluate {
 		extensions.apply {
 			val javaVersion = 21
