@@ -268,6 +268,7 @@ public abstract class TrainMixin implements TrainForSplit {
 		} else {
 			graph = new MutableMergedTrackGraph(new ArrayList<>(graphs.values()));
 		}
+		railx$graph = graph;
 		migratingPoints.clear();
 		if(derailed) {
 			status.successfulNavigation();
