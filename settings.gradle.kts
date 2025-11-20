@@ -27,16 +27,19 @@ dependencyResolutionManagement {
 		mavenCentral()
 		
 		exclusiveContent {
-			forRepository { maven(url = "https://api.modrinth.com/maven") }
+			forRepository {
+				maven(url = "https://api.modrinth.com/maven") { name = "Modrinth Maven" }
+			}
 			filter { includeGroup("maven.modrinth") }
 		}
 		
 		maven(url = "https://thedarkcolour.github.io/KotlinForForge/") {
-			name = "Kotlin for Forge"
+			name = "Kotlin for Forge Maven"
 			content { includeGroup("thedarkcolour") }
 		}
 		
 		maven(url = "https://maven.createmod.net/") {
+			name = "Create Maven"
 			content {
 				includeGroup("com.simibubi.create")
 				includeGroup("dev.engine-room.flywheel")
@@ -46,16 +49,19 @@ dependencyResolutionManagement {
 		}
 		
 		maven(url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/") {
+			name = "Fuzss Maven for ForgeConfigApiPort"
 			content { includeGroup("fuzs.forgeconfigapiport") }
 		}
 		
 		maven(url = "https://mvn.devos.one/snapshots") {
+			name = "Maven for Registrate"
 			content {
 				includeGroup("com.tterrag.registrate")
 			}
 		}
 		
 		maven(url = "https://squiddev.cc/maven/") {
+			name = "SquidDev Maven for CC: Tweaked"
 			content {
 				includeGroup("cc.tweaked")
 				includeGroup("org.squiddev")
@@ -63,11 +69,12 @@ dependencyResolutionManagement {
 		}
 		
 		maven(url = "https://maven.enginehub.org/repo/") {
+			name = "EngineHub Maven for WorldEdit"
 			content { includeGroupAndSubgroups("com.sk89q") }
 		}
 		
 		maven(url = "https://repo.spongepowered.org/repository/maven-public/") {
-			name = "Sponge"
+			name = "Sponge Maven"
 			content {
 				includeGroup("org.spongepowered")
 			}

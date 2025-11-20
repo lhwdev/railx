@@ -24,7 +24,7 @@ public class NixieTubeRendererMixin {
 		BlockState referenceState,
 		@Local(index = 1, argsOnly = true) NixieTubeBlockEntity be
 	) {
-		if(RailXConfig.Server.Value.getCommon().getReservedSignal().isFalse())
+		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse())
 			return CachedBuffers.partial(partial, referenceState);
 		var result = ReservedSignalNixieTubeRenderer.INSTANCE.partialModelBase(be, partial, referenceState);
 		return result != null ? result : CachedBuffers.partial(partial, referenceState);

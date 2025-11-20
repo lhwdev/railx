@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
-import com.lhwdev.minecraft.railx.splitGraph.SplitGraphTrack;
+import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrack;
 import com.simibubi.create.content.trains.graph.TrackGraphHelper;
 import com.simibubi.create.content.trains.graph.TrackGraphLocation;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;

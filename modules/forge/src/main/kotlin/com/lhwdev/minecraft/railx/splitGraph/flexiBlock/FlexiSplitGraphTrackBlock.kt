@@ -1,12 +1,12 @@
-package com.lhwdev.minecraft.railx.splitGraph.flexi
+package com.lhwdev.minecraft.railx.splitGraph.flexiBlock
 
 import com.lhwdev.minecraft.railx.common.addIfConnected
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
-import com.lhwdev.minecraft.railx.splitGraph.SplitGraphPoint
-import com.lhwdev.minecraft.railx.splitGraph.SplitGraphPointBase
-import com.lhwdev.minecraft.railx.splitGraph.SplitGraphTrack
+import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphPoint
+import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphPointBase
+import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrack
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
 import net.minecraft.core.BlockPos

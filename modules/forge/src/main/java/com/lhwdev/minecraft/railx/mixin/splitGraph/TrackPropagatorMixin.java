@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
-import com.lhwdev.minecraft.railx.splitGraph.SplitGraphTrack;
 import com.lhwdev.minecraft.railx.splitGraph.SplitTrackPropagator;
+import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrack;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;

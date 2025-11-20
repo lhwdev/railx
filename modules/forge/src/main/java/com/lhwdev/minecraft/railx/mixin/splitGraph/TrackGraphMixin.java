@@ -195,10 +195,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		int netId,
 		@NotNull Vec3 normal
 	) {
-		addNode(new SplittingTrackNode(
-			data.getSplitPos(), data.isFrom(), data.getOtherGraph(),
-			location, netId, normal
-		));
+		addNode(data.toNode(location, netId, normal));
 	}
 	
 	@Override

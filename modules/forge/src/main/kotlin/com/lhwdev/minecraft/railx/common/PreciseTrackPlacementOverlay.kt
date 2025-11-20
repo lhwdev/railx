@@ -58,7 +58,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	}
 	
 	private fun preciseInfo(): PreciseInfo? {
-		if(!RailXConfig.Server.common.preciseOverlay.orFalse) return null
+		if(!RailXConfig.Client.common.preciseOverlay.orFalse) return null
 		
 		val mc = Minecraft.getInstance()
 		val player = mc.player ?: return null

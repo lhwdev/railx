@@ -10,7 +10,7 @@ neoForge {
 dependencies {
 	val v = libs.versions
 	
-	runtimeOnly(projects.forge)
+	implementation(projects.forge)
 	implementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}") {
 		isTransitive = false
 	}

@@ -39,7 +39,7 @@ public abstract class SignalBlockEntityMixin extends SmartBlockEntity implements
 	
 	@Inject(method = "tick", at = @At("TAIL"))
 	void tickServer(CallbackInfo ci) {
-		if(RailXConfig.Server.Value.getCommon().getReservedSignal().isFalse()) return;
+		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse()) return;
 		SignalBoundary boundary = getSignal();
 		if(boundary == null) return; // won't happen but...
 		var side = boundary.blockEntities.getFirst().containsKey(getBlockPos());
@@ -55,13 +55,13 @@ public abstract class SignalBlockEntityMixin extends SmartBlockEntity implements
 	
 	@Inject(method = "write", at = @At("RETURN"))
 	void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
-		if(RailXConfig.Server.Value.getCommon().getReservedSignal().isFalse()) return;
+		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse()) return;
 		if(clientPacket) tag.putBoolean("railx:Reserved", railx$isReserved);
 	}
 	
 	@Inject(method = "read", at = @At("RETURN"))
 	void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
-		if(RailXConfig.Server.Value.getCommon().getReservedSignal().isFalse()) return;
+		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse()) return;
 		if(clientPacket) railx$isReserved = tag.getBoolean("railx:Reserved");
 	}
 }

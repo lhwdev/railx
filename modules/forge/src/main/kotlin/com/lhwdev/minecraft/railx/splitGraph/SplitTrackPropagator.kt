@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.splitGraph
 
 import com.lhwdev.minecraft.railx.splitGraph.SplitTrackPropagator.updateConnectedId
+import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrack
 import com.simibubi.create.Create
 import com.simibubi.create.api.event.TrackGraphMergeEvent
 import com.simibubi.create.content.trains.graph.TrackGraph
@@ -44,8 +45,6 @@ object SplitTrackPropagator {
 		}
 		
 		val centerInFrom = fromGraph.locateNode(center) as? SplittingTrackNode ?: SplittingTrackNode(
-			splitPos = pos,
-			isFrom = true,
 			otherGraph = toGraph.id,
 			location = center,
 			netId = TrackGraph.nextNodeId(),
@@ -56,8 +55,6 @@ object SplitTrackPropagator {
 			fromGraph.connectNodes(reader, from, center, null)
 		
 		val centerInTo = toGraph.locateNode(center) as? SplittingTrackNode ?: SplittingTrackNode(
-			splitPos = pos,
-			isFrom = false,
 			otherGraph = fromGraph.id,
 			location = center,
 			netId = TrackGraph.nextNodeId(),
@@ -165,8 +162,6 @@ private class SplitTrackPropagatorImpl(
 		
 		// 6. add center node; connect from -> center (fromGraph) / center -> to (toGraph)
 		SplittingTrackNode(
-			splitPos = pos,
-			isFrom = true,
 			otherGraph = toGraph.id,
 			location = center,
 			netId = TrackGraph.nextNodeId(),
@@ -175,8 +170,6 @@ private class SplitTrackPropagatorImpl(
 		fromGraph.connectNodes(reader, from, center, null)
 		
 		SplittingTrackNode(
-			splitPos = pos,
-			isFrom = false,
 			otherGraph = fromGraph.id,
 			location = center,
 			netId = TrackGraph.nextNodeId(),

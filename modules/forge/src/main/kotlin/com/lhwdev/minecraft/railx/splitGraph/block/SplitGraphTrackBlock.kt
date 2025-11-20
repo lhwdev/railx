@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.splitGraph
+package com.lhwdev.minecraft.railx.splitGraph.block
 
 import com.lhwdev.minecraft.railx.common.addIfConnected
 import com.simibubi.create.content.trains.graph.TrackNodeLocation

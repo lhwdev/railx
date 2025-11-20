@@ -1,5 +1,4 @@
 @file:JvmName("TrackGraphConnectedIdUtils")
-@file:Suppress("CAST_NEVER_SUCCEEDS")
 
 package com.lhwdev.minecraft.railx.splitGraph
 

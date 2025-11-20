@@ -7,8 +7,8 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
-import com.lhwdev.minecraft.railx.splitGraph.SplitGraphTrackBlock
-import com.lhwdev.minecraft.railx.splitGraph.flexi.FlexiSplitGraphTrackBlock
+import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrackBlock
+import com.lhwdev.minecraft.railx.splitGraph.flexiBlock.FlexiSplitGraphTrackBlock
 import com.simibubi.create.AllDisplaySources
 import com.simibubi.create.Create
 import com.simibubi.create.api.behaviour.display.DisplaySource

@@ -11,6 +11,7 @@
     "common.BezierConnectionMixin",
     "common.TrackPlacementOverlayMixin",
     "common.VirtualRenderWorldMixin",
+    "common.manualStation.CarriageContraptionEntityMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
     "flexiTrack.BezierConnectionMixin",

@@ -6,13 +6,19 @@ import net.neoforged.neoforge.common.ModConfigSpec.*
 
 object RailXConfig {
 	sealed class Client(private val builder: Builder) {
-		val middleTrack = MiddleTrack()
+		val common = Common()
 		
 		
-		inner class MiddleTrack {
-			val debugDisplay: BooleanValue = builder
-				.comment("Whether to show debug display for middle tracks.")
-				.define("middle_track.debug_display", false)
+		inner class Common {
+			val preciseOverlay: BooleanValue = builder
+				.comment("Displays precise information about track blocks, curves, and track placement.")
+				.define("common.precise_overlay", true)
+			val manualStation: BooleanValue = builder
+				.comment(
+					"Makes approaching to station manual. Cannot use space to approach station, and when train " +
+						"approached station enough, press space to mark train to be arrived at station."
+				)
+				.define("common.manual_station", false)
 		}
 		
 		
@@ -22,16 +28,25 @@ object RailXConfig {
 	}
 	
 	sealed class Common(private val builder: Builder) {
+		val common = CommonConfig()
+		
+		
+		inner class CommonConfig {
+			val reservedSignal: BooleanValue = builder
+				.comment(
+					"Marks reserved signals with green color in nixie tube, instead of red. If disabled for server " +
+						"side, does not displayed even if enabled for client."
+				)
+				.define("common.reserved_signal", false)
+		}
+		
+		
 		val spec: ModConfigSpec = builder.build()
 		
 		companion object Value : Common(Builder())
 	}
 	
 	sealed class Server(private val builder: Builder) {
-		val common = Common()
-		
-		val trainMap = TrainMap()
-		
 		val carriageMetadata = CarriageMetadata()
 		
 		val realisticSpeed = RealisticSpeed()
@@ -46,28 +61,6 @@ object RailXConfig {
 		val trackTargetingMaxDistance: IntValue = builder
 			.comment("Overrides max distance at which stations, signals, observers, etc. can be placed, from start of curve.")
 			.defineInRange("track_targeting_max_distance", 128, 64, 1024)
-		
-		
-		inner class Common {
-			val preciseOverlay: BooleanValue = builder
-				.comment("Displays precise information about track blocks, curves, and track placement.")
-				.define("common.precise_overlay", true)
-			
-			val reservedSignal: BooleanValue = builder
-				.comment("Marks reserved signals with green color in nixie tube, instead of red.")
-				.define("common.reserved_signal", false)
-		}
-		
-		
-		inner class TrainMap {
-			val enabled: BooleanValue = builder
-				.comment("Enables train map overlay on third party map mods; currently only supports Xaero's World Map.")
-				.define("train_map.enabled", true)
-			
-			val enableXaeroWorldMap = builder
-				.comment("Allows disabling train map only for Xaero's World Map.")
-				.define("train_map.xaero.enabled", true)
-		}
 		
 		
 		inner class CarriageMetadata {
