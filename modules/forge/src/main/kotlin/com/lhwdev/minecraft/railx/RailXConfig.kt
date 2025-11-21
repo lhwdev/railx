@@ -13,12 +13,6 @@ object RailXConfig {
 			val preciseOverlay: BooleanValue = builder
 				.comment("Displays precise information about track blocks, curves, and track placement.")
 				.define("common.precise_overlay", true)
-			val manualStation: BooleanValue = builder
-				.comment(
-					"Makes approaching to station manual. Cannot use space to approach station, and when train " +
-						"approached station enough, press space to mark train to be arrived at station."
-				)
-				.define("common.manual_station", false)
 		}
 		
 		
@@ -47,6 +41,8 @@ object RailXConfig {
 	}
 	
 	sealed class Server(private val builder: Builder) {
+		val common = Common()
+		
 		val carriageMetadata = CarriageMetadata()
 		
 		val realisticSpeed = RealisticSpeed()
@@ -58,9 +54,22 @@ object RailXConfig {
 		val buildTrak = BuildTrak()
 		
 		
-		val trackTargetingMaxDistance: IntValue = builder
-			.comment("Overrides max distance at which stations, signals, observers, etc. can be placed, from start of curve.")
-			.defineInRange("track_targeting_max_distance", 128, 64, 1024)
+		inner class Common {
+			val manualStation: BooleanValue = builder
+				.comment(
+					"Makes approaching to station manual. Cannot use space to approach station, and when train " +
+						"approached station enough, press space to mark train to be arrived at station."
+				)
+				.define("common.manual_station.enabled", false)
+			
+			val manualStationDistanceLimit: DoubleValue = builder
+				.comment("Specify maximum distance between which train can arrive at station.")
+				.defineInRange("common.manual_station.distance_limit", 0.5, 0.0, 10.0)
+			
+			val manualStationDisassembleLimit: DoubleValue = builder
+				.comment("Specify maximum distance between which train can disassemble.")
+				.defineInRange("common.manual_station.disassemble_limit", 0.2, 0.0, 0.5)
+		}
 		
 		
 		inner class CarriageMetadata {
