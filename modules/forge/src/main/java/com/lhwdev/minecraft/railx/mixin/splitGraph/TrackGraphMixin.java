@@ -4,6 +4,8 @@ import com.lhwdev.minecraft.railx.splitGraph.*;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.trains.GlobalRailwayManager;
@@ -25,7 +27,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -267,22 +268,23 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		}
 	}
 	
-	@Redirect(method = "read", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains/graph" +
+	@WrapOperation(method = "read", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains/graph" +
 		"/TrackGraph;loadNode(Lcom/simibubi/create/content/trains/graph/TrackNodeLocation;" +
 		"ILnet/minecraft/world/phys/Vec3;)V"))
 	private static void onReadGraphNode(
 		TrackGraph instance,
 		TrackNodeLocation location, int netId, Vec3 normal,
+		Operation<Void> original,
 		@Local(ordinal = 1) CompoundTag nodeTag
 	) {
 		if(nodeTag.contains("railx:Splitting")) {
 			var splittingTag = nodeTag.getCompound("railx:Splitting");
 			((TrackGraphMixin) (Object) instance).railx$loadSplittingNode(splittingTag, location, netId, normal);
-		} else if(nodeTag.contains("Splitting")) { // TODO: temporary compatibility; to remove
+		} else if(nodeTag.contains("Splitting")) { // TODO: temporary compatibility with my old maps; to remove
 			var splittingTag = nodeTag.getCompound("Splitting");
 			((TrackGraphMixin) (Object) instance).railx$loadSplittingNode(splittingTag, location, netId, normal);
 		} else {
-			instance.loadNode(location, netId, normal);
+			original.call(instance, location, netId, normal);
 		}
 	}
 	

@@ -1,11 +1,11 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
-import com.lhwdev.minecraft.railx.splitGraph.MovingTravellingPoint;
 import com.lhwdev.minecraft.railx.splitGraph.TravellingPointForSplit;
 import com.lhwdev.minecraft.railx.splitGraph.TravellingPointForSplitHelper;
 import com.simibubi.create.content.trains.entity.TravellingPoint;
 import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackNode;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,23 +40,26 @@ public class TravellingPointMixin implements TravellingPointForSplit {
 		railx$previousNode2 = node2;
 	}
 	
+	@Override
+	public @NotNull TrackGraph railx$prepareTravel(@NotNull TrackGraph graph) {
+		if(railx$previousNode1 != node1 || railx$previousNode2 != node2) {
+			railx$destinationGraph = null;
+			railx$previousNode1 = node1;
+			railx$previousNode2 = node2;
+		}
+		var destinationGraph = railx$destinationGraph;
+		if(destinationGraph != null) return destinationGraph;
+		return graph;
+	}
+	
 	@ModifyVariable(method = "travel(Lcom/simibubi/create/content/trains/graph/TrackGraph;" +
 		"DLcom/simibubi/create/content/trains/entity/TravellingPoint$ITrackSelector;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$IEdgePointListener;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$ITurnListener;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$IPortalListener;)D",
 		at = @At("HEAD"), index = 1, argsOnly = true)
-	TrackGraph checkStatelessBeforeTravel(TrackGraph graph) {
-		if(!((TravellingPoint) (Object) this instanceof MovingTravellingPoint)) {
-			if(railx$previousNode1 != node1 || railx$previousNode2 != node2) {
-				railx$destinationGraph = null;
-				railx$previousNode1 = node1;
-				railx$previousNode2 = node2;
-			}
-		}
-		var destinationGraph = railx$destinationGraph;
-		if(destinationGraph != null) return destinationGraph;
-		return graph;
+	TrackGraph railx$graphForTravel(TrackGraph graph) {
+		return railx$prepareTravel(graph);
 	}
 	
 	@Inject(method = "travel(Lcom/simibubi/create/content/trains/graph/TrackGraph;" +

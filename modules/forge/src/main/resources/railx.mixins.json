@@ -6,7 +6,6 @@
   "refmap": "railx.refmap.json",
   "plugin": "com.lhwdev.minecraft.railx.mixin.MixinPlugin",
   "mixins": [
-    "TrackGraphVisualizerMixin",
     "ccAdvanced.CarriageMixin",
     "common.BezierConnectionMixin",
     "common.TrackPlacementOverlayMixin",
@@ -39,7 +38,6 @@
     "splitGraph.CarriageBogeyMixin",
     "splitGraph.CarriageContraptionEntityMixin",
     "splitGraph.CarriageSyncDataMixin",
-    "splitGraph.DestinationInstructionMixin",
     "splitGraph.EdgeDataMixin",
     "splitGraph.NavigationMixin",
     "splitGraph.RailwaySavedDataMixin",
@@ -50,6 +48,7 @@
     "splitGraph.TrackGraphMixin",
     "splitGraph.TrackGraphSyncMixin",
     "splitGraph.TrackGraphSyncPacketMixin",
+    "splitGraph.TrackGraphVisualizerMixin",
     "splitGraph.TrackPropagatorMixin",
     "splitGraph.TrainMigrationMixin",
     "splitGraph.TrainMixin",

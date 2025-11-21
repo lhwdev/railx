@@ -1,24 +1,21 @@
 package com.lhwdev.minecraft.railx.mixin.other;
 
 import net.createmod.catnip.math.VecHelper;
-import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
 @Mixin(VecHelper.class)
-public class VecHelperFixMixin {
-	/**
-	 * @author lhwdev
-	 * @reason semantics of function is so simple that no one will overwrite it (if it is not bugfix as same as me)
-	 */
-	@Overwrite
-	public static Vec3 slerp(float p, Vec3 from, Vec3 to) {
-		double theta = Math.acos(from.dot(to));
-		if(Math.abs(theta) < 0.001) return VecHelper.lerp(p, from, to);
-		return from.scale(Mth.sin(1 - p) * theta)
-			.add(to.scale(Mth.sin((float) (theta * p))))
-			.scale(1 / Mth.sin((float) theta));
+public abstract class VecHelperFixMixin {
+	@Shadow
+	public static Vec3 lerp(float p, Vec3 from, Vec3 to) {return null;}
+	
+	@Inject(method = "slerp", at = @At("HEAD"), cancellable = true)
+	private static void slerp(float p, Vec3 from, Vec3 to, CallbackInfoReturnable<Vec3> cir) {
+		if(Math.abs(from.dot(to) - 1) < 0.001) cir.setReturnValue(lerp(p, from, to));
 	}
 }

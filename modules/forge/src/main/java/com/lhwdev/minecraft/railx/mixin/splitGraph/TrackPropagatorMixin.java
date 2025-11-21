@@ -2,6 +2,8 @@ package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
 import com.lhwdev.minecraft.railx.splitGraph.SplitTrackPropagator;
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrack;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
@@ -27,9 +29,8 @@ import java.util.*;
 @SuppressWarnings("DataFlowIssue")
 @Mixin(TrackPropagator.class)
 abstract class TrackPropagatorMixin {
-	@Redirect(method = "onRailRemoved", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
-		"/track" +
-		"/ITrackBlock;getConnected(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;" +
+	@WrapOperation(method = "onRailRemoved", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
+		"/trains/track/ITrackBlock;getConnected(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;" +
 		"Lnet/minecraft/world/level/block/state/BlockState;" +
 		"ZLcom/simibubi/create/content/trains/graph/TrackNodeLocation;)Ljava/util/Collection;", ordinal = 0))
 	private static Collection<TrackNodeLocation.DiscoveredLocation> getConnectedForCleanup(
@@ -38,22 +39,24 @@ abstract class TrackPropagatorMixin {
 		BlockPos pos,
 		BlockState state,
 		boolean linear,
-		TrackNodeLocation connectedTo
+		TrackNodeLocation connectedTo,
+		Operation<Collection<TrackNodeLocation.DiscoveredLocation>> original
 	) {
 		if(track instanceof SplitGraphTrack splitTrack) {
 			return splitTrack.getConnectedForCleanup(worldIn, pos, state);
 		}
-		return track.getConnected(worldIn, pos, state, linear, connectedTo);
+		return original.call(track, worldIn, pos, state, linear, connectedTo);
 	}
 	
-	@Redirect(method = "onRailRemoved", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
-		"/track" +
-		"/TrackPropagator;onRailAdded(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;" +
-		"Lnet/minecraft/world/level/block/state/BlockState;)Lcom/simibubi/create/content/trains/graph/TrackGraph;"))
+	@WrapOperation(method = "onRailRemoved", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
+		"/trains/track/TrackPropagator;onRailAdded(Lnet/minecraft/world/level/LevelAccessor;" +
+		"Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)" +
+		"Lcom/simibubi/create/content/trains/graph/TrackGraph;"))
 	private static TrackGraph getGraphForSplit(
 		LevelAccessor reader,
 		BlockPos pos,
 		BlockState state,
+		Operation<TrackGraph> original,
 		@Local(ordinal = 1) Set<TrackGraph> toUpdate
 	) {
 		if(state.getBlock() instanceof SplitGraphTrack) {
@@ -62,7 +65,7 @@ abstract class TrackPropagatorMixin {
 			toUpdate.add(result.getSecond());
 			return null;
 		}
-		return TrackPropagator.onRailAdded(reader, pos, state);
+		return original.call(reader, pos, state);
 	}
 	
 	

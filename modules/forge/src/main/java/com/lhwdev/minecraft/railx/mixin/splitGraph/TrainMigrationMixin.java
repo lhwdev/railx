@@ -17,8 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(TrainMigration.class)
 public class TrainMigrationMixin implements TrainMigrationForSplit {
-	@Shadow private Couple<TrackNodeLocation> locations;
-	@Shadow private double positionOnOldEdge;
+	@Shadow Couple<TrackNodeLocation> locations;
+	@Shadow double positionOnOldEdge;
+	
 	@Unique
 	int railx$graphIndex;
 	

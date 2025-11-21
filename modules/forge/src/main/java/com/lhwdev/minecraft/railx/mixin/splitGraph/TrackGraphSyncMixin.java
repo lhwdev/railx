@@ -1,6 +1,8 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
 import com.lhwdev.minecraft.railx.splitGraph.*;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.trains.graph.*;
 import net.createmod.catnip.data.Pair;
@@ -37,27 +39,34 @@ public abstract class TrackGraphSyncMixin implements SplitTrackGraphSync {
 			.railx$setConnectedId(TrackGraphForSplitUtils.getConnectedId(graph));
 	}
 	
-	@Redirect(method = "nodeAdded", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/data/Pair;of" +
+	@WrapOperation(method = "nodeAdded", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/data/Pair;of" +
 		"(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;", ordinal = 0))
-	Pair<?, ?> addNodeToNodeAdded(Object location, Object normal, @Local(argsOnly = true) TrackNode node) {
+	Pair<?, ?> addNodeToNodeAdded(
+		Object location,
+		Object normal,
+		Operation<Pair<?, ?>> original,
+		@Local(argsOnly = true) TrackNode node
+	) {
+		var result = original.call(location, normal);
 		if(node instanceof SplittingTrackNode split)
 			return new SlotObjects.TrackGraphSyncPacketSplitNodePair(
 				split.data(),
-				(TrackNodeLocation) location,
-				(Vec3) normal
+				(TrackNodeLocation) result.getFirst(),
+				(Vec3) result.getSecond()
 			);
-		return Pair.of(location, normal);
+		return result;
 	}
 	
 	@Redirect(method = "sendFullGraphTo", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/data/Pair;of" +
 		"(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;", ordinal = 0))
 	Pair<?, ?> addNodeToFullGraph(Object location, Object normal, @Local TrackNode node) {
+		var result = Pair.of(location, normal);
 		if(node instanceof SplittingTrackNode split)
 			return new SlotObjects.TrackGraphSyncPacketSplitNodePair(
 				split.data(),
-				(TrackNodeLocation) location,
-				(Vec3) normal
+				(TrackNodeLocation) result.getFirst(),
+				(Vec3) result.getSecond()
 			);
-		return Pair.of(location, normal);
+		return result;
 	}
 }

@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Shadow;
 public class ScheduleRuntimeMixin {
 	@Shadow public Train train;
 	
-	// so far, not needed for ScheduleWaitCondition
+	// not needed for ScheduleWaitCondition so far
 	@WrapMethod(method = "startCurrentInstruction")
 	DiscoveredPath startCurrentInstruction(Level level, Operation<DiscoveredPath> original) {
 		var previous = train.graph;

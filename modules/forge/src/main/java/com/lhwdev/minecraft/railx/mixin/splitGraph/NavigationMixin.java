@@ -4,11 +4,12 @@ import com.lhwdev.minecraft.railx.splitGraph.*;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.trains.entity.Navigation;
 import com.simibubi.create.content.trains.entity.Train;
-import com.simibubi.create.content.trains.entity.TravellingPoint;
 import com.simibubi.create.content.trains.graph.*;
 import com.simibubi.create.content.trains.station.GlobalStation;
 import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
@@ -16,6 +17,7 @@ import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -47,18 +49,19 @@ class NavigationMixin implements SplittingNavigation {
 		return railx$currentPathGraph;
 	}
 	
-	@Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains/entity/Train;" +
-		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 1))
-	TrackGraph trackGraphForTick(Train train) {
-		if(railx$currentPathGraph == null) return train.graph;
+	@ModifyExpressionValue(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
+		"/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 1, opcode =
+		Opcodes.GETFIELD))
+	TrackGraph trackGraphForTick(TrackGraph original) {
+		if(railx$currentPathGraph == null) return original;
 		return railx$currentPathGraph;
 	}
 	
-	@Redirect(method = "currentSignalResolved", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content" +
-		"/trains/entity/Train;" +
-		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 0))
-	TrackGraph trackGraphForCurrentSignalResolved(Train train) {
-		if(railx$currentPathGraph == null) return train.graph;
+	@ModifyExpressionValue(method = "currentSignalResolved", at = @At(value = "FIELD", target = "Lcom/simibubi" +
+		"/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;",
+		ordinal = 0, opcode = Opcodes.GETFIELD))
+	TrackGraph trackGraphForCurrentSignalResolved(TrackGraph original) {
+		if(railx$currentPathGraph == null) return original;
 		return railx$currentPathGraph;
 	}
 	
@@ -80,88 +83,41 @@ class NavigationMixin implements SplittingNavigation {
 		railx$currentPathGraph = null;
 	}
 	
-	@Redirect(method = "findPathTo(Ljava/util/ArrayList;D)Lcom/simibubi/create/content/trains/graph/DiscoveredPath;",
+	@ModifyExpressionValue(method = "findPathTo(Ljava/util/ArrayList;D)" +
+		"Lcom/simibubi/create/content/trains/graph/DiscoveredPath;",
 		at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains/entity/Train;" +
-			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 0))
-	TrackGraph trackGraphForFindPathTo(Train train) {
-		var graph = train.graph;
+			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 0, opcode = Opcodes.GETFIELD))
+	TrackGraph trackGraphForFindPathTo(TrackGraph original) {
+		var graph = original;
 		if(graph == null) return null;
 		if(graph instanceof AllConnectedTrackGraphs merged) graph = merged.getBase(); // temporary
 		return new PropagatingTrackGraph(Create.RAILWAYS, graph);
 	}
 	
-	@Redirect(method = "findPathTo(Ljava/util/ArrayList;D)" +
+	@WrapOperation(method = "findPathTo(Ljava/util/ArrayList;D)" +
 		"Lcom/simibubi/create/content/trains/graph/DiscoveredPath;", at = @At(value = "INVOKE", target = "Lcom" +
 		"/simibubi/create/content/trains/entity/Navigation;search(DDZLjava/util/ArrayList;" +
 		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V"))
-	void hi(
+	void provideGraphForFindPathTo(
 		Navigation instance,
 		double maxDistance,
 		double maxCost,
 		boolean forward,
 		ArrayList<GlobalStation> destinations,
 		Navigation.StationTest stationTest,
+		Operation<Void> original,
 		@Local(index = 4) TrackGraph graph
 	) {
 		var previous = train.graph;
 		train.graph = graph;
 		try {
-			instance.search(maxDistance, maxCost, forward, destinations, stationTest);
+			original.call(instance, maxDistance, maxCost, forward, destinations, stationTest);
 		} finally {
 			train.graph = previous;
 		}
 	}
 	
-	// TODO: currently StationPredicate is not usable because of 'Frontier.remaining' distance calculation to station.
-	/*@Inject(method = "lambda$findPathTo$5", at = @At("HEAD"), cancellable = true)
-	private static void findPathTo$stationTest(
-		ArrayList<GlobalStation> destinations,
-		TrackEdge initialEdge,
-		TrackGraph graph,
-		Couple<DiscoveredPath> results,
-		boolean forward,
-		double distance,
-		double cost,
-		Map<TrackEdge, Pair<Boolean, Couple<TrackNode>>> reachedVia,
-		Pair<Couple<TrackNode>, TrackEdge> currentEntry,
-		GlobalStation globalStation,
-		CallbackInfoReturnable<Boolean> cir
-	) {
-		if(!(destinations instanceof SlotObjects.StationPredicate predicate)) return;
-		if(!predicate.getCondition().invoke(globalStation)) {
-			cir.setReturnValue(false);
-			return;
-		}
-		TrackEdge edge = currentEntry.getSecond();
-		TrackNode node1 = currentEntry.getFirst()
-			.getFirst();
-		TrackNode node2 = currentEntry.getFirst()
-			.getSecond();
-		
-		List<Couple<TrackNode>> currentPath = new ArrayList<>();
-		Pair<Boolean, Couple<TrackNode>> backTrack = reachedVia.get(edge);
-		Couple<TrackNode> toReach = Couple.create(node1, node2);
-		TrackEdge edgeReached = edge;
-		while(backTrack != null) {
-			if(edgeReached == initialEdge)
-				break;
-			if(backTrack.getFirst())
-				currentPath.addFirst(toReach);
-			toReach = backTrack.getSecond();
-			edgeReached = graph.getConnection(toReach);
-			backTrack = reachedVia.get(edgeReached);
-		}
-		
-		double position = edge.getLength() - globalStation.getLocationOn(edge);
-		double distanceToDestination = distance - position;
-		results.set(
-			forward,
-			new DiscoveredPath((forward ? 1 : -1) * distanceToDestination, cost, currentPath, globalStation)
-		);
-		cir.setReturnValue(true);
-	}*/
-	
-	@Redirect(method = "lambda$findPathTo$5", at = @At(value = "NEW", target = "(DDLjava/util/List;" +
+	@WrapOperation(method = "lambda$findPathTo$5", at = @At(value = "NEW", target = "(DDLjava/util/List;" +
 		"Lcom/simibubi/create/content/trains/station/GlobalStation;)" +
 		"Lcom/simibubi/create/content/trains/graph/DiscoveredPath;"))
 	private static DiscoveredPath createFoundPath(
@@ -169,13 +125,14 @@ class NavigationMixin implements SplittingNavigation {
 		double cost,
 		List<Couple<TrackNode>> path,
 		GlobalStation destination,
+		Operation<DiscoveredPath> original,
 		@Local(index = 1, argsOnly = true) TrackEdge initialEdge,
 		@Local(index = 2, argsOnly = true) TrackGraph graph,
 		@Local(index = 9, argsOnly = true) Map<TrackEdge, Pair<Boolean, Couple<TrackNode>>> reachedVia,
 		@Local(index = 10, argsOnly = true) Pair<Couple<TrackNode>, TrackEdge> currentEntry
 	) {
 		if(TrackGraphForSplitUtils.getConnectedGraphs(graph).isEmpty())
-			return new DiscoveredPath(distance, cost, path, destination);
+			return original.call(distance, cost, path, destination);
 		
 		var graphs = new ReferenceArraySet<TrackGraph>();
 		graphs.add(MergedTrackGraph.getBase(graph));
@@ -195,12 +152,12 @@ class NavigationMixin implements SplittingNavigation {
 		return new SlotObjects.SplitDiscoveredPath(distance, cost, path, destination, graphs);
 	}
 	
-	@Redirect(method = "search(DDZLjava/util/ArrayList;" +
+	@ModifyExpressionValue(method = "search(DDZLjava/util/ArrayList;" +
 		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V", at = @At(value = "FIELD", target =
 		"Lcom/simibubi/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;",
-		ordinal = 0))
-	TrackGraph trackGraphForSearch(Train train) {
-		var graph = train.graph;
+		ordinal = 0, opcode = Opcodes.GETFIELD))
+	TrackGraph trackGraphForSearch(TrackGraph original) {
+		var graph = original;
 		if(graph == null) return null;
 		if(graph instanceof PropagatingTrackGraph)
 			return graph; // called from findPathTo; reusing graph to provide graphs to backTracking

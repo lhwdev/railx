@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.mixin;
+package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
 import com.lhwdev.minecraft.railx.splitGraph.TrackGraphForSplit;
 import com.simibubi.create.CreateClient;

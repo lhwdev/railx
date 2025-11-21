@@ -6,9 +6,7 @@ import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.trains.entity.*;
-import com.simibubi.create.content.trains.graph.TrackEdge;
 import com.simibubi.create.content.trains.graph.TrackGraph;
-import com.simibubi.create.content.trains.graph.TrackNode;
 import com.simibubi.create.content.trains.schedule.ScheduleRuntime;
 import com.simibubi.create.content.trains.station.GlobalStation;
 import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
@@ -23,7 +21,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -197,34 +194,28 @@ public abstract class TrainMixin implements TrainForSplit {
 	}
 	
 	
-	@Redirect(method = {"tickOccupiedObservers", "updateNavigationTarget", "getCurrentStation"},
+	@ModifyExpressionValue(method = {"tickOccupiedObservers", "updateNavigationTarget", "getCurrentStation"},
 		at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains/entity/Train;" +
 			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", opcode = Opcodes.GETFIELD))
-	TrackGraph getPathGraph(Train instance) {
+	TrackGraph getPathGraph(TrackGraph original) {
 		var pathGraph = ((SplittingNavigation) navigation).railx$currentPathGraph();
 		if(pathGraph != null) return pathGraph;
-		return instance.graph;
+		return original;
 	}
 	
-	@Redirect(method = "collectInitiallyOccupiedSignalBlocks", at = @At(value = "FIELD", target = "Lcom/simibubi" +
+	@ModifyExpressionValue(method = "collectInitiallyOccupiedSignalBlocks", at = @At(value = "FIELD", target = "Lcom" +
+		"/simibubi" +
 		"/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;"))
-	TrackGraph getGraphForCollectInitiallyOccupiedSignalBlocks(Train instance) {
-		return getPathGraph(instance);
+	TrackGraph getGraphForCollectInitiallyOccupiedSignalBlocks(TrackGraph original) {
+		return getPathGraph(original);
 	}
 	
-	@Redirect(method = "collectInitiallyOccupiedSignalBlocks", at = @At(value = "NEW", target = "(Lcom/simibubi" +
-		"/create" +
-		"/content/trains/graph/TrackNode;Lcom/simibubi/create/content/trains/graph/TrackNode;" +
+	@ModifyExpressionValue(method = "collectInitiallyOccupiedSignalBlocks", at = @At(value = "NEW", target = "(Lcom" +
+		"/simibubi/create/content/trains/graph/TrackNode;Lcom/simibubi/create/content/trains/graph/TrackNode;" +
 		"Lcom/simibubi/create/content/trains/graph/TrackEdge;DZ)" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;"))
-	TravellingPoint createTravelingPointForCollectInitiallyOccupiedSignalBlocks(
-		TrackNode node1,
-		TrackNode node2,
-		TrackEdge edge,
-		double position,
-		boolean upsideDown
-	) {
-		return new MovingTravellingPoint(node1, node2, edge, position, upsideDown);
+	TravellingPoint createTravelingPointForCollectInitiallyOccupiedSignalBlocks(TravellingPoint original) {
+		return new MovingTravellingPoint(original);
 	}
 	
 	

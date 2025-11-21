@@ -22,9 +22,14 @@ import kotlin.math.min
  * Should cover stateless + stateful cases; stateless case in `Navigation.signalScout` and stateful for others.
  * [MovingTravellingPoint] has more feature, including serialization and migration support.
  */
-@Suppress("PropertyName")
+@Suppress("PropertyName", "FunctionName")
+@JvmDefaultWithoutCompatibility // be sure to put this on implementing class
 interface TravellingPointForSplit {
 	var `railx$destinationGraph`: TrackGraph?
+		get() = error("stub")
+		set(_) = error("stub")
+	
+	fun `railx$prepareTravel`(graph: TrackGraph): TrackGraph = error("stub")
 }
 
 var TravellingPoint.destinationGraph: TrackGraph?
@@ -86,19 +91,25 @@ object TravellingPointForSplitHelper {
 }
 
 
+@JvmDefaultWithoutCompatibility // without this, synthetic 'railx$destinationGraph' that calls TravellingPointForSplit is created
 open class MovingTravellingPoint(
 	node1: TrackNode?,
 	node2: TrackNode?,
 	edge: TrackEdge?,
 	position: Double,
 	upsideDown: Boolean,
-) : TravellingPoint(node1, node2, edge, position, upsideDown) {
+) : TravellingPoint(node1, node2, edge, position, upsideDown), TravellingPointForSplit {
 	
 	constructor() : this(node1 = null, node2 = null, edge = null, position = 0.0, upsideDown = false)
 	
 	constructor(from: TravellingPoint) : this(from.node1, from.node2, from.edge, from.position, from.upsideDown) {
 		blocked = from.blocked
 	}
+	
+	
+	override fun `railx$prepareTravel`(graph: TrackGraph): TrackGraph =
+		destinationGraph ?: graph
+	
 	
 	override fun migrateTo(locations: MutableList<TrackGraphLocation>) {
 		val location = locations.removeAt(0)

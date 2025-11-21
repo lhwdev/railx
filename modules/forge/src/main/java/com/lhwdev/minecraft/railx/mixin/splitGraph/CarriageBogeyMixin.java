@@ -1,6 +1,8 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
 import com.lhwdev.minecraft.railx.splitGraph.MovingTravellingPoint;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.simibubi.create.content.trains.entity.CarriageBogey;
 import com.simibubi.create.content.trains.entity.TravellingPoint;
 import com.simibubi.create.content.trains.graph.DimensionPalette;
@@ -21,12 +23,16 @@ public class CarriageBogeyMixin {
 		return new MovingTravellingPoint();
 	}
 	
-	@Redirect(method = "<init>(Lcom/simibubi/create/content/trains/bogey/AbstractBogeyBlock;" +
+	@WrapOperation(method = "<init>(Lcom/simibubi/create/content/trains/bogey/AbstractBogeyBlock;" +
 		"ZLnet/minecraft/nbt/CompoundTag;Lcom/simibubi/create/content/trains/entity/TravellingPoint;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;)V", at = @At(value = "INVOKE", target = "Lnet" +
 		"/createmod/catnip/data/Couple;create(Ljava/lang/Object;Ljava/lang/Object;)" +
 		"Lnet/createmod/catnip/data/Couple;", ordinal = 0))
-	Couple<TravellingPoint> mapTravellingPointsForCtor(Object point, Object point2) {
+	Couple<TravellingPoint> mapTravellingPointsForCtor(
+		Object point,
+		Object point2,
+		Operation<Couple<TravellingPoint>> original
+	) {
 		MovingTravellingPoint p, p2;
 		if(point instanceof MovingTravellingPoint split) p = split;
 		else p = new MovingTravellingPoint((TravellingPoint) point);
@@ -34,7 +40,7 @@ public class CarriageBogeyMixin {
 		if(point2 instanceof MovingTravellingPoint split) p2 = split;
 		else p2 = new MovingTravellingPoint((TravellingPoint) point2);
 		
-		return Couple.create(p, p2);
+		return original.call(p, p2);
 	}
 	
 	@Redirect(method = "lambda$read$4", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +

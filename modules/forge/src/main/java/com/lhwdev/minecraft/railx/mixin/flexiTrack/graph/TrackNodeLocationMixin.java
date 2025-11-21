@@ -103,8 +103,6 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	}
 	
 	
-	// designed to be compatible with vanilla create (send/receive is only used for network packet which does not have
-	// to be binary compatible)
 	@Inject(method = "read", at = @At("RETURN"))
 	private static void onRead(
 		CompoundTag tag,

@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 
-@Mixin(value = Train.class, remap = false)
+@Mixin(value = Train.class)
 public class TrainMixin {
 	@Unique
 	private RealisticTrainSpeed railx$realisticSpeed;

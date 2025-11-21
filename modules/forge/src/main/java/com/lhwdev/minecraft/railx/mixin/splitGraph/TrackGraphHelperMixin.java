@@ -1,6 +1,8 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrack;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.simibubi.create.content.trains.graph.TrackGraphHelper;
 import com.simibubi.create.content.trains.graph.TrackGraphLocation;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;
@@ -15,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Collection;
@@ -37,7 +38,8 @@ public class TrackGraphHelperMixin {
 		}
 	}
 	
-	@Redirect(method = "getBezierGraphLocationAt", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
+	@WrapOperation(method = "getBezierGraphLocationAt", at = @At(value = "INVOKE", target = "Lcom/simibubi/create" +
+		"/content" +
 		"/trains/track/ITrackBlock;getConnected(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;" +
 		"Lnet/minecraft/world/level/block/state/BlockState;" +
 		"ZLcom/simibubi/create/content/trains/graph/TrackNodeLocation;)Ljava/util/Collection;"))
@@ -47,10 +49,11 @@ public class TrackGraphHelperMixin {
 		BlockPos pos,
 		BlockState state,
 		boolean linear,
-		@Nullable TrackNodeLocation connectedTo
+		@Nullable TrackNodeLocation connectedTo,
+		Operation<Collection<TrackNodeLocation.DiscoveredLocation>> original
 	) {
 		if(state.getBlock() instanceof SplitGraphTrack track)
-			return track.getEndConnected(worldIn, pos, state, linear, connectedTo);
-		return instance.getConnected(worldIn, pos, state, linear, connectedTo);
+			return original.call(track, worldIn, pos, state, linear, connectedTo);
+		return original.call(instance, worldIn, pos, state, linear, connectedTo);
 	}
 }

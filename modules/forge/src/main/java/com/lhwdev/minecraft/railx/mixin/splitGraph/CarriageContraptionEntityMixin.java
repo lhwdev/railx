@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import com.lhwdev.minecraft.railx.splitGraph.*;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.simibubi.create.CreateClient;
 import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
 import com.simibubi.create.content.trains.entity.Carriage;
@@ -20,7 +21,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
@@ -83,12 +83,17 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 		return result;
 	}
 	
-	@Redirect(method = "onSyncedDataUpdated", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
+	@WrapOperation(method = "onSyncedDataUpdated", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
 		"/trains/entity/CarriageSyncData;apply(Lcom/simibubi/create/content/trains/entity/CarriageContraptionEntity;" +
 		"Lcom/simibubi/create/content/trains/entity/Carriage;)V"))
-	void onCarriageDataUpdated(CarriageSyncData instance, CarriageContraptionEntity entity, Carriage carriage) {
+	void onCarriageDataUpdated(
+		CarriageSyncData instance,
+		CarriageContraptionEntity entity,
+		Carriage carriage,
+		Operation<Void> original
+	) {
 		((CarriageSyncDataForSplit) instance).railx$setConnectedGraph(railx$getConnectedGraph());
-		instance.apply(entity, carriage);
+		original.call(instance, entity, carriage);
 	}
 	
 	@Inject(method = "onSyncedDataUpdated", at = @At("TAIL"))
