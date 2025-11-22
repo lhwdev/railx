@@ -300,12 +300,14 @@ object FlexiTrackPlacement {
 				}
 			}
 			
-			
+			check(fromSign != 0.0 && toSign != 0.0) { "fromSign or toSign == 0, ($fromSign, $toSign)" }
+			val fromTangent = fromTangent.scale(fromSign)
+			val toTangent = toTangent.scale(toSign)
 			val fromEnd = FlexiPlacementInfo.TrackEnd(
 				block = fromBlock,
 				pos = from.pos,
 				end = fromBlock.getCurveStart(level, from.pos, fromState, fromTangent),
-				tangent = fromTangent.scale(fromSign),
+				tangent = fromTangent,
 				normal = from.normal,
 			)
 			fromEnd.state = fromState
@@ -313,7 +315,7 @@ object FlexiTrackPlacement {
 				block = toBlock,
 				pos = to.pos,
 				end = toBlock.getCurveStart(level, to.pos, toState, toTangent),
-				tangent = toTangent.scale(toSign),
+				tangent = toTangent,
 				normal = to.normal,
 			)
 			toEnd.state = toState
