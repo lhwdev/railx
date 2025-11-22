@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.utils.closeTo
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.trains.track.*
 import net.minecraft.util.Mth
@@ -33,11 +34,14 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 		val lowStarts = lower.starts
 		val highStarts = higher.starts
 		val lowestPoint = lowStarts.second
+		val centerPoint = lowStarts.first
 		val highestPoint = highStarts.second
 		
-		if(lowestPoint.y > lowStarts.first.y) return
-		if(highestPoint.y < highStarts.first.y) return
-		if(lowestPoint.y similarTo highestPoint.y) return
+		if(!(highStarts.first closeTo centerPoint)) return
+		if(lowestPoint.y > centerPoint.y) return
+		if(highestPoint.y < centerPoint.y) return
+		if(lowestPoint.y similarTo centerPoint.y) return
+		if(highestPoint.y similarTo centerPoint.y) return
 		
 		blockEntity.removeInboundConnections(false)
 		blockEntity.connections.clear()
@@ -77,6 +81,8 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 		}
 		applySmoothing(connection = lower)
 		applySmoothing(connection = higher)
+		
+		TrackPropagator.onRailAdded(level, blockEntity.blockPos, blockEntity.blockState)
 	}
 	
 	override fun captureSmoothingHandles() {

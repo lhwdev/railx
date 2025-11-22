@@ -1,4 +1,11 @@
-# Some description about what's going inside splitGraph
+# About `splitGraph`
+
+## Limitation
+
+- Cannot put Split Train Track Block in a row; usually you don't have to.
+- Cannot relocate train over splitting point.
+
+## What's going under the hood
 
 There is special type of `TrackNode` called [SplittingTrackNode](SplittingTrackNode.kt). This node works like below:
 

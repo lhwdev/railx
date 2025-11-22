@@ -122,12 +122,16 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			}
 			
 			val track = state.block as? ITrackBlock ?: return null
+			var tilted = false
 			return PreciseTrackInfo(
 				pos = pos.bottomCenter,
 				direction = if(track is FlexiTrackBlock) {
 					if(virtual) {
 						FlexiDirection.Known.roundFrom(player.lookAngle)
 					} else {
+						(level.getBlockEntity(pos) as? FlexiTrackBlockEntity)?.let { be ->
+							tilted = be.state.tilt != null
+						}
 						track.getNearestTrackDirection(level, pos, state, player.lookAngle)?.axis
 							?: return null
 					}
@@ -136,6 +140,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 					FlexiDirection.Two(tangent.first.normalize(), track.getUpNormal(level, pos, state).normalize())
 						.optimize()
 				},
+				tilted = tilted,
 				virtual = virtual,
 			)
 		}
@@ -216,6 +221,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		val pos: Vec3,
 		val direction: FlexiDirection,
 		val curvePoint: TrackBezierPointSelection? = null,
+		tilted: Boolean = false,
 		virtual: Boolean = false,
 	) : PreciseInfo() {
 		override val targetTrack = TrackPoint(pos, direction.tangent)
@@ -223,7 +229,9 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		override val lines = mutableListOf<Component>()
 		
 		init {
-			lines += Component.literal("Axis = ${displayPoint(direction)}")
+			val first = Component.literal("Axis = ${displayPoint(direction)}")
+			if(tilted) first.append(" (Tilted)")
+			lines += first
 			
 			if(curvePoint != null) {
 				val line = Component.empty()
