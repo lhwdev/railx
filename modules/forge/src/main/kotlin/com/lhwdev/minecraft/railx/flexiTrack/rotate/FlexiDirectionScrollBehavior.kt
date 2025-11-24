@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.map
 import com.lhwdev.minecraft.railx.flexiTrack.optimize
+import com.lhwdev.minecraft.railx.utils.transformUnit
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
@@ -12,6 +13,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.BlockHitResult
+import org.joml.Quaterniond
 import kotlin.math.PI
 import kotlin.math.roundToInt
 
@@ -64,15 +66,20 @@ class FlexiDirectionScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTran
 		val be = be
 		val level = be.level!!
 		val delta = (FlexiDirection.Known.DivisionCount - valueSetting.value) - offset
+		val rotation = Quaterniond().rotationY(delta.toDouble() / FlexiDirection.Known.DivisionCount * PI)
 		
 		be.updateEachConnections {
-			be.updateState(be.state.copy(baseShape = be.shape.map { direction -> direction.rotateKnown(delta) }))
+			val state = be.state
+			val newState = state.copy(
+				baseShape = state.baseShape.map { it.rotateKnown(delta) },
+				tilt = state.tilt?.let { tilt -> tilt.copy(axis = rotation.transformUnit(tilt.axis).optimize()) }
+			)
+			be.updateState(newState)
 			
 			forEachConnections { connection ->
-				val yaw = delta.toFloat() / FlexiDirection.Known.DivisionCount * PI.toFloat()
-				val axis = connection.axes.first.yRot(yaw).optimize()
+				val axis = rotation.transformUnit(connection.axes.first).optimize()
 				connection.axes.first = axis
-				connection.normals.first = connection.normals.first.yRot(yaw).optimize()
+				connection.normals.first = rotation.transformUnit(connection.normals.first).optimize()
 				connection.starts.first = be.block.getCurveStart(level, be.blockPos, be.blockState, axis)
 			}
 		}

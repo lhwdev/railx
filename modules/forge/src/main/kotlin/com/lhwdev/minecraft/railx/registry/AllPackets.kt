@@ -5,6 +5,7 @@ import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.ObserverEditP
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
 import com.lhwdev.minecraft.railx.splitGraph.SplittingTrackNodeUpdatedPacket
 import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdPacket
+import com.lhwdev.minecraft.railx.throttle.ThrottlePacket
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.createmod.catnip.net.base.CatnipPacketRegistry
 import net.minecraft.network.RegistryFriendlyByteBuf
@@ -14,6 +15,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
 enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTypeProvider {
 	/// client -> server
+	Throttle(ThrottlePacket),
+	
 	ObserverEdit(ObserverEditPacket),
 	
 	CurvedMiddleTrackSelection(CurvedMiddleTrackSelectionPacket),

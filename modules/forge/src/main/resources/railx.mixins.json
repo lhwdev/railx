@@ -10,6 +10,7 @@
     "common.BezierConnectionMixin",
     "common.TrackPlacementOverlayMixin",
     "common.VirtualRenderWorldMixin",
+    "common.longPlacement.CTrainsMixin",
     "common.manualStation.CarriageContraptionEntityMixin",
     "common.manualStation.TrainMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
@@ -33,7 +34,6 @@
     "realisticSpeed.BlockBuilderMixin",
     "realisticSpeed.ContraptionMixin",
     "realisticSpeed.PropertiesMixin",
-    "realisticSpeed.TrainHUDMixin",
     "realisticSpeed.TrainMixin",
     "splitGraph.CarriageBogeyMixin",
     "splitGraph.CarriageContraptionEntityMixin",
@@ -53,7 +53,8 @@
     "splitGraph.TrainMigrationMixin",
     "splitGraph.TrainMixin",
     "splitGraph.TrainRelocatorMixin",
-    "splitGraph.TravellingPointMixin"
+    "splitGraph.TravellingPointMixin",
+    "throttle.TrainHUDMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,6 +1,5 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.utils.closeTo
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.trains.track.*
 import net.minecraft.util.Mth
@@ -34,14 +33,14 @@ class FlexiTrackBlockEntityTilt(private val blockEntity: FlexiTrackBlockEntity) 
 		val lowStarts = lower.starts
 		val highStarts = higher.starts
 		val lowestPoint = lowStarts.second
-		val centerPoint = lowStarts.first
+		val centerY = lowStarts.first.y
 		val highestPoint = highStarts.second
 		
-		if(!(highStarts.first closeTo centerPoint)) return
-		if(lowestPoint.y > centerPoint.y) return
-		if(highestPoint.y < centerPoint.y) return
-		if(lowestPoint.y similarTo centerPoint.y) return
-		if(highestPoint.y similarTo centerPoint.y) return
+		if(!(highStarts.first.y similarTo centerY)) return
+		if(lowestPoint.y > centerY) return
+		if(highestPoint.y < centerY) return
+		if(lowestPoint.y similarTo centerY) return
+		if(highestPoint.y similarTo centerY) return
 		
 		blockEntity.removeInboundConnections(false)
 		blockEntity.connections.clear()

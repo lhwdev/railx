@@ -1,7 +1,9 @@
 package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiShape
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockBehavior
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackTargetingBehavior
 import com.lhwdev.minecraft.railx.other.ScrollValueBehaviorExtension
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
@@ -29,7 +31,7 @@ import kotlin.math.PI
 
 class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	ScrollValueBehaviour(Component.literal("Rotate Flexi Track"), be, FlexiRotationValueBox()),
-	FlexiTrackTargetingBehavior, ScrollValueBehaviorExtension {
+	FlexiTrackBlockBehavior, ScrollValueBehaviorExtension {
 	
 	enum class Kind {
 		Direction,
@@ -67,7 +69,6 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	}
 	
 	override fun onFlexiStateUpdate(level: LevelReader, pos: BlockPos) {
-		super.onFlexiStateUpdate(level, pos)
 		delegate = null
 	}
 	
@@ -117,9 +118,31 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	
 	override fun read(nbt: CompoundTag, registries: HolderLookup.Provider?, clientPacket: Boolean) {}
 	override fun write(nbt: CompoundTag, registries: HolderLookup.Provider?, clientPacket: Boolean) {}
+	
+	override fun writeToClipboard(registries: HolderLookup.Provider, tag: CompoundTag, side: Direction): Boolean {
+		val axis = be.shape.axes.singleOrNull() ?: return false
+		tag.put("railx:FlexiTrackDirection", axis.write())
+		return true
+	}
+	
+	override fun readFromClipboard(
+		registries: HolderLookup.Provider,
+		tag: CompoundTag,
+		player: Player,
+		side: Direction,
+		simulate: Boolean,
+	): Boolean {
+		val state = be.state
+		if(state.shape.axes.size != 1) return false
+		val direction = tag.get("railx:FlexiTrackDirection") as? CompoundTag ?: return false
+		if(simulate) return true
+		
+		be.updateState(state.copy(baseShape = FlexiShape.Single(axis = FlexiDirection.read(direction))))
+		return true
+	}
 }
 
-class FlexiRotationValueBox : ValueBoxTransform.Sided() {
+private class FlexiRotationValueBox : ValueBoxTransform.Sided() {
 	override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 =
 		Vec3(0.5, 0.25, 0.5)
 	

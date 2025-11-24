@@ -5,6 +5,7 @@ import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackInteraction
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackOutline
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackTargetingClient
 import com.lhwdev.minecraft.railx.middleTrack.renderer.MiddleTracksRenderer
+import com.lhwdev.minecraft.railx.throttle.ThrottleHUD
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
@@ -38,6 +39,11 @@ object ClientEvents {
 	
 	@SubscribeEvent
 	fun registerGuiOverlays(event: RegisterGuiLayersEvent) {
+		event.registerAbove(
+			VanillaGuiLayers.EXPERIENCE_BAR,
+			RailX.asResource("throttle_hud"),
+			ThrottleHUD
+		)
 		event.registerAbove(
 			VanillaGuiLayers.HOTBAR,
 			RailX.asResource("precise_track_placement"),

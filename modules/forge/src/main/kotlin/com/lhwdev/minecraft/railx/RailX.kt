@@ -25,7 +25,8 @@ import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
 class RailX(container: ModContainer, bus: IEventBus) {
 	companion object {
 		// Note: should be const; see :api/utils.kt
-		const val Id = "railx"
+		const val Id: String = "railx"
+		const val Name: String = "RailX"
 		
 		val Logger: Logger = LogManager.getLogger(Id)
 		

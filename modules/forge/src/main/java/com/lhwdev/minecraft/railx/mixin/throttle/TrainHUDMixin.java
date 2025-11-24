@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.mixin.realisticSpeed;
+package com.lhwdev.minecraft.railx.mixin.throttle;
 
 import com.simibubi.create.content.trains.TrainHUD;
 import org.spongepowered.asm.mixin.Mixin;

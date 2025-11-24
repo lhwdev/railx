@@ -95,9 +95,12 @@ class FlexiGradientScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTrans
 		val rotation = Quaterniond().rotationAxis(delta.toDouble() * PI / maxGradient, axis.x, axis.y, axis.z)
 		
 		be.updateEachConnections {
-			be.updateState(be.state.copy(baseShape = be.shape.map { direction ->
-				direction.applyNormal(rotation.transformUnit(direction.normal).optimize())
-			}))
+			val state = be.state
+			val newState = state.copy(
+				baseShape = state.baseShape.map { it.applyNormal(rotation.transformUnit(it.normal).optimize()) },
+				tilt = state.tilt?.let { tilt -> tilt.copy(axis = rotation.transformUnit(tilt.axis).optimize()) }
+			)
+			be.updateState(newState)
 			
 			forEachConnections { connection ->
 				val axis = rotation.transformUnit(connection.axes.first).optimize()

@@ -18,4 +18,17 @@ object StreamCodecs {
 				buffer.writeNullable(value, base as StreamEncoder<in FriendlyByteBuf, V?>)
 			}
 		}
+	
+	fun <T : Enum<T>> enum(type: Class<T>): StreamCodec<in FriendlyByteBuf, T> =
+		object : StreamCodec<FriendlyByteBuf, T> {
+			override fun decode(buffer: FriendlyByteBuf): T =
+				buffer.readEnum(type)
+			
+			override fun encode(buffer: FriendlyByteBuf, value: T) {
+				buffer.writeEnum(value)
+			}
+		}
+	
+	inline fun <reified T : Enum<T>> enum(): StreamCodec<in FriendlyByteBuf, T> =
+		enum(T::class.java)
 }

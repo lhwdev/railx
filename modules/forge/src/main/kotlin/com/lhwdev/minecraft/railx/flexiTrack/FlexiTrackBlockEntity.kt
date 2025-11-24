@@ -83,7 +83,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		notifyUpdate()
 		
 		for(behavior in allBehaviours)
-			if(behavior is FlexiTrackTargetingBehavior) behavior.onFlexiStateUpdate(level!!, blockPos)
+			if(behavior is FlexiTrackBlockBehavior) behavior.onFlexiStateUpdate(level!!, blockPos)
 	}
 	
 	inner class UpdateEachConnectionsContext(
@@ -161,7 +161,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		state = FlexiState.read(tag.getCompound("FlexiState"))
 		val level = level
 		for(behavior in allBehaviours)
-			if(level != null && behavior is FlexiTrackTargetingBehavior) behavior.onFlexiStateUpdate(level, blockPos)
+			if(level != null && behavior is FlexiTrackBlockBehavior) behavior.onFlexiStateUpdate(level, blockPos)
 	}
 	
 	override fun bind(boundDimension: ResourceKey<Level>, boundLocation: BlockPos) {
@@ -170,6 +170,6 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 }
 
 
-interface FlexiTrackTargetingBehavior {
+interface FlexiTrackBlockBehavior {
 	fun onFlexiStateUpdate(level: LevelReader, pos: BlockPos) {}
 }

@@ -293,6 +293,7 @@ object FlexiTrackPlacement {
 				)
 				if(crossIntersect != null) {
 					fromSign = sign(crossIntersect[0])
+					if(fromSign <= 0.0) return null
 					toSign = -sign(fromTangent.dot(toTangent))
 				} else { // generally mostly impossible for Known; why use flexi for straight line
 					fromSign = sign(fromTangent.dot(toVec - fromVec))
