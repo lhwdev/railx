@@ -11,14 +11,14 @@ gradlePlugin {
 		// See https://github.com/neoforged/ModDevGradle/blob/main/build.gradle
 		register("moddev") {
 			id = "railx.neoforged.moddev"
-			implementationClass = "net.neoforged.moddevgradle.boot.ModDevPlugin"
+			implementationClass = "com.lhwdev.build.minecraft.ModDevPlugin"
 			displayName = "NeoForge Mod Development Plugin"
 			description = "This plugin helps you create Minecraft mods using the NeoForge platform"
 		}
 		
 		register("repositories") {
 			id = "railx.neoforged.moddev.repositories"
-			implementationClass = "net.neoforged.moddevgradle.boot.RepositoriesPlugin"
+			implementationClass = "com.lhwdev.build.minecraft.RepositoriesPlugin"
 			displayName = "NeoForge Mod Development Repositories Plugin"
 			description =
 				"This plugin adds the repositories needed for developing Minecraft mods. It is applied automatically by the moddev plugin, but can be applied manually in settings.gradle to make use of Gradle dependency management."
