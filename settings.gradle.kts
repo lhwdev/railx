@@ -60,11 +60,10 @@ dependencyResolutionManagement {
 			}
 		}
 		
-		maven(url = "https://squiddev.cc/maven/") {
+		maven(url = "https://maven.squiddev.cc") {
 			name = "SquidDev Maven for CC: Tweaked"
 			content {
 				includeGroup("cc.tweaked")
-				includeGroup("org.squiddev")
 			}
 		}
 		

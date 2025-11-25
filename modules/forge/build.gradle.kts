@@ -128,8 +128,7 @@ dependencies {
 	// for mod compatibility
 	optionalModDependency("maven.modrinth:framedblocks:10.4.0")
 	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_NeoForge_1.21")
-	optionalModDependency(files("./libs/copycats-3.0.2+mc.1.21.1-neoforge-build.260.jar"))
-	// optionalModDependency("com.copycatsplus:copycats:3.0.2+mc.1.21.1-neoforge-build.260")
+	optionalModDependency("maven.modrinth:copycats:3.0.4+mc.1.21.1-neoforge")
 	
 	// optional mod dependencies
 	compileOnly("com.sk89q.worldedit:worldedit-neoforge-mc1.21:7.3.8") {

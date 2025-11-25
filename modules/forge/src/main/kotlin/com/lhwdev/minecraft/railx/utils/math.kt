@@ -9,6 +9,13 @@ import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVector3d
 import kotlin.math.abs
 
 
+fun sign(value: Int): Int = when {
+	value == 0 -> 0
+	value > 0 -> 1
+	else -> -1
+}
+
+
 inline fun Int.pow2(): Int =
 	this * this
 

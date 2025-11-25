@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.LayeredDraw
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.GameType
+import kotlin.math.abs
 
 
 object ThrottleHUD : LayeredDraw.Layer {
@@ -19,7 +20,7 @@ object ThrottleHUD : LayeredDraw.Layer {
 		if(entity !is CarriageContraptionEntity) return
 		
 		if(entity.carriage == null) return
-		if(mc.cameraEntity != null) return
+		if(mc.cameraEntity == null) return
 		if(ControlsHandler.getControlsPos() == null) return
 		
 		val throttle = ThrottlesClient.throttle ?: return
@@ -30,8 +31,14 @@ object ThrottleHUD : LayeredDraw.Layer {
 			Throttles.Reverser.Backward -> text.append("Backward")
 		}
 		text.append(" ")
-		text.append(if(throttle.breaking) "T" else "B")
-		text.append("${throttle.gear}")
+		text.append(
+			when {
+				throttle.gear > 0 -> "F"
+				throttle.gear == 0 -> "N"
+				else -> "B"
+			}
+		)
+		text.append("${abs(throttle.gear)}")
 		
 		graphics.drawString(mc.font, text, 16, graphics.guiHeight() - 29, 0xffffff)
 	}

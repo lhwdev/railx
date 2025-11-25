@@ -17,6 +17,7 @@ class ThrottlePacket(
 	val contraptionEntityId: Int,
 	val controlsPos: BlockPos,
 	val throttle: Throttle,
+	val otherKeys: List<Int>,
 	val stopControlling: Boolean = false,
 ) :
 	ServerboundPacketPayload {
@@ -25,7 +26,6 @@ class ThrottlePacket(
 			StreamCodecs.enum(), Throttle::reverser,
 			StreamCodecs.enum(), Throttle::steering,
 			ByteBufCodecs.VAR_INT, Throttle::gear,
-			ByteBufCodecs.BOOL, Throttle::breaking,
 			::Throttle,
 		)
 		
@@ -33,6 +33,7 @@ class ThrottlePacket(
 			ByteBufCodecs.INT, ThrottlePacket::contraptionEntityId,
 			BlockPos.STREAM_CODEC, ThrottlePacket::controlsPos,
 			throttleCodec, ThrottlePacket::throttle,
+			ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()), ThrottlePacket::otherKeys,
 			ByteBufCodecs.BOOL, ThrottlePacket::stopControlling,
 			::ThrottlePacket
 		)
