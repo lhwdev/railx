@@ -1,9 +1,10 @@
 [versions]
 kotlin = "2.3.0-Beta2" # cannot use 2.2: https://youtrack.jetbrains.com/projects/KT/issues/KT-72039
-minecraft = "1.21.1"
-neoForge = "21.1.209"
+minecraft = "1.20.1"
+forge = "47.1.33"
 #neoForgeModDev # declared in build-logic/build.gradle.kts
+mixinExtras = "0.5.0"
 
-create = "6.0.8-168"
-ponder = "1.0.64"
-flywheel = "1.0.5"
+create = "6.0.8-290"
+ponder = "1.0.91"
+flywheel = "1.0.6-beta-266"

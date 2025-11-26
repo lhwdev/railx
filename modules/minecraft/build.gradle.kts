@@ -7,18 +7,18 @@ plugins {
 
 neoForge {
 	enable {
-		version = libs.versions.neoForge.get()
+		forgeVersion = "${libs.versions.minecraft.get()}-${libs.versions.forge.get()}"
 		enabledSourceSets = emptySet()
 	}
 	
 	parchment {
-		mappingsVersion = "2024.11.17"
+		mappingsVersion = "2023.09.03"
 		minecraftVersion = libs.versions.minecraft
 	}
 	
 	validateAccessTransformers = true
 	accessTransformers {
-		file("src/main/resources/META-INF/accesstransformer.cfg")
+		from("src/main/resources/accesstransformer.cfg")
 	}
 }
 

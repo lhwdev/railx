@@ -51,16 +51,16 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.material.FluidState
 import net.minecraft.world.level.material.PushReaction
-import net.minecraft.world.level.pathfinder.PathType
+import net.minecraft.world.level.pathfinder.BlockPathTypes
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraft.world.ticks.LevelTickAccess
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
-import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.client.extensions.common.IClientBlockExtensions
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
 import kotlin.math.max
 import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks
@@ -136,8 +136,8 @@ open class FlexiTrackBlock(
 	override fun getRenderShape(state: BlockState): RenderShape =
 		RenderShape.INVISIBLE
 	
-	override fun getBlockPathType(state: BlockState, level: BlockGetter, pos: BlockPos, mob: Mob?): PathType =
-		PathType.RAIL
+	override fun getBlockPathType(state: BlockState, level: BlockGetter, pos: BlockPos, mob: Mob?): BlockPathTypes =
+		BlockPathTypes.RAIL
 	
 	override fun getFluidState(state: BlockState): FluidState =
 		fluidState(state)
@@ -149,17 +149,15 @@ open class FlexiTrackBlock(
 	override fun getPistonPushReaction(pState: BlockState): PushReaction =
 		PushReaction.BLOCK
 	
-	override fun playerWillDestroy(pLevel: Level, pPos: BlockPos, pState: BlockState, pPlayer: Player): BlockState {
+	override fun playerWillDestroy(pLevel: Level, pPos: BlockPos, pState: BlockState, pPlayer: Player) {
 		super.playerWillDestroy(pLevel, pPos, pState, pPlayer)
 		
-		if(pLevel.isClientSide) return pState
-		if(!pPlayer.isCreative) return pState
-		withBlockEntityDo(pLevel, pPos) { be ->
-			(be as FlexiTrackBlockEntity).willCancelDrop = true
-			be.removeInboundConnections(true)
-		}
-		
-		return pState
+		if(pLevel.isClientSide)
+			if(!pPlayer.isCreative)
+				withBlockEntityDo(pLevel, pPos) { be ->
+					(be as FlexiTrackBlockEntity).willCancelDrop = true
+					be.removeInboundConnections(true)
+				}
 	}
 	
 	public override fun onPlace(
@@ -449,7 +447,7 @@ open class FlexiTrackBlock(
 				.subtract(bc.getPosition(tPre))
 				.normalize()
 			
-			affine.translateBack(pos.bottomCenter)
+			affine.translateBack(Vec3.atBottomCenterOf(pos))
 			affine.translate(offset)
 			affine.translate(0f, -4 / 16f, 0f)
 		} else {

@@ -9,7 +9,7 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
 import kotlin.math.PI
 
 

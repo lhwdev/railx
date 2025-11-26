@@ -4,11 +4,11 @@ import com.lhwdev.minecraft.railx.RailX
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
-import net.neoforged.bus.api.EventPriority
-import net.neoforged.bus.api.SubscribeEvent
-import net.neoforged.fml.common.EventBusSubscriber
-import net.neoforged.neoforge.client.event.ClientTickEvent
-import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent
+import net.minecraftforge.eventbus.api.EventPriority
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber
+import net.minecraftforge.neoforge.client.event.ClientTickEvent
+import net.minecraftforge.neoforge.client.event.RegisterKeyMappingsEvent
 import org.lwjgl.glfw.GLFW
 
 

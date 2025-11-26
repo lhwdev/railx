@@ -11,8 +11,8 @@ import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 
 @OnlyIn(Dist.CLIENT)

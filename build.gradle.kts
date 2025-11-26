@@ -12,7 +12,7 @@ group = "com.lhwdev.minecraft.railx"
 subprojects {
 	afterEvaluate {
 		extensions.apply {
-			val javaVersion = 21
+			val javaVersion = 17
 			
 			configureIf<JavaPluginExtension>("java") {
 				toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)

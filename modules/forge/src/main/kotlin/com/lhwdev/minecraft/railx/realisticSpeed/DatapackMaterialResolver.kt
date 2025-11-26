@@ -14,10 +14,10 @@ import net.minecraft.tags.TagKey
 import net.minecraft.util.profiling.ProfilerFiller
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.state.BlockState
-import net.neoforged.bus.api.SubscribeEvent
-import net.neoforged.neoforge.common.NeoForge
-import net.neoforged.neoforge.event.AddReloadListenerEvent
-import net.neoforged.neoforge.event.TagsUpdatedEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.neoforge.common.NeoForge
+import net.minecraftforge.neoforge.event.AddReloadListenerEvent
+import net.minecraftforge.neoforge.event.TagsUpdatedEvent
 
 
 object DatapackMaterialResolver : BlockMaterialResolver {

@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx
 
-import net.neoforged.neoforge.common.ModConfigSpec
-import net.neoforged.neoforge.common.ModConfigSpec.*
+import net.minecraftforge.common.ForgeConfigSpec
+import net.minecraftforge.common.ForgeConfigSpec.*
 
 
 object RailXConfig {
@@ -16,7 +16,7 @@ object RailXConfig {
 		}
 		
 		
-		val spec: ModConfigSpec = builder.build()
+		val spec: ForgeConfigSpec = builder.build()
 		
 		companion object Value : Client(Builder())
 	}
@@ -35,7 +35,7 @@ object RailXConfig {
 		}
 		
 		
-		val spec: ModConfigSpec = builder.build()
+		val spec: ForgeConfigSpec = builder.build()
 		
 		companion object Value : Common(Builder())
 	}
@@ -224,7 +224,7 @@ object RailXConfig {
 				.defineInRange("build_trak.max_placement_length", 1024, 0, 25565)
 		}
 		
-		val spec: ModConfigSpec = builder.build()
+		val spec: ForgeConfigSpec = builder.build()
 		
 		companion object Value : Server(Builder())
 	}

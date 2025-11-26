@@ -26,7 +26,7 @@ class FlexiGradientScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTrans
 	override val kind: FlexiTrackRotateScrollBehaviors.Kind
 		get() = FlexiTrackRotateScrollBehaviors.Kind.Gradient
 	
-	val maxGradient = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.asDouble), 80)
+	val maxGradient = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.get()), 80)
 	
 	override fun formatValue(): String {
 		val mc = Minecraft.getInstance()

@@ -1,9 +1,9 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.google.common.collect.ImmutableMap
 import com.mojang.serialization.MapCodec
 import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackShape
-import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.Property
 
@@ -22,13 +22,13 @@ inline fun FlexiBlockState.mapShape(crossinline fn: (FlexiShape) -> FlexiShape):
  */
 sealed class FlexiBlockState(
 	block: FlexiTrackBlock,
-	values: Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+	values: ImmutableMap<Property<*>, Comparable<*>>,
 	propertiesCodec: MapCodec<BlockState>,
 ) : BlockState(block, values, propertiesCodec) {
 	companion object {
 		fun create(
 			block: FlexiTrackBlock,
-			values: Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+			values: ImmutableMap<Property<*>, Comparable<*>>,
 			propertiesCodec: MapCodec<BlockState>,
 		): FlexiBlockState = Base(block, values, propertiesCodec)
 	}
@@ -39,7 +39,7 @@ sealed class FlexiBlockState(
 	
 	class Base internal constructor(
 		block: FlexiTrackBlock,
-		values: Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+		values: ImmutableMap<Property<*>, Comparable<*>>,
 		propertiesCodec: MapCodec<BlockState>,
 	) : FlexiBlockState(block, values, propertiesCodec) {
 		override val base: Base
@@ -48,7 +48,7 @@ sealed class FlexiBlockState(
 	
 	class Update(override val base: Base, val stateFn: (FlexiState) -> FlexiState) : FlexiBlockState(
 		block = base.block,
-		values = base.values as Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+		values = base.values as ImmutableMap<Property<*>, Comparable<*>>,
 		propertiesCodec = base.propertiesCodec,
 	) {
 		init {

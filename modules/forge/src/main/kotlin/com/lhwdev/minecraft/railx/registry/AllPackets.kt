@@ -6,14 +6,18 @@ import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
 import com.lhwdev.minecraft.railx.splitGraph.SplittingTrackNodeUpdatedPacket
 import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdPacket
 import com.lhwdev.minecraft.railx.throttle.ThrottlePacket
-import net.createmod.catnip.net.base.BasePacketPayload
-import net.createmod.catnip.net.base.CatnipPacketRegistry
-import net.minecraft.network.RegistryFriendlyByteBuf
-import net.minecraft.network.codec.StreamCodec
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.client.Minecraft
+import net.minecraft.client.player.LocalPlayer
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.server.level.ServerPlayer
+import net.minecraftforge.network.NetworkDirection
+import net.minecraftforge.network.NetworkEvent.Context
+import net.minecraftforge.network.NetworkRegistry
+import net.minecraftforge.network.PacketDistributor
+import net.minecraftforge.network.simple.SimpleChannel
 
 
-enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTypeProvider {
+enum class AllPackets(val base: RailXPacketType<*>) {
 	/// client -> server
 	Throttle(ThrottlePacket),
 	
@@ -26,30 +30,60 @@ enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTy
 	;
 	
 	
-	override fun <T : CustomPacketPayload> getType(): CustomPacketPayload.Type<T> =
-		@Suppress("UNCHECKED_CAST")
-		(base.type as CustomPacketPayload.Type<T>)
-	
 	companion object {
+		private val channelName = RailX.asResource("main")
+		private const val networkVersion = "0"
+		
+		private var _channel: SimpleChannel? = null
+		private var packetIndex = 0
+		
 		fun register() {
-			val registry = CatnipPacketRegistry(RailX.Id, 1)
+			val channel = NetworkRegistry.ChannelBuilder.named(channelName)
+				.serverAcceptedVersions { it == networkVersion }
+				.clientAcceptedVersions { it == networkVersion }
+				.networkProtocolVersion { networkVersion }
+				.simpleChannel()
+			_channel = channel
+			
 			for(packet in entries) {
-				fun <T : BasePacketPayload> RailXPacketType<T>.catnipType() =
-					CatnipPacketRegistry.PacketType<T>(type, typeClass, streamCodec)
-				
-				registry.registerPacket(packet.base.catnipType())
+				val type = @Suppress("UNCHECKED_CAST") (packet.base as RailXPacketType<BasePacket>)
+				channel.messageBuilder(type.typeClass, packetIndex++, type.direction)
+					.encoder { packet, buffer -> packet.write(buffer) }
+					.decoder { buffer -> type.read(buffer) }
+					.consumerMainThread { packet, contextSupplier ->
+						val context = contextSupplier.get()
+						packet.handle(context)
+						context.packetHandled = true
+					}
+					.add()
 			}
-			registry.registerAllPackets()
+		}
+		
+		
+		val channel: SimpleChannel
+			get() = _channel!!
+		
+		fun sendToAllPlayers(packet: ClientboundPacket) {
+			channel.send(PacketDistributor.ALL.noArg(), packet)
+		}
+		
+		fun sendToServer(packet: ServerboundPacket) {
+			channel.sendToServer(packet)
 		}
 	}
 }
 
 
-abstract class RailXPacketType<T : BasePacketPayload> {
-	abstract val streamCodec: StreamCodec<in RegistryFriendlyByteBuf, T>
-	
+abstract class RailXPacketType<T : BasePacket> {
 	val typeClass: Class<T> = calculateTypeClass()
 	val name: String = calculateName()
+	val direction: NetworkDirection = when {
+		ServerboundPacket::class.java.isAssignableFrom(typeClass) -> NetworkDirection.PLAY_TO_SERVER
+		ClientboundPacket::class.java.isAssignableFrom(typeClass) -> NetworkDirection.PLAY_TO_CLIENT
+		else -> error("neither ServerboundPacket nor ClientboundPacket")
+	}
+	
+	abstract fun read(buffer: FriendlyByteBuf): T
 	
 	protected open fun calculateTypeClass(): Class<T> =
 		@Suppress("UNCHECKED_CAST") (this::class.java.enclosingClass as Class<T>)
@@ -66,6 +100,31 @@ abstract class RailXPacketType<T : BasePacketPayload> {
 			}
 		}
 	}
+}
+
+
+interface BasePacket {
+	fun write(buffer: FriendlyByteBuf)
 	
-	val type: CustomPacketPayload.Type<T> = CustomPacketPayload.Type(RailX.asResource(name))
+	fun handle(context: Context)
+}
+
+interface ServerboundPacket : BasePacket
+
+abstract class ServerboundPacketBase : ServerboundPacket {
+	abstract fun handle(player: ServerPlayer?)
+	
+	override fun handle(context: Context) {
+		handle(context.sender)
+	}
+}
+
+interface ClientboundPacket : BasePacket
+
+abstract class ClientboundPacketBase : ClientboundPacket {
+	abstract fun handle(player: LocalPlayer?)
+	
+	override fun handle(context: Context) {
+		handle(Minecraft.getInstance().player)
+	}
 }

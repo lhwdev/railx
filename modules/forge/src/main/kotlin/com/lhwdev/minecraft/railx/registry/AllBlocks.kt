@@ -24,7 +24,7 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.material.MapColor
-import net.neoforged.neoforge.common.Tags
+import net.minecraftforge.neoforge.common.Tags
 import java.util.function.Supplier
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
 import com.simibubi.create.AllTags as CreateTags

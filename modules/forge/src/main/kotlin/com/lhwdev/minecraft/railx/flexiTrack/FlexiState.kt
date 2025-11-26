@@ -9,8 +9,8 @@ import net.minecraft.nbt.ListTag
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVector3d
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVec3
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVector3d
 
 
 class FlexiState(

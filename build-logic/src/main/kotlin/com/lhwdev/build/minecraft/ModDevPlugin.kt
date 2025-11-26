@@ -2,43 +2,25 @@
 
 package com.lhwdev.build.minecraft
 
-import net.neoforged.minecraftdependencies.MinecraftDependenciesPlugin
-import net.neoforged.moddevgradle.dsl.NeoForgeExtension
-import net.neoforged.moddevgradle.internal.DataFileCollections
-import net.neoforged.moddevgradle.internal.ModDevPlugin
-import net.neoforged.moddevgradle.internal.jarjar.JarJarPlugin
-import net.neoforged.nfrtgradle.NeoFormRuntimePlugin
+import net.neoforged.moddevgradle.legacyforge.dsl.LegacyForgeExtension
+import net.neoforged.moddevgradle.legacyforge.internal.LegacyForgeModDevPlugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaLibraryPlugin
-import org.slf4j.LoggerFactory
+import org.gradle.api.model.ObjectFactory
+import org.gradle.kotlin.dsl.getByName
+import javax.inject.Inject
 
 
-open class ModDevPlugin : ModDevPlugin() {
-	companion object {
-		internal val LOG = LoggerFactory.getLogger(com.lhwdev.build.minecraft.ModDevPlugin::class.java)
-	}
-	
+open class ModDevPlugin @Inject constructor(objectFactory: ObjectFactory) : LegacyForgeModDevPlugin(objectFactory) {
 	override fun apply(project: Project) {
-		project.plugins.apply(JavaLibraryPlugin::class.java)
-		project.plugins.apply(NeoFormRuntimePlugin::class.java)
-		project.plugins.apply(MinecraftDependenciesPlugin::class.java)
-		project.plugins.apply(JarJarPlugin::class.java)
+		super.apply(project)
 		
-		// Do not apply the repositories automatically if they have been applied at the settings-level.
-		// It's still possible to apply them manually, though.
-		if(!project.gradle.plugins.hasPlugin(RepositoriesPlugin::class.java)) {
-			project.plugins.apply(RepositoriesPlugin::class.java)
-		} else {
-			LOG.info("Not enabling NeoForged repositories since they were applied at the settings level")
-		}
-		
-		val dataFileCollections = DataFileCollections.create(project)
-		val neoForge = project.extensions.create(
-			NeoForgeExtension.NAME,
-			OpenNeoForgeExtension::class.java,
-			dataFileCollections.accessTransformers().extension(),
-			dataFileCollections.interfaceInjectionData().extension(),
+		val previous = project.extensions.getByName<LegacyForgeExtension>("legacyForge")
+		val forge = project.extensions.create(
+			"neoForge",
+			OpenForgeExtension::class.java,
+			previous.accessTransformers,
+			previous.interfaceInjectionData,
 		)
-		neoForge.modDevPluginType = this::class.java
+		forge.modDevPluginType = this::class.java
 	}
 }

@@ -1,6 +1,5 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.registry.AllDataComponents
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import com.simibubi.create.content.trains.track.TrackBlockItem
@@ -20,7 +19,6 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import com.simibubi.create.AllBlocks as CreateBlocks
-import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllSoundEvents as CreateSoundEvents
 import com.simibubi.create.AllTags as CreateTags
 
@@ -65,7 +63,7 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 		} else if(player.isShiftKeyDown) {
 			if(!level.isClientSide) {
 				player.displayClientMessage(CreateLang.translateDirect("track.selection_cleared"), true)
-				stack.remove(AllDataComponents.TrackConnectingFrom)
+				stack.tag = null
 			} else {
 				level.playSound(player, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 0.75f, 1f)
 			}
@@ -73,8 +71,9 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 		}
 		
 		val placing = state.block !is ITrackBlock
-		val extend = stack.getOrDefault(CreateDataComponents.TRACK_EXTENDED_CURVE, false)
-		stack.remove(CreateDataComponents.TRACK_EXTENDED_CURVE)
+		val tag = stack.tag ?: return InteractionResult.FAIL
+		val extend = tag.getBoolean("ExtendCurve")
+		tag.remove("ExtendCurve")
 		
 		if(placing) {
 			if(!state.canBeReplaced()) pos = pos.relative(pContext.clickedFace)
@@ -100,8 +99,7 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 		
 		stack = player.mainHandItem
 		if(CreateTags.AllBlockTags.TRACKS.matches(stack)) {
-			stack.remove(AllDataComponents.TrackConnectingFrom)
-			stack.remove(CreateDataComponents.TRACK_CONNECTING_FROM)
+			stack.tag = null
 			player.setItemInHand(pContext.hand, stack)
 		}
 		
@@ -126,7 +124,8 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 			.scale((if(nearestTrackAxis.getSecond() == Direction.AxisDirection.POSITIVE) -1 else 1).toDouble())
 		val normal = block.getUpNormal(world, pos, blockState).normalize()
 		
-		heldItem.set(AllDataComponents.TrackConnectingFrom, FlexiPlacementInfo.TrackPoint(pos, axis, normal))
+		heldItem.orCreateTag
+			.put("railx:ConnectingFrom", FlexiPlacementInfo.TrackPoint(pos, axis, normal).write())
 		return true
 	}
 	
@@ -141,5 +140,5 @@ class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem
 		}
 	
 	override fun isFoil(stack: ItemStack): Boolean =
-		stack.has(AllDataComponents.TrackConnectingFrom)
+		stack.tag?.contains("railx:ConnectingFrom") == true
 }

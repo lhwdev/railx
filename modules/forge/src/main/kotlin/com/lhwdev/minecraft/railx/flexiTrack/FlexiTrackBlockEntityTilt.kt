@@ -4,7 +4,7 @@ import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.trains.track.*
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.times
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.times
 import kotlin.math.sign
 
 

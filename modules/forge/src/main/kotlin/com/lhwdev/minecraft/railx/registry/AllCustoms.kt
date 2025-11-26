@@ -4,7 +4,7 @@ import com.lhwdev.minecraft.railx.realisticSpeed.BlockMaterialResolver
 import com.lhwdev.minecraft.railx.realisticSpeed.BlockMaterialResolvers
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceKey
-import net.neoforged.neoforge.registries.RegistryBuilder
+import net.minecraftforge.neoforge.registries.RegistryBuilder
 
 
 object AllCustoms {

@@ -47,7 +47,7 @@ object ManualStation {
 		
 		
 		// In case of overrun
-		val overrunLimit = RailXConfig.Server.common.manualStationDistanceLimit.asDouble + 2.0
+		val overrunLimit = RailXConfig.Server.common.manualStationDistanceLimit.get() + 2.0
 		if(result == null && minDistance <= overrunLimit) {
 			val points = train.allTravellingPoints.toMutableList()
 			if(!forwardControl) points.reverse()
@@ -98,7 +98,7 @@ object ManualStation {
 		val node1 = graph.locateNode(station.edgeLocation.first)
 		val node2 = graph.locateNode(station.edgeLocation.second)
 		
-		val distanceLimit = RailXConfig.Server.common.manualStationDisassembleLimit.asDouble
+		val distanceLimit = RailXConfig.Server.common.manualStationDisassembleLimit.get()
 		
 		if(point.node1 == node1 && point.node2 == node2)
 			return abs(point.position - station.position) < distanceLimit

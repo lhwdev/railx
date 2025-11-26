@@ -15,7 +15,6 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
@@ -116,17 +115,16 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 			.append(".")
 	}
 	
-	override fun read(nbt: CompoundTag, registries: HolderLookup.Provider?, clientPacket: Boolean) {}
-	override fun write(nbt: CompoundTag, registries: HolderLookup.Provider?, clientPacket: Boolean) {}
+	override fun read(nbt: CompoundTag, clientPacket: Boolean) {}
+	override fun write(nbt: CompoundTag, clientPacket: Boolean) {}
 	
-	override fun writeToClipboard(registries: HolderLookup.Provider, tag: CompoundTag, side: Direction): Boolean {
+	override fun writeToClipboard(tag: CompoundTag, side: Direction): Boolean {
 		val axis = be.shape.axes.singleOrNull() ?: return false
 		tag.put("railx:FlexiTrackDirection", axis.write())
 		return true
 	}
 	
 	override fun readFromClipboard(
-		registries: HolderLookup.Provider,
 		tag: CompoundTag,
 		player: Player,
 		side: Direction,

@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.shapes.VoxelShape
-import net.neoforged.neoforge.client.event.RenderHighlightEvent
+import net.minecraftforge.client.event.RenderHighlightEvent
 import kotlin.math.sqrt
 
 object FlexiTrackBlockOutline {

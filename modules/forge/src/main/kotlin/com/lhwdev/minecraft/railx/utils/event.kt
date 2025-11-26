@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.utils
 
-import net.neoforged.bus.api.Event
-import net.neoforged.neoforge.common.NeoForge
+import net.minecraftforge.eventbus.api.Event
+import net.minecraftforge.neoforge.common.NeoForge
 import java.util.function.Consumer
 
 

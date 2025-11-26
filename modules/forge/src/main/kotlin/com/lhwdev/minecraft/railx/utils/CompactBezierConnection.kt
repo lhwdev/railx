@@ -10,9 +10,9 @@ import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.unaryMinus
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream

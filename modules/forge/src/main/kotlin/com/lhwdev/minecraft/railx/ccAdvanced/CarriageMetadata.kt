@@ -19,7 +19,7 @@ class CarriageMetadata {
 	private val config get() = RailXConfig.Server.carriageMetadata
 	
 	fun writeInline(tag: CompoundTag) {
-		if(data.sizeInBytes() > config.carriageMaxSize.asInt) {
+		if(data.sizeInBytes() > config.carriageMaxSize.get()) {
 			println("Warning: metadata too large; ${data.sizeInBytes()} exceeds configured size.")
 			return
 		}
@@ -74,9 +74,9 @@ class CarriageMetadata {
 	
 	fun putEntry(key: String, value: Tag): Boolean {
 		val size = entrySizeInBytes(key, value)
-		if(size > config.entryMaxSize.asInt) return false
+		if(size > config.entryMaxSize.get()) return false
 		val newSize = Math.addExact(dataSizeInBytes, size)
-		if(newSize > config.carriageMaxSize.asInt) return false
+		if(newSize > config.carriageMaxSize.get()) return false
 		
 		data.put(key, value)
 		dataSizeInBytes += size

@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.api
 
 import com.lhwdev.minecraft.railx.RailX
-import net.neoforged.fml.ModList
+import net.minecraftforge.fml.ModList
 
 
 // Note: as RailX.Id is const val, resolved as LDC; no reference to RailX class

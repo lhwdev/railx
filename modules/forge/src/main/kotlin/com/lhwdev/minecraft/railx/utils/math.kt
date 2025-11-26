@@ -4,8 +4,8 @@ package com.lhwdev.minecraft.railx.utils
 
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniondc
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVector3d
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVec3
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVector3d
 import kotlin.math.abs
 
 

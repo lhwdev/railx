@@ -16,10 +16,10 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
-import net.neoforged.neoforge.common.Tags
-import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.common.Tags
+import thedarkcolour.kotlinforforge.forge.runWhenOn
 import java.util.function.Supplier
 import java.util.stream.Stream
 import com.simibubi.create.AllPartialModels as CreatePartialModels
@@ -145,11 +145,11 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 		runWhenOn(Dist.CLIENT) {
 			val namespace = id.namespace
 			val prefix = "block/track/${id.path}/"
-			tieModel = PartialModel.of(ResourceLocation.fromNamespaceAndPath(namespace, prefix + "tie"))
+			tieModel = PartialModel.of(ResourceLocation(namespace, prefix + "tie"))
 			leftSegmentModel =
-				PartialModel.of(ResourceLocation.fromNamespaceAndPath(namespace, prefix + "segment_left"))
+				PartialModel.of(ResourceLocation(namespace, prefix + "segment_left"))
 			rightSegmentModel =
-				PartialModel.of(ResourceLocation.fromNamespaceAndPath(namespace, prefix + "segment_right"))
+				PartialModel.of(ResourceLocation(namespace, prefix + "segment_right"))
 		}
 	}
 	

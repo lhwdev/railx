@@ -6,8 +6,8 @@ import com.lhwdev.minecraft.railx.utils.getOrNull
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 
 @OnlyIn(Dist.CLIENT)

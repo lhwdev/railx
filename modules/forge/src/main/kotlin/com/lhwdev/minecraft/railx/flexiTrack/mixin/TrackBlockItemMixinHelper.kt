@@ -5,10 +5,11 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
-import com.simibubi.create.AllDataComponents
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.content.trains.track.TrackPlacement
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.ItemStack
@@ -23,8 +24,8 @@ object TrackBlockItemMixinHelper {
 	): TrackPlacement.PlacementInfo? {
 		val blockItem = stack.item as? BlockItem ?: return null
 		if(blockItem !is FlexiTrackBlockItem) {
-			val from = stack.get(AllDataComponents.TRACK_CONNECTING_FROM) ?: return null
-			if(level.getBlockState(from.pos).block !is FlexiTrackBlock) return null
+			val tag = stack.tag?.get("ConnectingFrom") as? CompoundTag ?: return null
+			if(level.getBlockState(NbtUtils.readBlockPos(tag.getCompound("Pos"))).block !is FlexiTrackBlock) return null
 		}
 		
 		val result = FlexiTrackPlacement.tryConnect(level, player, pos2, state2, stack, girder)

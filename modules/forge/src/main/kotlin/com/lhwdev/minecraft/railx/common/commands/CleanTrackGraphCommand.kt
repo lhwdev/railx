@@ -9,15 +9,14 @@ import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackPropagator
 import com.sk89q.worldedit.WorldEdit
-import com.sk89q.worldedit.neoforge.NeoForgeAdapter
+import com.sk89q.worldedit.forge.ForgeAdapter
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.Vec3
-import net.neoforged.fml.ModList
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
+import net.minecraftforge.fml.ModList
 
 
 private val ErrorNoWorldEdit =
@@ -32,16 +31,16 @@ fun RailXCommandBuildContext.cleanTrackGraphCommand(): LiteralArgumentBuilder<Co
 		if(!ModList.get().isLoaded("worldedit")) throw ErrorNoWorldEdit.create()
 		
 		val source = context.source
-		val session = WorldEdit.getInstance().sessionManager[NeoForgeAdapter.adaptCommandSource(source)]
+		val session = WorldEdit.getInstance().sessionManager[ForgeAdapter.adaptCommandSource(source)]
 		val selection = try {
 			session.selection!!
 		} catch(e: Throwable) {
 			throw ErrorNoSelection.create()
 		}
 		
-		fun inSelection(vec: Vec3) = NeoForgeAdapter.adapt(BlockPos.containing(vec)) in selection
+		fun inSelection(vec: Vec3) = ForgeAdapter.adapt(BlockPos.containing(vec)) in selection
 		
-		val level = NeoForgeAdapter.adapt(selection.world!!)
+		val level = ForgeAdapter.adapt(selection.world!!)
 		val dimension = level.dimension()
 		
 		class EndInfo(
@@ -52,7 +51,7 @@ fun RailXCommandBuildContext.cleanTrackGraphCommand(): LiteralArgumentBuilder<Co
 		
 		val nodes = Object2ObjectRBTreeMap<TrackNodeLocation, EndInfo>(LocationComparator)
 		for(blockVector in selection) {
-			val pos = NeoForgeAdapter.toBlockPos(blockVector)
+			val pos = ForgeAdapter.toBlockPos(blockVector)
 			val state = level.getBlockState(pos)
 			val track = state.block as? ITrackBlock ?: continue
 			val found = track.getConnected(level, pos, state, false, null)

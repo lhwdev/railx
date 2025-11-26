@@ -1,20 +1,20 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
+import com.lhwdev.minecraft.railx.registry.ServerboundPacketBase
+import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.putCompound
 import com.simibubi.create.content.trains.graph.EdgePointType
 import com.simibubi.create.content.trains.track.BezierTrackPointLocation
 import com.simibubi.create.content.trains.track.TrackTargetingBlockItem
 import com.simibubi.create.foundation.utility.CreateLang
-import net.createmod.catnip.net.base.BasePacketPayload
-import net.createmod.catnip.net.base.ServerboundPacketPayload
 import net.minecraft.ChatFormatting
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
+import net.minecraft.nbt.NbtUtils
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.phys.Vec3
 import com.simibubi.create.AllBlocks as CreateBlocks
-import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllSoundEvents as CreateSoundEvents
 
 
@@ -23,15 +23,21 @@ class CurvedMiddleTrackSelectionPacket(
 	val segmentIndex: Int,
 	val front: Boolean,
 	val itemSlot: Int,
-) : ServerboundPacketPayload {
+) : ServerboundPacketBase() {
 	companion object : RailXPacketType<CurvedMiddleTrackSelectionPacket>() {
-		override val streamCodec = StreamCodec.composite(
-			MiddleBezierSource.STREAM_CODEC, CurvedMiddleTrackSelectionPacket::bezier,
-			ByteBufCodecs.VAR_INT, CurvedMiddleTrackSelectionPacket::segmentIndex,
-			ByteBufCodecs.BOOL, CurvedMiddleTrackSelectionPacket::front,
-			ByteBufCodecs.VAR_INT, CurvedMiddleTrackSelectionPacket::itemSlot,
-			::CurvedMiddleTrackSelectionPacket,
+		override fun read(buffer: FriendlyByteBuf): CurvedMiddleTrackSelectionPacket = CurvedMiddleTrackSelectionPacket(
+			MiddleBezierSource.read(buffer),
+			segmentIndex = buffer.readVarInt(),
+			front = buffer.readBoolean(),
+			itemSlot = buffer.readVarInt(),
 		)
+	}
+	
+	override fun write(buffer: FriendlyByteBuf) {
+		bezier.write(buffer)
+		buffer.writeVarInt(segmentIndex)
+		buffer.writeBoolean(front)
+		buffer.writeVarInt(itemSlot)
 	}
 	
 	override fun handle(player: ServerPlayer?) {
@@ -45,13 +51,11 @@ class CurvedMiddleTrackSelectionPacket(
 		
 		val curve = bezier.resolveCurve(level)
 		val soundOrigin = curve?.let { it.getPosition(it.getSegmentT(bezier.index).toDouble()) }
-			?: bezier.middlePos.bottomCenter
+			?: Vec3.atBottomCenterOf(bezier.middlePos)
 		
-		if(player.isShiftKeyDown && stack.has(CreateDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS)) {
+		if(player.isShiftKeyDown && stack.tag != null) {
 			player.displayClientMessage(CreateLang.translateDirect("track_target.clear"), true)
-			stack.remove(CreateDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS)
-			stack.remove(CreateDataComponents.TRACK_TARGETING_ITEM_SELECTED_DIRECTION)
-			stack.remove(CreateDataComponents.TRACK_TARGETING_ITEM_BEZIER)
+			stack.tag = null
 			CreateSoundEvents.CONTROLLER_CLICK.play(level, null, soundOrigin, 1f, .5f)
 			return
 		}
@@ -70,7 +74,7 @@ class CurvedMiddleTrackSelectionPacket(
 		if(
 			!fromPos.closerThan(
 				player.blockPosition(),
-				(RailXConfig.Server.flexiTrak.placementLength.asInt + 16).toDouble()
+				(RailXConfig.Server.flexiTrak.placementLength.get() + 16).toDouble()
 			)
 		) return
 		
@@ -87,14 +91,17 @@ class CurvedMiddleTrackSelectionPacket(
 			return
 		}
 		
-		stack.set(CreateDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS, fromPos)
-		stack.set(CreateDataComponents.TRACK_TARGETING_ITEM_SELECTED_DIRECTION, front)
-		stack.set(CreateDataComponents.TRACK_TARGETING_ITEM_BEZIER, bezierPointLocation)
+		stack.tag = CompoundTag { tag ->
+			tag.put("SelectedPos", NbtUtils.writeBlockPos(fromPos))
+			tag.putBoolean("SelectedDirection", front)
+			tag.putCompound("Bezier") { bezier ->
+				bezier.putInt("Segment", bezierPointLocation.segment)
+				bezier.put("Key", NbtUtils.writeBlockPos(bezierPointLocation.curveTarget))
+				bezier.putBoolean("FromStack", true)
+			}
+		}
 		
 		player.displayClientMessage(CreateLang.translateDirect("track_target.set"), true)
 		CreateSoundEvents.CONTROLLER_CLICK.play(level, null, soundOrigin, 1f, 1f)
 	}
-	
-	override fun getTypeProvider(): BasePacketPayload.PacketTypeProvider =
-		AllPackets.CurvedMiddleTrackSelection
 }

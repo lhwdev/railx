@@ -18,8 +18,8 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.util.FastColor
 import net.minecraft.util.Mth
 import net.minecraft.world.level.Level
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

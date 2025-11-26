@@ -7,40 +7,23 @@ import com.mojang.datafixers.util.Pair
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.ComponentSerialization
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
-import net.minecraft.resources.RegistryOps
-import net.neoforged.neoforge.common.CommonHooks
+import net.minecraft.util.ExtraCodecs
 
 
 abstract class TrackPlan {
 	companion object {
 		val CODEC: Codec<TrackPlan> = object : Codec<TrackPlan> {
 			override fun <T : Any?> encode(input: TrackPlan, ops: DynamicOps<T>, prefix: T): DataResult<T> =
-				if(ops is RegistryOps<*>) {
-					CompoundTag.CODEC.encode(input.write(CommonHooks.extractLookupProvider(ops)), ops, prefix)
-				} else DataResult.error { "Use RegistryOps for TrackPlan.CODEC" }
+				CompoundTag.CODEC.encode(input.write(), ops, prefix)
 			
 			override fun <T : Any?> decode(ops: DynamicOps<T>, input: T): DataResult<Pair<TrackPlan, T>> =
-				if(ops is RegistryOps<*>) CompoundTag.CODEC.decode(ops, input)
-					.map { Pair.of(TrackPlanImpl.read(CommonHooks.extractLookupProvider(ops), it.first), it.second) }
-				else DataResult.error { "Use RegistryOps for TrackPlan.CODEC" }
+				CompoundTag.CODEC.decode(ops, input)
+					.map { Pair.of(TrackPlanImpl.read(it.first), it.second) }
 		}
-		
-		// only server -> client
-		val STREAM_CODEC: StreamCodec<RegistryFriendlyByteBuf, TrackPlanImpl> = StreamCodec.composite(
-			ComponentSerialization.TRUSTED_STREAM_CODEC, TrackPlanImpl::name,
-			ByteBufCodecs.BOOL, TrackPlanImpl::addPlacedTracks,
-			TrackSegment.STREAM_CODEC.apply(ByteBufCodecs.list()), TrackPlanImpl::segments,
-			::TrackPlanImpl,
-		)
 	}
 	
 	abstract val name: Component
@@ -50,7 +33,7 @@ abstract class TrackPlan {
 	
 	abstract fun addSegment(from: FlexiPlacementInfo)
 	
-	abstract fun write(registries: HolderLookup.Provider): CompoundTag
+	abstract fun write(): CompoundTag
 }
 
 
@@ -63,26 +46,21 @@ class TrackPlanImpl(
 		segments += FlexiTrackSegmentImpl(from)
 	}
 	
-	override fun write(registries: HolderLookup.Provider): CompoundTag = CompoundTag { tag ->
+	override fun write(): CompoundTag = CompoundTag { tag ->
 		tag.put(
 			"Name",
-			ComponentSerialization.CODEC
-				.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), name)
-				.orThrow,
+			ExtraCodecs.COMPONENT.encodeStart(NbtOps.INSTANCE, name).get().orThrow(),
 		)
 		tag.putBoolean("AddPlacedTracks", addPlacedTracks)
-		tag.put("Segments", segments.mapTo(ListTag()) { it.write(registries) })
+		tag.put("Segments", segments.mapTo(ListTag()) { it.write() })
 	}
 	
 	
 	companion object {
-		fun read(registries: HolderLookup.Provider, tag: CompoundTag): TrackPlanImpl = TrackPlanImpl(
-			name = ComponentSerialization.CODEC.parse(
-				registries.createSerializationContext(NbtOps.INSTANCE),
-				tag.get("Name")
-			).orThrow,
+		fun read(tag: CompoundTag): TrackPlanImpl = TrackPlanImpl(
+			name = ExtraCodecs.COMPONENT.parse(NbtOps.INSTANCE, tag.get("Name")).get().orThrow(),
 			addPlacedTracks = tag.getBoolean("AddPlacedTracks"),
-			segments = tag.getList("Segments") { t: CompoundTag -> TrackSegment.read(registries, t) }.toMutableList(),
+			segments = tag.getList("Segments") { t: CompoundTag -> TrackSegment.read(t) }.toMutableList(),
 		)
 	}
 }
@@ -93,7 +71,7 @@ open class DummyTrackPlan : TrackPlan() {
 	
 	override fun addSegment(from: FlexiPlacementInfo) {}
 	
-	override fun write(registries: HolderLookup.Provider): CompoundTag = error("cannot be called")
+	override fun write(): CompoundTag = error("cannot be called")
 	
 	companion object Default : DummyTrackPlan()
 }

@@ -2,17 +2,17 @@ package com.lhwdev.minecraft.railx.throttle
 
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
-import net.minecraft.client.DeltaTracker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.LayeredDraw
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.GameType
+import net.minecraftforge.client.gui.overlay.ForgeGui
+import net.minecraftforge.client.gui.overlay.IGuiOverlay
 import kotlin.math.abs
 
 
-object ThrottleHUD : LayeredDraw.Layer {
-	override fun render(graphics: GuiGraphics, deltaTracker: DeltaTracker) {
+object ThrottleHUD : IGuiOverlay {
+	override fun render(gui: ForgeGui, graphics: GuiGraphics, partialTick: Float, width: Int, height: Int) {
 		val mc = Minecraft.getInstance()
 		if(mc.options.hideGui || mc.gameMode?.playerMode == GameType.SPECTATOR) return
 		

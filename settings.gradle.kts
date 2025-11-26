@@ -26,6 +26,8 @@ dependencyResolutionManagement {
 	repositories {
 		mavenCentral()
 		
+		flatDir { dir("libs") }
+		
 		exclusiveContent {
 			forRepository {
 				maven(url = "https://api.modrinth.com/maven") { name = "Modrinth Maven" }
@@ -53,7 +55,7 @@ dependencyResolutionManagement {
 			content { includeGroup("fuzs.forgeconfigapiport") }
 		}
 		
-		maven(url = "https://mvn.devos.one/snapshots") {
+		maven(url = "https://maven.tterrag.com") {
 			name = "Maven for Registrate"
 			content {
 				includeGroup("com.tterrag.registrate")

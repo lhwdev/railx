@@ -7,8 +7,8 @@ import com.simibubi.create.content.trains.track.BezierConnection
 import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.times
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.times
 
 
 inline val BezierConnection.from: BlockPos

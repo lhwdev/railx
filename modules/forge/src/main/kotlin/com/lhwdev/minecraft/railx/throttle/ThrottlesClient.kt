@@ -8,7 +8,7 @@ import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInp
 import com.simibubi.create.foundation.utility.ControlsUtil
 import net.minecraft.client.Minecraft
 import net.minecraft.world.level.LevelAccessor
-import net.neoforged.neoforge.network.PacketDistributor
+import net.minecraftforge.neoforge.network.PacketDistributor
 import org.lwjgl.glfw.GLFW
 
 

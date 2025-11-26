@@ -2,7 +2,6 @@ package com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver
 
 import com.simibubi.create.content.trains.observer.TrackObserverBlockEntity
 import net.minecraft.core.BlockPos
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -21,14 +20,14 @@ class AdvancedTrackObserverBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 	}
 	
 	
-	override fun read(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
-		super.read(tag, registries, clientPacket)
+	override fun read(tag: CompoundTag, clientPacket: Boolean) {
+		super.read(tag, clientPacket)
 		
 		rule.read(tag.getCompound("Rule"))
 	}
 	
-	override fun write(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
-		super.write(tag, registries, clientPacket)
+	override fun write(tag: CompoundTag, clientPacket: Boolean) {
+		super.write(tag, clientPacket)
 		
 		tag.put("Rule", rule.write())
 	}

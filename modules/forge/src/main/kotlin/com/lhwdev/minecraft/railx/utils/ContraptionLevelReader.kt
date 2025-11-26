@@ -26,7 +26,7 @@ import net.minecraft.world.level.lighting.LevelLightEngine
 import net.minecraft.world.level.material.FluidState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.shapes.VoxelShape
-import net.neoforged.neoforge.client.model.data.ModelData
+import net.minecraftforge.neoforge.client.model.data.ModelData
 import kotlin.math.abs
 
 

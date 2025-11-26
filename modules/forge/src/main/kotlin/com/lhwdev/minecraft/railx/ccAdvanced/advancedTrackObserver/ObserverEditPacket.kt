@@ -1,22 +1,19 @@
 package com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver
 
-import com.lhwdev.minecraft.railx.registry.AllPackets
+import com.lhwdev.minecraft.railx.registry.BlockEntityConfigurationPacket
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
-import com.simibubi.create.foundation.networking.BlockEntityConfigurationPacket
-import net.createmod.catnip.net.base.BasePacketPayload
+import com.lhwdev.minecraft.railx.registry.ServerboundPacket
 import net.minecraft.core.BlockPos
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 
 
 class ObserverEditPacket(pos: BlockPos, val code: String) :
-	BlockEntityConfigurationPacket<AdvancedTrackObserverBlockEntity>(pos) {
+	BlockEntityConfigurationPacket<AdvancedTrackObserverBlockEntity>(pos), ServerboundPacket {
 	companion object : RailXPacketType<ObserverEditPacket>() {
-		override val streamCodec = StreamCodec.composite(
-			BlockPos.STREAM_CODEC, { it.pos },
-			ByteBufCodecs.STRING_UTF8, { it.code },
-			::ObserverEditPacket
+		override fun read(buffer: FriendlyByteBuf): ObserverEditPacket = ObserverEditPacket(
+			pos = buffer.readBlockPos(),
+			code = buffer.readUtf(512),
 		)
 	}
 	
@@ -32,6 +29,8 @@ class ObserverEditPacket(pos: BlockPos, val code: String) :
 		be.onRuleUpdated()
 	}
 	
-	override fun getTypeProvider(): BasePacketPayload.PacketTypeProvider =
-		AllPackets.ObserverEdit
+	override fun write(buffer: FriendlyByteBuf) {
+		buffer.writeBlockPos(pos)
+		buffer.writeUtf(code)
+	}
 }

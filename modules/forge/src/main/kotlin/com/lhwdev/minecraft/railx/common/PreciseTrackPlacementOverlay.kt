@@ -7,17 +7,14 @@ import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.utils.orFalse
 import com.lhwdev.minecraft.railx.utils.pow3
 import com.lhwdev.minecraft.railx.utils.similarTo
-import com.simibubi.create.AllDataComponents
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackPlacement
 import net.createmod.catnip.outliner.Outliner
 import net.minecraft.ChatFormatting
-import net.minecraft.client.DeltaTracker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.LayeredDraw
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
@@ -26,10 +23,12 @@ import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.GameType
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
-import net.neoforged.neoforge.client.event.RenderGuiEvent
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.*
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.client.event.RenderGuiEvent
+import net.minecraftforge.client.gui.overlay.ForgeGui
+import net.minecraftforge.client.gui.overlay.IGuiOverlay
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.*
 import java.lang.invoke.MethodHandles
 import kotlin.math.PI
 import kotlin.math.log10
@@ -47,7 +46,7 @@ private val TrackPlacement_hoveringPos =
 
 
 @OnlyIn(Dist.CLIENT)
-object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
+object PreciseTrackPlacementOverlay : IGuiOverlay {
 	var info: PreciseInfo? = null
 	
 	val infoLineCount: Int
@@ -73,7 +72,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		
 		fun createTrackPlacementInfo(handItem: HandItem<TrackBlockItem>): PrecisePlacementInfo? {
 			if(handItem.item is FlexiTrackBlockItem) return null
-			if(!handItem.stack.has(AllDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS)) return null
+			if(handItem.stack.tag == null) return null
 			
 			val info = TrackPlacement_cached.invokeExact() as TrackPlacement.PlacementInfo? as? PlacementInfoAccessor
 			if(info?.curve == null) return null
@@ -124,7 +123,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			val track = state.block as? ITrackBlock ?: return null
 			var tilted = false
 			return PreciseTrackInfo(
-				pos = pos.bottomCenter,
+				pos = Vec3.atBottomCenterOf(pos),
 				direction = if(track is FlexiTrackBlock) {
 					if(virtual) {
 						FlexiDirection.Known.roundFrom(player.lookAngle)
@@ -160,7 +159,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	}
 	
 	
-	override fun render(guiGraphics: GuiGraphics, deltaTracker: DeltaTracker) {
+	override fun render(gui: ForgeGui, guiGraphics: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
 		val info = info ?: return
 		
 		val mc = Minecraft.getInstance()
@@ -172,7 +171,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			window.guiScaledHeight - 61 + index * 9,
 			0xffffffffu.toInt(),
 		)
-		info.renderExtra(guiGraphics, deltaTracker)
+		info.renderExtra(guiGraphics, partialTicks)
 	}
 	
 	
@@ -181,7 +180,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		
 		abstract val lines: List<Component>
 		
-		open fun renderExtra(guiGraphics: GuiGraphics, deltaTracker: DeltaTracker) {}
+		open fun renderExtra(guiGraphics: GuiGraphics, partialTicks: Float) {}
 		
 		class TrackPoint(val pos: Vec3, val tangent: Vec3)
 	}

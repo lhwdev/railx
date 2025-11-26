@@ -8,7 +8,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.unaryMinus
 import kotlin.math.*
 
 

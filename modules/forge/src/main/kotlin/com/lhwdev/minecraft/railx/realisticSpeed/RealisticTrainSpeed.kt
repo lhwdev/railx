@@ -17,7 +17,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Vec3i
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.util.Mth
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
 import java.io.*
 import kotlin.math.*
 

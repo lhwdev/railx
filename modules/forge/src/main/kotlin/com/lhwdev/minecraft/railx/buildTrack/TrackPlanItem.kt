@@ -1,6 +1,5 @@
 package com.lhwdev.minecraft.railx.buildTrack
 
-import com.lhwdev.minecraft.railx.registry.AllDataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResultHolder
@@ -13,7 +12,7 @@ import net.minecraft.world.level.Level
 class TrackPlanItem(properties: Properties) : Item(properties) {
 	companion object {
 		fun getPlan(stack: ItemStack): TrackPlan =
-			stack[AllDataComponents.TrackBuildPlan] ?: DummyTrackPlan
+			stack.tag?.let { TrackPlanImpl.read(it) } ?: DummyTrackPlan
 	}
 	
 	override fun getName(stack: ItemStack): Component =

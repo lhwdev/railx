@@ -1,22 +1,17 @@
 package com.lhwdev.minecraft.railx.splitGraph
 
 import com.lhwdev.minecraft.railx.registry.AllPackets
+import com.lhwdev.minecraft.railx.registry.ClientboundPacketBase
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.simibubi.create.CreateClient
 import com.simibubi.create.content.trains.graph.TrackGraph
 import com.simibubi.create.content.trains.graph.TrackNode
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
-import net.createmod.catnip.net.base.BasePacketPayload
-import net.createmod.catnip.net.base.ClientboundPacketPayload
 import net.minecraft.client.player.LocalPlayer
-import net.minecraft.core.UUIDUtil
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
 import net.minecraft.world.phys.Vec3
-import net.neoforged.neoforge.network.PacketDistributor
 import java.util.*
 
 
@@ -50,17 +45,15 @@ class SplittingTrackNode(
 			normal = normal,
 		)
 		
+		fun write(buffer: FriendlyByteBuf) {
+			buffer.writeUUID(otherGraph)
+		}
+		
 		companion object {
-			@JvmField
-			val STREAM_CODEC = object : StreamCodec<FriendlyByteBuf, Data> {
-				override fun decode(buffer: FriendlyByteBuf): Data = Data(
-					otherGraph = buffer.readUUID(),
-				)
-				
-				override fun encode(buffer: FriendlyByteBuf, value: Data) {
-					buffer.writeUUID(value.otherGraph)
-				}
-			}
+			@JvmStatic
+			fun read(buffer: FriendlyByteBuf): Data = Data(
+				otherGraph = buffer.readUUID(),
+			)
 		}
 	}
 	
@@ -81,7 +74,7 @@ object SplittingTrackNodeSync {
 	
 	internal fun onTick() {
 		packet?.let {
-			PacketDistributor.sendToAllPlayers(it)
+			AllPackets.sendToAllPlayers(it)
 			packet = null
 		}
 	}
@@ -96,23 +89,31 @@ object SplittingTrackNodeSync {
 	}
 }
 
-class SplittingTrackNodeUpdatedPacket(val entries: MutableList<Entry> = mutableListOf()) : ClientboundPacketPayload {
+class SplittingTrackNodeUpdatedPacket(val entries: MutableList<Entry> = mutableListOf()) : ClientboundPacketBase() {
 	class Entry(val graphId: UUID, val nodeId: Int, val otherGraph: UUID) {
+		fun write(buffer: FriendlyByteBuf) {
+			buffer.writeUUID(graphId)
+			buffer.writeVarInt(nodeId)
+			buffer.writeUUID(otherGraph)
+		}
+		
 		companion object {
-			val streamCodec = StreamCodec.composite(
-				UUIDUtil.STREAM_CODEC, Entry::graphId,
-				ByteBufCodecs.VAR_INT, Entry::nodeId,
-				UUIDUtil.STREAM_CODEC, Entry::otherGraph,
-				::Entry,
+			fun read(buffer: FriendlyByteBuf): Entry = Entry(
+				graphId = buffer.readUUID(),
+				nodeId = buffer.readVarInt(),
+				otherGraph = buffer.readUUID(),
 			)
 		}
 	}
 	
 	companion object : RailXPacketType<SplittingTrackNodeUpdatedPacket>() {
-		override val streamCodec = StreamCodec.composite(
-			Entry.streamCodec.apply(ByteBufCodecs.list()), SplittingTrackNodeUpdatedPacket::entries,
-			::SplittingTrackNodeUpdatedPacket
+		override fun read(buffer: FriendlyByteBuf): SplittingTrackNodeUpdatedPacket = SplittingTrackNodeUpdatedPacket(
+			entries = buffer.readList { buffer -> Entry.read(buffer) }
 		)
+	}
+	
+	override fun write(buffer: FriendlyByteBuf) {
+		buffer.writeCollection(entries) { buffer, value -> value.write(buffer) }
 	}
 	
 	override fun handle(player: LocalPlayer?) {
@@ -123,7 +124,4 @@ class SplittingTrackNodeUpdatedPacket(val entries: MutableList<Entry> = mutableL
 			node.otherGraph = entry.otherGraph
 		}
 	}
-	
-	override fun getTypeProvider(): BasePacketPayload.PacketTypeProvider =
-		AllPackets.SplittingTrackNodeUpdated
 }

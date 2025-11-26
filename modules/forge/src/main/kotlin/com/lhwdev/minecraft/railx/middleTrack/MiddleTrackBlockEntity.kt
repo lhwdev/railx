@@ -5,7 +5,6 @@ import com.lhwdev.minecraft.railx.utils.CompactBezierConnection
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.FakeTrackBlockEntity
 import net.minecraft.core.BlockPos
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.world.level.Level
@@ -56,7 +55,7 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	override fun onLoad() {
 		super.onLoad()
 		
-		if(connections.isEmpty() || RailXConfig.Server.middleTrack.removePrevious.isTrue) {
+		if(connections.isEmpty() || RailXConfig.Server.middleTrack.removePrevious.get()) {
 			level!!.destroyBlock(blockPos, false)
 			return
 		}
@@ -77,13 +76,13 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	}
 	
 	
-	override fun saveAdditional(tag: CompoundTag, registries: HolderLookup.Provider) {
-		super.saveAdditional(tag, registries)
+	override fun saveAdditional(tag: CompoundTag) {
+		super.saveAdditional(tag)
 		tag.put("Connections", connections.mapTo(ListTag()) { CompactBezierConnection.write(it, blockPos) })
 	}
 	
-	override fun loadAdditional(tag: CompoundTag, registries: HolderLookup.Provider) {
-		super.loadAdditional(tag, registries)
+	override fun loadAdditional(tag: CompoundTag) {
+		super.loadAdditional(tag)
 		updateConnections((tag.get("Connections") as ListTag).mapNotNull { t ->
 			CompactBezierConnection.read(t as CompoundTag, blockPos)
 				?.also { require(it.primary) { "curve is not primary" } }

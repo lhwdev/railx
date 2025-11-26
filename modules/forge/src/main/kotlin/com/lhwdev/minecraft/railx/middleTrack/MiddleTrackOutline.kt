@@ -10,7 +10,6 @@ import com.simibubi.create.content.trains.track.TrackBlockOutline
 import com.simibubi.create.content.trains.track.TrackRenderer
 import com.simibubi.create.foundation.utility.RaycastHelper
 import dev.engine_room.flywheel.lib.transform.TransformStack
-import io.netty.buffer.ByteBuf
 import net.createmod.catnip.animation.AnimationTickHolder
 import net.createmod.catnip.math.AngleHelper
 import net.createmod.catnip.math.VecHelper
@@ -20,17 +19,16 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
-import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.GameType
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.common.ForgeMod
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
 import kotlin.math.PI
 import kotlin.math.min
 import com.simibubi.create.AllShapes as CreateShapes
@@ -56,11 +54,15 @@ class MiddleBezierPointSelection(
 }
 
 class MiddleBezierSource(val middlePos: BlockPos, val index: Int) {
+	fun write(buffer: FriendlyByteBuf) {
+		buffer.writeBlockPos(middlePos)
+		buffer.writeVarInt(index)
+	}
+	
 	companion object {
-		val STREAM_CODEC: StreamCodec<ByteBuf, MiddleBezierSource> = StreamCodec.composite(
-			BlockPos.STREAM_CODEC, MiddleBezierSource::middlePos,
-			ByteBufCodecs.VAR_INT, MiddleBezierSource::index,
-			::MiddleBezierSource,
+		fun read(buffer: FriendlyByteBuf): MiddleBezierSource = MiddleBezierSource(
+			middlePos = buffer.readBlockPos(),
+			index = buffer.readVarInt(),
 		)
 	}
 	
@@ -90,7 +92,7 @@ object MiddleTrackOutline {
 		val hitResult = mc.hitResult
 		var maxRange = hitResult?.location?.distanceToSqr(origin) ?: Double.MAX_VALUE
 		
-		val range = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE)
+		val range = player.getAttributeValue(ForgeMod.BLOCK_REACH.get())
 		val target = RaycastHelper.getTraceTarget(player, min(maxRange, range) + 1, origin)
 		val connections = GlobalConnections[level]
 		

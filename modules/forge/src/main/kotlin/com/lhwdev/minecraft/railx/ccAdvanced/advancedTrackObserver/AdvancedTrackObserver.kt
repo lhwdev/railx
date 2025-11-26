@@ -7,7 +7,6 @@ import com.simibubi.create.content.trains.graph.DimensionPalette
 import com.simibubi.create.content.trains.graph.EdgePointType
 import com.simibubi.create.content.trains.observer.TrackObserver
 import com.simibubi.create.content.trains.signal.SignalPropagator
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
@@ -43,16 +42,15 @@ class AdvancedTrackObserver : TrackObserver() {
 	
 	override fun read(
 		nbt: CompoundTag,
-		registries: HolderLookup.Provider,
 		migration: Boolean,
 		dimensions: DimensionPalette,
 	) {
-		super.read(nbt, registries, migration, dimensions)
+		super.read(nbt, migration, dimensions)
 		rule.read(nbt.getCompound("Rule"))
 	}
 	
-	override fun write(nbt: CompoundTag, registries: HolderLookup.Provider, dimensions: DimensionPalette) {
-		super.write(nbt, registries, dimensions)
+	override fun write(nbt: CompoundTag, dimensions: DimensionPalette) {
+		super.write(nbt, dimensions)
 		nbt.put("Rule", rule.write())
 	}
 }

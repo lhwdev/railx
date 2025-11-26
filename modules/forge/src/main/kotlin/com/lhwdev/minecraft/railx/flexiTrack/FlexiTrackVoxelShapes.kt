@@ -19,10 +19,10 @@ import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVector3d
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVec3
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVector3d
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.unaryMinus
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max

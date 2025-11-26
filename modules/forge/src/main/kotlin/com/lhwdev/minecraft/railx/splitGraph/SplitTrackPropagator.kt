@@ -14,7 +14,7 @@ import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
-import net.neoforged.neoforge.common.NeoForge
+import net.minecraftforge.neoforge.common.NeoForge
 
 
 object SplitTrackPropagator {

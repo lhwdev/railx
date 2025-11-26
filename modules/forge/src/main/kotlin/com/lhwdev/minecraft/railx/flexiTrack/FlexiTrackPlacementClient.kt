@@ -17,18 +17,19 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
 import kotlin.math.max
 import kotlin.math.min
-import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllSpecialTextures as CreateSpecialTextures
 import com.simibubi.create.AllTags as CreateTags
 
@@ -80,8 +81,8 @@ object FlexiTrackPlacementClient {
 		
 		// Handled by create TrackPlacement.clientTick
 		if(blockItem !is FlexiTrackBlockItem) {
-			val from = stack.get(CreateDataComponents.TRACK_CONNECTING_FROM) ?: return
-			if(level.getBlockState(from.pos).block !is FlexiTrackBlock) return
+			val tag = stack.tag?.get("ConnectingFrom") as? CompoundTag ?: return
+			if(level.getBlockState(NbtUtils.readBlockPos(tag.getCompound("Pos"))).block !is FlexiTrackBlock) return
 		}
 		defaultHandle.cancel()
 		

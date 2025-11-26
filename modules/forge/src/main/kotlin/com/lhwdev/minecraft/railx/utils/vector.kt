@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.utils
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
 
 
 fun Vec3.isNormalized(): Boolean =

@@ -38,7 +38,7 @@ class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrack
 	private val middles = bc.rasterizeMiddlesOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
 	
 	
-	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
+	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.get()
 	
 	private val pos = BlockPos.MutableBlockPos()
 	
@@ -109,7 +109,7 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 	private val blocks = bc.rasterizeOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
 	
 	private val middleIndices: IntArrayList = IntArrayList().also { indices ->
-		val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
+		val maxGap = RailXConfig.Server.middleTrack.placeGap.get()
 		var chunkX = BlockPos.getX(blocks.getLong(0)) shr 4
 		var chunkZ = BlockPos.getZ(blocks.getLong(0)) shr 4
 		for(index in blocks.indices step MiddlePlacementBaseGap) {
@@ -125,8 +125,8 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 		}
 	}
 	
-	private val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.isTrue
-	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
+	private val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.get()
+	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.get()
 	
 	private val pos = BlockPos.MutableBlockPos()
 	
@@ -210,9 +210,9 @@ fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Bo
 	if(blocks.isEmpty()) return
 	var chunkX = BlockPos.getX(blocks.getLong(0)) shr 4
 	var chunkZ = BlockPos.getZ(blocks.getLong(0)) shr 4
-	val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
-	val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.isTrue
-	val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
+	val maxGap = RailXConfig.Server.middleTrack.placeGap.get()
+	val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.get()
+	val removePrevious = RailXConfig.Server.middleTrack.removePrevious.get()
 	
 	
 	var middlesPlaced = 0
@@ -308,7 +308,7 @@ fun BezierConnection.rasterizeMiddlesOrdered(offset: Vec3i): LongArrayList {
 	val segCount = segmentCount
 	val lut = stepLUT
 	
-	val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
+	val maxGap = RailXConfig.Server.middleTrack.placeGap.get()
 	
 	var chunkX: Int
 	var chunkZ: Int

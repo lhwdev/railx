@@ -3,20 +3,15 @@
 package com.lhwdev.minecraft.railx.splitGraph
 
 import com.lhwdev.minecraft.railx.registry.AllPackets
+import com.lhwdev.minecraft.railx.registry.ClientboundPacketBase
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
-import com.lhwdev.minecraft.railx.utils.StreamCodecs
 import com.simibubi.create.Create
 import com.simibubi.create.CreateClient
 import com.simibubi.create.content.trains.entity.Train
 import com.simibubi.create.content.trains.graph.TrackGraph
 import com.simibubi.create.content.trains.signal.SignalEdgeGroup
-import net.createmod.catnip.net.base.BasePacketPayload
-import net.createmod.catnip.net.base.ClientboundPacketPayload
 import net.minecraft.client.player.LocalPlayer
-import net.minecraft.core.UUIDUtil
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
-import net.neoforged.neoforge.network.PacketDistributor
+import net.minecraft.network.FriendlyByteBuf
 import java.util.*
 
 
@@ -58,7 +53,7 @@ object TrackGraphConnectedId {
 	
 	internal fun onTick() {
 		packet?.let {
-			PacketDistributor.sendToAllPlayers(it)
+			AllPackets.sendToAllPlayers(it)
 			packet = null
 		}
 	}
@@ -66,7 +61,7 @@ object TrackGraphConnectedId {
 	fun packetFor(connectedId: UUID?): TrackGraphConnectedIdPacket {
 		packet?.let { packet ->
 			if(packet.id == connectedId) return packet
-			PacketDistributor.sendToAllPlayers(packet)
+			AllPackets.sendToAllPlayers(packet)
 		}
 		val packet = TrackGraphConnectedIdPacket(graphs = mutableListOf(), connectedId)
 		this.packet = packet
@@ -131,14 +126,17 @@ object TrackGraphConnectedId {
 	}
 }
 
-class TrackGraphConnectedIdPacket(val graphs: MutableList<UUID>, val id: UUID?) :
-	ClientboundPacketPayload {
+class TrackGraphConnectedIdPacket(val graphs: MutableList<UUID>, val id: UUID?) : ClientboundPacketBase() {
 	companion object : RailXPacketType<TrackGraphConnectedIdPacket>() {
-		override val streamCodec = StreamCodec.composite(
-			UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs.list()), TrackGraphConnectedIdPacket::graphs,
-			StreamCodecs.nullable(UUIDUtil.STREAM_CODEC), TrackGraphConnectedIdPacket::id,
-			::TrackGraphConnectedIdPacket,
+		override fun read(buffer: FriendlyByteBuf): TrackGraphConnectedIdPacket = TrackGraphConnectedIdPacket(
+			graphs = buffer.readList { it.readUUID() },
+			id = if(buffer.readBoolean()) buffer.readUUID() else null,
 		)
+	}
+	
+	override fun write(buffer: FriendlyByteBuf) {
+		buffer.writeCollection(graphs, FriendlyByteBuf::writeUUID)
+		buffer.writeNullable(id, FriendlyByteBuf::writeUUID)
 	}
 	
 	override fun handle(player: LocalPlayer?) {
@@ -148,7 +146,4 @@ class TrackGraphConnectedIdPacket(val graphs: MutableList<UUID>, val id: UUID?) 
 			graph.connectedId = id
 		}
 	}
-	
-	override fun getTypeProvider(): BasePacketPayload.PacketTypeProvider =
-		AllPackets.TrackGraphConnectedId
 }

@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.trains.GlobalRailwayManager;
-import com.simibubi.create.content.trains.graph.DimensionPalette;
 import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackGraphSyncPacket;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;
@@ -54,7 +53,7 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 		var location = (TrackNodeLocation) result.getFirst();
 		var normal = (Vec3) result.getSecond();
 		return new SlotObjects.TrackGraphSyncPacketSplitNodePair(
-			SplittingTrackNode.Data.STREAM_CODEC.decode(buffer), location, normal);
+			SplittingTrackNode.Data.read(buffer), location, normal);
 	}
 	
 	
@@ -69,14 +68,12 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 	@Inject(method = "lambda$write$4", at = @At("TAIL"))
 	private static void onWriteNode(
 		FriendlyByteBuf buffer,
-		DimensionPalette dimensions,
-		Integer node,
 		Pair<?, ?> loc,
 		CallbackInfo ci
 	) {
 		if(loc instanceof SlotObjects.TrackGraphSyncPacketSplitNodePair pair) {
 			buffer.writeBoolean(true);
-			SplittingTrackNode.Data.STREAM_CODEC.encode(buffer, pair.getData());
+			pair.getData().write(buffer);
 		} else {
 			buffer.writeBoolean(false);
 		}

@@ -6,7 +6,6 @@ import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level
@@ -149,14 +148,14 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		}
 	}
 	
-	override fun write(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
-		super.write(tag, registries, clientPacket)
+	override fun write(tag: CompoundTag, clientPacket: Boolean) {
+		super.write(tag, clientPacket)
 		tag.put("FlexiState", state.write())
 	}
 	
-	override fun read(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
+	override fun read(tag: CompoundTag, clientPacket: Boolean) {
 		if(tag.contains("BoundLocation")) return
-		super.read(tag, registries, clientPacket)
+		super.read(tag, clientPacket)
 		
 		state = FlexiState.read(tag.getCompound("FlexiState"))
 		val level = level

@@ -5,16 +5,13 @@ import com.lhwdev.minecraft.railx.middleTrack.MiddleTrack
 import com.lhwdev.minecraft.railx.registry.*
 import com.lhwdev.minecraft.railx.splitGraph.SplitGraph
 import net.minecraft.resources.ResourceLocation
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.bus.api.IEventBus
-import net.neoforged.fml.ModContainer
-import net.neoforged.fml.common.Mod
-import net.neoforged.fml.config.ModConfig
-import net.neoforged.neoforge.client.gui.ConfigurationScreen
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory
+import net.minecraftforge.eventbus.api.IEventBus
+import net.minecraftforge.fml.ModContainer
+import net.minecraftforge.fml.ModLoadingContext
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.config.ModConfig
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
 
 /**
  * Main mod class.
@@ -22,7 +19,7 @@ import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
  * An example for blocks is in the `blocks` package of this mod.
  */
 @Mod(RailX.Id)
-class RailX(container: ModContainer, bus: IEventBus) {
+class RailX(container: ModContainer, context: ModLoadingContext, bus: IEventBus) {
 	companion object {
 		// Note: should be const; see :api/utils.kt
 		const val Id: String = "railx"
@@ -35,7 +32,7 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		}
 		
 		fun asResource(path: String): ResourceLocation =
-			ResourceLocation.fromNamespaceAndPath(Id, path)
+			ResourceLocation(Id, path)
 	}
 	
 	// TODO: multiple @Mod class not supported in KotlinForForge
@@ -43,16 +40,16 @@ class RailX(container: ModContainer, bus: IEventBus) {
 	private val client = RailXClient(bus)
 	
 	init {
-		container.registerConfig(ModConfig.Type.COMMON, RailXConfig.Common.spec)
-		container.registerConfig(ModConfig.Type.CLIENT, RailXConfig.Client.spec)
-		container.registerConfig(ModConfig.Type.SERVER, RailXConfig.Server.spec)
+		context.registerConfig(ModConfig.Type.COMMON, RailXConfig.Common.spec)
+		context.registerConfig(ModConfig.Type.CLIENT, RailXConfig.Client.spec)
+		context.registerConfig(ModConfig.Type.SERVER, RailXConfig.Server.spec)
 		
-		runWhenOn(Dist.CLIENT) {
-			container.registerExtensionPoint(
-				IConfigScreenFactory::class.java,
-				IConfigScreenFactory { container, screen -> ConfigurationScreen(container, screen) }
-			)
-		}
+		// runWhenOn(Dist.CLIENT) {
+		// 	container.registerExtensionPoint(
+		// 		IConfigScreenFactory::class.java,
+		// 		IConfigScreenFactory { container, screen -> ConfigurationScreen(container, screen) }
+		// 	)
+		// }
 		
 		// ensures initialization of registry
 		RailXRegistry.registerEventListeners(bus)
@@ -62,7 +59,6 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		AllCreativeModeTabs.register()
 		AllCommands.register()
 		AllPackets.register()
-		AllDataComponents.register()
 		AllEntityDataSerializers.register()
 		AllTrackMaterials.register()
 		AllCustoms.register()

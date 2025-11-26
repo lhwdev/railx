@@ -1,14 +1,14 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
+import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.simibubi.create.content.trains.track.TrackTargetingBlockItem
 import com.simibubi.create.foundation.utility.CreateLang
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.world.InteractionHand
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
-import net.neoforged.neoforge.client.event.InputEvent
-import net.neoforged.neoforge.network.PacketDistributor
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.client.event.InputEvent
 import com.simibubi.create.AllTags as CreateTags
 
 
@@ -68,7 +68,7 @@ object CurvedMiddleTrackInteraction {
 			front = front,
 			itemSlot = player.inventory.selected,
 		)
-		PacketDistributor.sendToServer(packet)
+		AllPackets.sendToServer(packet)
 		return true
 	}
 }

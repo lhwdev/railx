@@ -1,10 +1,10 @@
 package com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver
 
+import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.widget.IconButton
 import net.createmod.catnip.gui.AbstractSimiScreen
-import net.createmod.catnip.platform.CatnipServices
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.EditBox
 import net.minecraft.network.chat.Component
@@ -40,6 +40,6 @@ class ObserverConfigureScreen(val blockEntity: AdvancedTrackObserverBlockEntity)
 	}
 	
 	override fun removed() {
-		CatnipServices.NETWORK.sendToServer(ObserverEditPacket(blockEntity.blockPos, codeRule.value))
+		AllPackets.sendToServer(ObserverEditPacket(blockEntity.blockPos, codeRule.value))
 	}
 }

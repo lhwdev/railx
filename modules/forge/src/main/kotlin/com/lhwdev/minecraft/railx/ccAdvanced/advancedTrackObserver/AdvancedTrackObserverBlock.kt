@@ -6,6 +6,7 @@ import com.simibubi.create.content.trains.observer.TrackObserverBlockEntity
 import net.createmod.catnip.gui.ScreenOpener
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
@@ -13,17 +14,18 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
-import thedarkcolour.kotlinforforge.neoforge.forge.runWhenOn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import thedarkcolour.kotlinforforge.forge.runWhenOn
 
 
 class AdvancedTrackObserverBlock(properties: BlockBehaviour.Properties) : TrackObserverBlock(properties) {
-	override fun useWithoutItem(
+	override fun use(
 		state: BlockState,
 		level: Level,
 		pos: BlockPos,
 		player: Player,
+		hand: InteractionHand,
 		hitResult: BlockHitResult,
 	): InteractionResult {
 		runWhenOn(Dist.CLIENT) {

@@ -7,8 +7,8 @@ import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.phys.Vec3
-import net.neoforged.api.distmarker.Dist
-import thedarkcolour.kotlinforforge.neoforge.forge.DIST
+import net.minecraftforge.api.distmarker.Dist
+import thedarkcolour.kotlinforforge.forge.DIST
 
 
 class ConnectionMiddleState(

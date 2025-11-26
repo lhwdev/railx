@@ -1,15 +1,11 @@
 package com.lhwdev.minecraft.railx.throttle
 
-import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
+import com.lhwdev.minecraft.railx.registry.ServerboundPacketBase
 import com.lhwdev.minecraft.railx.throttle.Throttles.Throttle
-import com.lhwdev.minecraft.railx.utils.StreamCodecs
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity
-import net.createmod.catnip.net.base.BasePacketPayload
-import net.createmod.catnip.net.base.ServerboundPacketPayload
 import net.minecraft.core.BlockPos
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 
 
@@ -19,23 +15,18 @@ class ThrottlePacket(
 	val throttle: Throttle,
 	val otherKeys: List<Int>,
 	val stopControlling: Boolean = false,
-) :
-	ServerboundPacketPayload {
+) : ServerboundPacketBase() {
 	companion object : RailXPacketType<ThrottlePacket>() {
-		private val throttleCodec = StreamCodec.composite(
-			StreamCodecs.enum(), Throttle::reverser,
-			StreamCodecs.enum(), Throttle::steering,
-			ByteBufCodecs.VAR_INT, Throttle::gear,
-			::Throttle,
-		)
-		
-		override val streamCodec = StreamCodec.composite(
-			ByteBufCodecs.INT, ThrottlePacket::contraptionEntityId,
-			BlockPos.STREAM_CODEC, ThrottlePacket::controlsPos,
-			throttleCodec, ThrottlePacket::throttle,
-			ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()), ThrottlePacket::otherKeys,
-			ByteBufCodecs.BOOL, ThrottlePacket::stopControlling,
-			::ThrottlePacket
+		override fun read(buffer: FriendlyByteBuf): ThrottlePacket = ThrottlePacket(
+			contraptionEntityId = buffer.readInt(),
+			controlsPos = buffer.readBlockPos(),
+			throttle = Throttle(
+				reverser = buffer.readEnum(Throttles.Reverser::class.java),
+				steering = buffer.readEnum(Throttles.Steering::class.java),
+				gear = buffer.readVarInt(),
+			),
+			otherKeys = buffer.readList { it.readVarInt() },
+			stopControlling = buffer.readBoolean(),
 		)
 	}
 	
@@ -55,6 +46,15 @@ class ThrottlePacket(
 			ThrottlesServer.receiveThrottle(world, entity, controlsPos, uniqueId = player.uuid, throttle = throttle)
 	}
 	
-	override fun getTypeProvider(): BasePacketPayload.PacketTypeProvider =
-		AllPackets.Throttle
+	override fun write(buffer: FriendlyByteBuf) {
+		buffer.writeInt(contraptionEntityId)
+		buffer.writeBlockPos(controlsPos)
+		
+		buffer.writeEnum(throttle.reverser)
+		buffer.writeEnum(throttle.steering)
+		buffer.writeVarInt(throttle.gear)
+		
+		buffer.writeCollection(otherKeys) { buffer, value -> buffer.writeVarInt(value) }
+		buffer.writeBoolean(stopControlling)
+	}
 }

@@ -5,7 +5,7 @@ import com.lhwdev.minecraft.railx.RailXConfig
 
 object BuildTrak {
 	val enabled: Boolean
-		get() = RailXConfig.Server.buildTrak.enabled.isTrue
+		get() = RailXConfig.Server.buildTrak.enabled.get()
 	
 	// TODO: track plan by item?
 	val currentPlan: TrackPlan

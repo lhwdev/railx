@@ -3,9 +3,9 @@ package com.lhwdev.minecraft.railx.registry
 import com.lhwdev.minecraft.railx.common.commands.cleanTrackGraphCommand
 import net.minecraft.commands.CommandBuildContext
 import net.minecraft.commands.Commands
-import net.neoforged.bus.api.SubscribeEvent
-import net.neoforged.fml.common.EventBusSubscriber
-import net.neoforged.neoforge.event.RegisterCommandsEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber
+import net.minecraftforge.neoforge.event.RegisterCommandsEvent
 
 
 @EventBusSubscriber

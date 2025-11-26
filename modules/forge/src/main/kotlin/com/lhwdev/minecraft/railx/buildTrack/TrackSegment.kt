@@ -16,18 +16,15 @@ import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.TrackMaterial
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.IntTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NumericTag
-import net.minecraft.network.RegistryFriendlyByteBuf
-import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.times
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.times
 
 
 abstract class TrackSegment {
@@ -44,24 +41,18 @@ abstract class TrackSegment {
 	abstract val curve: BezierConnection?
 	
 	
-	protected abstract fun write(registries: HolderLookup.Provider, tag: CompoundTag)
+	protected abstract fun write(tag: CompoundTag)
 	
-	fun write(registries: HolderLookup.Provider): CompoundTag = CompoundTag { tag ->
+	protected abstract fun onWriteBuf(buffer: FriendlyByteBuf)
+	
+	fun write(): CompoundTag = CompoundTag { tag ->
 		tag.putString("Kind", kind.id.toString())
-		write(registries, tag)
+		write(tag)
 	}
 	
-	object STREAM_CODEC : StreamCodec<RegistryFriendlyByteBuf, TrackSegment> {
-		override fun decode(buffer: RegistryFriendlyByteBuf): TrackSegment {
-			val type = buffer.readVarInt()
-			return kindsByIndex[type].streamCodec.decode(buffer)
-		}
-		
-		override fun encode(buffer: RegistryFriendlyByteBuf, value: TrackSegment) {
-			buffer.writeVarInt(kindsByIndex.indexOf(value.kind))
-			@Suppress("UNCHECKED_CAST")
-			(value.kind.streamCodec as StreamCodec<RegistryFriendlyByteBuf, TrackSegment>).encode(buffer, value)
-		}
+	fun writeBuf(buffer: FriendlyByteBuf) {
+		buffer.writeVarInt(kindsByIndex.indexOf(kind))
+		onWriteBuf(buffer)
 	}
 	
 	companion object {
@@ -80,9 +71,14 @@ abstract class TrackSegment {
 			kindsByIndex += kind
 		}
 		
-		fun read(registries: HolderLookup.Provider, tag: CompoundTag): TrackSegment {
-			val kind = kinds.getValue(ResourceLocation.parse(tag.getString("Kind")))
-			return kind.read(registries, tag)
+		fun read(tag: CompoundTag): TrackSegment {
+			val kind = kinds.getValue(ResourceLocation(tag.getString("Kind")))
+			return kind.read(tag)
+		}
+		
+		fun readBuf(buffer: FriendlyByteBuf): TrackSegment {
+			val type = buffer.readVarInt()
+			return kindsByIndex[type].readBuf(buffer)
 		}
 	}
 	
@@ -90,17 +86,9 @@ abstract class TrackSegment {
 	interface Kind<Segment : TrackSegment> {
 		val id: ResourceLocation
 		
-		val streamCodec: StreamCodec<RegistryFriendlyByteBuf, Segment>
-			get() = object : StreamCodec<RegistryFriendlyByteBuf, Segment> {
-				override fun decode(buffer: RegistryFriendlyByteBuf): Segment =
-					read(buffer.registryAccess(), buffer.readNbt()!!)
-				
-				override fun encode(buffer: RegistryFriendlyByteBuf, value: Segment) {
-					buffer.writeNbt(value.write(buffer.registryAccess()))
-				}
-			}
+		fun readBuf(buffer: FriendlyByteBuf): Segment
 		
-		fun read(registries: HolderLookup.Provider, tag: CompoundTag): Segment
+		fun read(tag: CompoundTag): Segment
 	}
 	
 	class End(val pos: BlockPos, val end: Vec3, val tangent: Vec3, val normal: Vec3) {
@@ -108,7 +96,7 @@ abstract class TrackSegment {
 			tag.putLong("Pos", pos.asLong())
 			tag.put("T", tangent.asKnownSigned()?.let { IntTag.valueOf(it.index) } ?: VecHelper.writeNBT(tangent))
 			if(!(normal.x similarTo 0.0) || !(normal.z similarTo 0.0)) tag.put("N", VecHelper.writeNBT(normal))
-			if(!(pos.bottomCenter + tangent * 0.5 closeTo end)) tag.put("End", VecHelper.writeNBT(end))
+			if(!(Vec3.atBottomCenterOf(pos) + tangent * 0.5 closeTo end)) tag.put("End", VecHelper.writeNBT(end))
 		}
 		
 		companion object {
@@ -124,7 +112,7 @@ abstract class TrackSegment {
 				
 				return End(
 					pos = pos,
-					end = tag.getVec3OrNull("End") ?: (pos.bottomCenter + tangent * 0.5),
+					end = tag.getVec3OrNull("End") ?: (Vec3.atBottomCenterOf(pos) + tangent * 0.5),
 					tangent = tangent,
 					normal = tag.getVec3OrNull("N") ?: Vec3(0.0, 1.0, 0.0),
 				)
@@ -138,7 +126,11 @@ class CreateTrackSegmentImpl(val info: PlacementInfoAccessor) : TrackSegment() {
 	companion object CreateKind : Kind<CreateTrackSegmentImpl> {
 		override val id: ResourceLocation = Create.asResource("track")
 		
-		override fun read(registries: HolderLookup.Provider, tag: CompoundTag): CreateTrackSegmentImpl {
+		override fun read(tag: CompoundTag): CreateTrackSegmentImpl {
+			TODO("Not yet implemented")
+		}
+		
+		override fun readBuf(buffer: FriendlyByteBuf): CreateTrackSegmentImpl {
 			TODO("Not yet implemented")
 		}
 	}
@@ -157,7 +149,11 @@ class CreateTrackSegmentImpl(val info: PlacementInfoAccessor) : TrackSegment() {
 	override val curve: BezierConnection
 		get() = info.curve
 	
-	override fun write(registries: HolderLookup.Provider, tag: CompoundTag) {
+	override fun write(tag: CompoundTag) {
+		TODO("Not yet implemented")
+	}
+	
+	override fun onWriteBuf(buffer: FriendlyByteBuf) {
 		TODO("Not yet implemented")
 	}
 }
@@ -166,10 +162,13 @@ class FlexiTrackSegmentImpl(val info: FlexiPlacementInfo) : TrackSegment() {
 	companion object FlexiKind : Kind<FlexiTrackSegmentImpl> {
 		override val id: ResourceLocation = RailX.asResource("flexi_track")
 		
-		override fun read(registries: HolderLookup.Provider, tag: CompoundTag): FlexiTrackSegmentImpl {
-			val info = FlexiPlacementInfo.read(registries, tag.getCompound("FlexiPlacement"))
+		override fun read(tag: CompoundTag): FlexiTrackSegmentImpl {
+			val info = FlexiPlacementInfo.read(tag.getCompound("FlexiPlacement"))
 			return FlexiTrackSegmentImpl(info)
 		}
+		
+		override fun readBuf(buffer: FriendlyByteBuf): FlexiTrackSegmentImpl =
+			FlexiTrackSegmentImpl(FlexiPlacementInfo.read(buffer.readNbt()!!))
 	}
 	
 	override val kind: Kind<FlexiTrackSegmentImpl>
@@ -189,7 +188,11 @@ class FlexiTrackSegmentImpl(val info: FlexiPlacementInfo) : TrackSegment() {
 	override val curve: BezierConnection
 		get() = info.curve
 	
-	override fun write(registries: HolderLookup.Provider, tag: CompoundTag) {
-		tag.put("FlexiPlacement", info.write(registries))
+	override fun write(tag: CompoundTag) {
+		tag.put("FlexiPlacement", info.write())
+	}
+	
+	override fun onWriteBuf(buffer: FriendlyByteBuf) {
+		buffer.writeNbt(info.write())
 	}
 }

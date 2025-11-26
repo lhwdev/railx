@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.realisticSpeed
 
 import com.lhwdev.minecraft.railx.registry.AllCustoms
-import net.neoforged.fml.ModList
+import net.minecraftforge.fml.ModList
 
 
 internal object BlockMaterialResolvers {

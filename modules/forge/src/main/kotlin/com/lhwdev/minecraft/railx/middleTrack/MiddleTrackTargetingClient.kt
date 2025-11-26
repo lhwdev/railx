@@ -19,9 +19,9 @@ import net.minecraft.core.Direction
 import net.minecraft.util.Mth
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.phys.Vec3
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.unaryMinus
 import kotlin.math.roundToInt
 import com.simibubi.create.AllDataComponents as CreateDataComponents
 
