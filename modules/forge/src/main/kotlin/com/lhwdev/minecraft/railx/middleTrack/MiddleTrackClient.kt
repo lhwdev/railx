@@ -32,8 +32,9 @@ object MiddleTrackClient {
 		}
 		
 		val tracks = mutableSetOf<BlockPos>()
-		minecraft.levelRenderer.iterateVisibleBlockEntities { be ->
-			if(be.isRemoved) return@iterateVisibleBlockEntities
+		// Assuming every TrackBlockEntity is globalBlockEntities, as TrackRenderer.shouldRenderOffScreen returns true
+		minecraft.levelRenderer.globalBlockEntities.forEach { be ->
+			if(be.isRemoved) return@forEach
 			if(be is TrackBlockEntity) tracks += be.blockPos
 		}
 		

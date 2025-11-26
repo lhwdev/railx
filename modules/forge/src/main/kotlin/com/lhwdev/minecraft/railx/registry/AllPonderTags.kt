@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation
 
 object AllPonderTags {
 	fun register(helper: PonderTagRegistrationHelper<ResourceLocation>) {
-		val helper = helper.withKeyFunction(RegistryEntry<*, *>::getId)
+		val helper = helper.withKeyFunction(RegistryEntry<*>::getId)
 		helper.addToTag(AllCreatePonderTags.TRAIN_RELATED)
 			.add(AllBlocks.FlexiTrack)
 	}

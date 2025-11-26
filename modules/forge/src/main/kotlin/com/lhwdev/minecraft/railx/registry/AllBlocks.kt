@@ -12,7 +12,6 @@ import com.lhwdev.minecraft.railx.splitGraph.flexiBlock.FlexiSplitGraphTrackBloc
 import com.simibubi.create.AllDisplaySources
 import com.simibubi.create.Create
 import com.simibubi.create.api.behaviour.display.DisplaySource
-import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackBlockStateGenerator
 import com.simibubi.create.content.trains.track.TrackTargetingBlockItem
@@ -24,7 +23,6 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.material.MapColor
-import net.minecraftforge.neoforge.common.Tags
 import java.util.function.Supplier
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
 import com.simibubi.create.AllTags as CreateTags
@@ -83,11 +81,10 @@ object AllBlocks {
 			)
 		}
 		addLayer { Supplier { RenderType.cutoutMipped() } }
-		clientExtension { -> Supplier { FlexiTrackBlock.RenderProperties() } }
 		tag(AllTags.Features.FlexiTrack.block)
 		tag(CreateTags.AllBlockTags.TRACKS.tag)
 		tag(BlockTags.MINEABLE_WITH_PICKAXE)
-		tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED)
+		tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
 		tag(CreateTags.AllBlockTags.TRACKS.tag)
 		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 		lang("Flexi Train Track")
@@ -113,11 +110,10 @@ object AllBlocks {
 		}
 		blockstate(TrackBlockStateGenerator()::generate)
 		addLayer { Supplier(RenderType::cutoutMipped) }
-		clientExtension { -> Supplier(TrackBlock::RenderProperties) }
 		tag(AllTags.Features.SplitGraph.block)
 		tag(CreateTags.AllBlockTags.TRACKS.tag)
 		tag(BlockTags.MINEABLE_WITH_PICKAXE)
-		tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED)
+		tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
 		tag(CreateTags.AllBlockTags.TRACKS.tag)
 		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 		lang("Split Graph Train Track")
@@ -147,11 +143,10 @@ object AllBlocks {
 			)
 		}
 		addLayer { Supplier { RenderType.cutoutMipped() } }
-		clientExtension { -> Supplier { FlexiTrackBlock.RenderProperties() } }
 		tag(AllTags.Features.SplitGraph.block)
 		tag(CreateTags.AllBlockTags.TRACKS.tag)
 		tag(BlockTags.MINEABLE_WITH_PICKAXE)
-		tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED)
+		tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
 		tag(CreateTags.AllBlockTags.TRACKS.tag)
 		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 		lang("Flexible Split Graph Train Track")

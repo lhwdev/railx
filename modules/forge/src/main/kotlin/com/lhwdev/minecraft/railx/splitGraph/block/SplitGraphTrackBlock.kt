@@ -64,7 +64,8 @@ class SplitGraphTrackBlock(properties: Properties, material: TrackMaterial) : Tr
 private class SplitGraphTrackBlockPoint(world: BlockGetter, pos: BlockPos, state: BlockState) : SplitGraphPointBase() {
 	override val track: SplitGraphTrackBlock = state.block as SplitGraphTrackBlock
 	
-	override val centerVec: Vec3 = pos.bottomCenter.add(0.0, track.getElevationAtCenter(world, pos, state), 0.0)
+	override val centerVec: Vec3 =
+		Vec3.atBottomCenterOf(pos).add(0.0, track.getElevationAtCenter(world, pos, state), 0.0)
 	override val dimension: ResourceKey<Level> = if(world is Level) world.dimension() else Level.OVERWORLD
 	private val shape = state.getValue(TrackBlock.SHAPE)
 	

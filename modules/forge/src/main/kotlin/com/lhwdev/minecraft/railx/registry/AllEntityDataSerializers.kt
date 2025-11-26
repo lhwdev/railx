@@ -13,7 +13,7 @@ object AllEntityDataSerializers {
 	
 	val Registry = RailXRegistry
 	
-	val SyncMergedGraph: RegistryEntry<EntityDataSerializer<*>, EntityDataSerializer<Optional<SplitGraphTrainSync.MergedInfo>>> =
+	val SyncMergedGraph: RegistryEntry<EntityDataSerializer<Optional<SplitGraphTrainSync.MergedInfo>>> =
 		Registry.simple(
 			"merged_track_graph",
 			ForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS

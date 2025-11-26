@@ -34,7 +34,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	// NOTE: handleApproachTargetSpeed is called prior to handleTickSpeed
 	//       as, in create:CommonEvents.onServerWorldTick, ControlsServerHandler.tick() then Create.RAILWAYS.tick().
 	fun handleApproachTargetSpeed(@Suppress("unused") accelerationMod: Float): Boolean {
-		if(!config.enabled.isTrue) return false
+		if(!config.enabled.get()) return false
 		
 		currentSpeed = train.speed
 		handleTargetSpeed()
@@ -59,7 +59,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	fun handleTickSpeed(): Boolean {
-		if(!config.enabled.isTrue) return false
+		if(!config.enabled.get()) return false
 		if(train.derailed) return false
 		
 		currentSpeed = train.speed
@@ -98,7 +98,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	fun write(): CompoundTag? {
-		if(config.removePrevious.isTrue) return null
+		if(config.removePrevious.get()) return null
 		val tag = CompoundTag()
 		p?.let { p ->
 			tag.putByteArray("Props", ByteArrayOutputStream().also { p.write(DataOutputStream(it)) }.toByteArray())
@@ -119,13 +119,13 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	private fun debugHandle(key: String, log: String) {
 		if(!debugEnabled) return
-		debug("railx:rs[name=${train.name.tryCollapseToString()}] $key: $log")
+		debug("railx:rs[name=${train.name}] $key: $log")
 	}
 	
 	fun calculateSpeed(): Double {
 		handleTargetSpeed()
 		
-		val threshold = if(stoppedFor >= 20) 40 else config.updateTickRate.asInt
+		val threshold = if(stoppedFor >= 20) 40 else config.updateTickRate.get()
 		val willUpdate = skipCount >= threshold || approachAcceleration != 0.0
 		if(willUpdate) {
 			updateSpeed()
@@ -272,7 +272,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		val carriages = train.carriages
 		if(!carriages.all { it.anyAvailableEntity() != null }) return null
 		
-		val preciseMass = config.preciseMass.isTrue
+		val preciseMass = config.preciseMass.get()
 		
 		var netMass = 0
 		val carriageMass = IntArray(carriages.size)
@@ -363,7 +363,7 @@ class RealisticTrainSpeed(private val train: Train) {
 			previousTrailingLength = bounds.max(axis) - bogiePos.last()
 		}
 		
-		val totalPower = if(powerAmount.isNaN()) config.power.asDouble else powerAmount
+		val totalPower = if(powerAmount.isNaN()) config.power.get() else powerAmount
 		val perimeter = sqrt(crossSection / PI)
 		val carriageGap = carriageGapSum / carriages.size
 		
@@ -450,7 +450,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	private fun handleRollingResistance() {
-		val startingResistance = config.startingResistance.asDouble
+		val startingResistance = config.startingResistance.get()
 		if(currentSpeed == 0.0) {
 			netWheelSlowdown += onResult("rollingResistance", startingResistance)
 		} else {
@@ -469,7 +469,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	private fun handleGravitationalAcceleration() {
-		val accelerationFactor = config.gradientTrainAcceleration.asDouble
+		val accelerationFactor = config.gradientTrainAcceleration.get()
 		if(accelerationFactor == 0.0) return
 		
 		val result = accelerationFactor * gravitationalAcceleration
@@ -477,11 +477,11 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	private fun handleBrake() {
-		val factor = config.brakeAcceleration.asDouble
+		val factor = config.brakeAcceleration.get()
 		if(factor == 0.0) return
 		
 		var brake = this.brake
-		if(config.automaticBrakeAtStation.isTrue && train.currentStation != null && approachAcceleration == 0.0) {
+		if(config.automaticBrakeAtStation.get() && train.currentStation != null && approachAcceleration == 0.0) {
 			brake = max(brake, 1.0)
 		}
 		netWheelSlowdown += brake * factor
@@ -506,7 +506,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	private fun handleCurvatureResistance() {
-		val factor = config.curvatureResistance.asDouble
+		val factor = config.curvatureResistance.get()
 		if(factor == 0.0) return
 		
 		val resistance = CurvatureResistance.calculate(curveRadius)
@@ -520,7 +520,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		// TODO: tunnel
 		val p = p ?: return
-		if(!config.airResistance.isTrue) return
+		if(!config.airResistance.get()) return
 		
 		// TODO: is speed > 0 means carriage[0] is taking forward? I don't think so
 		val factor = if(speed > 0) p.headAirResistanceFactor else p.tailAirResistanceFactor
@@ -535,12 +535,12 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	private fun handleSlip() {
 		// slips are not generally happen, but they might happen where gradient is too large
-		if(!config.slipEnabled.isTrue) {
+		if(!config.slipEnabled.get()) {
 			slipAmount = 0.0
 			return
 		}
 		
-		val friction = config.slipCoefficient.asDouble * normalMassRatio
+		val friction = config.slipCoefficient.get() * normalMassRatio
 		// TODO: slip and underwater / frozen biome / ...etc
 		val wheelAcceleration = approachAcceleration + netWheelAcceleration - sign(train.speed) * netWheelSlowdown
 		val result = abs(wheelAcceleration) - friction

@@ -116,13 +116,9 @@ dependencies {
 	
 	modImplementation(projects.ccAsm)
 	
-	// kfflib>=5.8.0 won't resolve extension functions: https://github.com/thedarkcolour/KotlinForForge/issues/131
-	// modCompileOnly("thedarkcolour:kotlinforforge:5.8.0")
-	modImplementation("thedarkcolour:kotlinforforge:5.10.0")
+	implementation("thedarkcolour:kotlinforforge:4.11.0")
 	
-	modImplementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}:slim") {
-		isTransitive = false
-	}
+	modImplementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}:slim")
 	
 	modImplementation("net.createmod.ponder:Ponder-Forge-${v.minecraft.get()}:${v.ponder.get()}")
 	// compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4")
@@ -137,8 +133,8 @@ dependencies {
 	// optional mod dependencies
 	optionalModDependency(":worldedit:7.2.15") // from flatDir
 	
-	implementation(jarJar("io.github.llamalad7:mixinextras-forge:${libs.versions.mixinExtras.get()}")!!)
-	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${libs.versions.mixinExtras.get()}")!!)
+	implementation(jarJar("io.github.llamalad7:mixinextras-forge:${v.mixinExtras.get()}")!!)
+	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${v.mixinExtras.get()}")!!)
 	
 	annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 }

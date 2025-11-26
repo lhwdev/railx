@@ -9,8 +9,10 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SoundType
+import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.MapColor
+import java.lang.invoke.MethodHandles
 
 
 object DefaultMaterialResolver : BlockMaterialResolver {
@@ -101,14 +103,10 @@ object DefaultMaterialResolver : BlockMaterialResolver {
 		SoundType.MEDIUM_AMETHYST_BUD to MappingBlock(Blocks.MEDIUM_AMETHYST_BUD, 3),
 		SoundType.LARGE_AMETHYST_BUD to MappingBlock(Blocks.LARGE_AMETHYST_BUD, 3),
 		SoundType.TUFF to MappingBlock(Blocks.TUFF, 3),
-		SoundType.TUFF_BRICKS to MappingBlock(Blocks.TUFF_BRICKS, 3),
-		SoundType.POLISHED_TUFF to MappingBlock(Blocks.POLISHED_TUFF, 3),
 		SoundType.CALCITE to MappingBlock(Blocks.CALCITE, 3),
 		SoundType.DRIPSTONE_BLOCK to MappingBlock(Blocks.DRIPSTONE_BLOCK, 3),
 		SoundType.POINTED_DRIPSTONE to MappingBlock(Blocks.POINTED_DRIPSTONE, 3),
 		SoundType.COPPER to MappingBlock(Blocks.COPPER_BLOCK, 3),
-		SoundType.COPPER_BULB to MappingBlock(Blocks.COPPER_BULB, 3),
-		SoundType.COPPER_GRATE to MappingBlock(Blocks.COPPER_GRATE, 3),
 		SoundType.CAVE_VINES to MappingBlock(Blocks.CAVE_VINES, 3),
 		SoundType.SPORE_BLOSSOM to MappingBlock(Blocks.SPORE_BLOSSOM, 3),
 		SoundType.AZALEA to MappingBlock(Blocks.AZALEA, 3),
@@ -137,9 +135,6 @@ object DefaultMaterialResolver : BlockMaterialResolver {
 		SoundType.CHERRY_LEAVES to MappingBlock(Blocks.CHERRY_LEAVES, 3),
 		SoundType.CHERRY_WOOD_HANGING_SIGN to MappingBlock(Blocks.OAK_HANGING_SIGN, 3),
 		SoundType.CHISELED_BOOKSHELF to MappingBlock(Blocks.CHISELED_BOOKSHELF, 3),
-		SoundType.SPONGE to MappingBlock(Blocks.SPONGE, 3),
-		SoundType.WET_SPONGE to MappingBlock(Blocks.WET_SPONGE, 3),
-		SoundType.COBWEB to MappingBlock(Blocks.COBWEB, 3),
 		
 		// create mod
 		FluidTankBlock.SILENCED_METAL to MappingBlock(Blocks.COPPER_BLOCK, 8),
@@ -211,12 +206,16 @@ object DefaultMaterialResolver : BlockMaterialResolver {
 	)
 	
 	
+	private val BlockProperties = Block::class.java.getDeclaredField("properties")
+		.also { it.isAccessible = true }
+		.let { MethodHandles.lookup().unreflectGetter(it) }
+	
 	override fun resolve(
 		level: LevelReader,
 		pos: BlockPos,
 		state: BlockState,
 	): BlockMaterial {
-		state.block.properties().initialPropertiesSource?.let { base ->
+		(BlockProperties.invokeExact(state.block) as BlockBehaviour.Properties).initialPropertiesSource?.let { base ->
 			val result = BlockMaterials.resolve(level, pos, BlockHelper.copyProperties(state, base.defaultBlockState()))
 			val volume = state.getCollisionShape(level, pos).calculateVolume()
 			return if(volume == BlockVolume) {
@@ -226,7 +225,7 @@ object DefaultMaterialResolver : BlockMaterialResolver {
 				BlockMaterial(
 					priority = result.priority,
 					mass = result.mass * volume / BlockVolume,
-					debugSource = "$state <- initialProperties of ${base.builtInRegistryHolder().registeredName}",
+					debugSource = "$state <- initialProperties of ${base.builtInRegistryHolder().key().location()}",
 				)
 			}
 		}

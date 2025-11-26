@@ -16,7 +16,7 @@ object AllCreativeModeTabs {
 	
 	val Registry = RailXRegistry
 	
-	val BaseTab: RegistryEntry<CreativeModeTab, CreativeModeTab> = Registry.simple(
+	val BaseTab: RegistryEntry<CreativeModeTab> = Registry.simple(
 		"base_tag",
 		Registries.CREATIVE_MODE_TAB,
 	) {
@@ -40,7 +40,9 @@ object AllCreativeModeTabs {
 			RailXRegistry.allBlocks
 				.filter { !it.asStack().isEmpty }
 				.sortedBy { block ->
-					val tag = block.tags().asSequence().firstOrNull { it.location.path.startsWith("feature.") }
+					val tag = block.holder.get().tags()
+						.asSequence()
+						.firstOrNull { it.location.path.startsWith("feature.") }
 					features.indexOf(tag)
 				}
 				.forEach { output.accept(it.asStack()) }

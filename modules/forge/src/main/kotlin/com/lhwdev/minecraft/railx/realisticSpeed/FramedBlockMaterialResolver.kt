@@ -6,11 +6,11 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.state.BlockState
+import xfacthd.framedblocks.api.block.FramedBlockEntity
 import xfacthd.framedblocks.api.block.FramedProperties
 import xfacthd.framedblocks.api.block.IFramedBlock
-import xfacthd.framedblocks.api.block.blockentity.FramedBlockEntity
 import xfacthd.framedblocks.api.camo.CamoContainer
-import xfacthd.framedblocks.common.blockentity.doubled.FramedDoubleBlockEntity
+import xfacthd.framedblocks.common.blockentity.FramedDoubleBlockEntity
 
 
 object FramedBlockMaterialResolver : BlockMaterialResolver {
@@ -47,12 +47,12 @@ object FramedBlockMaterialResolver : BlockMaterialResolver {
 			listOf(be.camo, be.camoTwo)
 		} else {
 			listOf(be.camo)
-		}.map { BlockMaterials.resolve(level, pos, it.content.asBlockState) }
+		}.map { BlockMaterials.resolve(level, pos, it.state) }
 		
 		return BlockMaterial(
 			priority = camos.averageOf { it.priority } - 100,
 			mass = (volume.toDouble() / (16 * 16 * 16)) * camos.averageOf { it.mass },
-			debugSource = "${state.blockHolder.registeredName}($camos)",
+			debugSource = "${state.blockHolder.unwrapKey().get().location()}($camos)",
 		)
 	}
 	
@@ -62,6 +62,6 @@ object FramedBlockMaterialResolver : BlockMaterialResolver {
 		return CacheKey(state, camo)
 	}
 	
-	data class CacheKey(val state: BlockState, val camo: CamoContainer<*, *>)
+	data class CacheKey(val state: BlockState, val camo: CamoContainer)
 }
 

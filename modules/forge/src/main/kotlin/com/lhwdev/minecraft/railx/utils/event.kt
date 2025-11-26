@@ -1,12 +1,13 @@
 package com.lhwdev.minecraft.railx.utils
 
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.Event
-import net.minecraftforge.neoforge.common.NeoForge
+import net.minecraftforge.eventbus.api.EventPriority
 import java.util.function.Consumer
 
 
 inline fun <reified T : Event> addOneTimeListener(crossinline callback: (T) -> Unit) {
-	val bus = NeoForge.EVENT_BUS
+	val bus = MinecraftForge.EVENT_BUS
 	val listener = object : Consumer<T> {
 		override fun accept(t: T) {
 			try {
@@ -16,5 +17,5 @@ inline fun <reified T : Event> addOneTimeListener(crossinline callback: (T) -> U
 			}
 		}
 	}
-	bus.addListener(T::class.java, listener)
+	bus.addListener(EventPriority.NORMAL, false, T::class.java, listener)
 }

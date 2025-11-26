@@ -14,7 +14,7 @@ import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraftforge.neoforge.common.NeoForge
+import net.minecraftforge.common.MinecraftForge
 
 
 object SplitTrackPropagator {
@@ -222,7 +222,7 @@ private class SplitTrackPropagatorImpl(
 			val target = maxBy { it.nodes.size }
 			for(other in this) {
 				if(other == target) continue
-				NeoForge.EVENT_BUS.post(TrackGraphMergeEvent(other, target))
+				MinecraftForge.EVENT_BUS.post(TrackGraphMergeEvent(other, target))
 				other.transferAll(target)
 				manager.removeGraphAndGroup(other)
 				manager.sync.graphRemoved(other)

@@ -52,7 +52,7 @@ object CopycatBlockMaterialResolver : BlockMaterialResolver {
 		return BlockMaterial(
 			priority = materials.averageOf { it.priority } - 100,
 			mass = (volume.toDouble() / BlockVolume) * materials.averageOf { it.mass },
-			debugSource = "${state.blockHolder.registeredName}(materials = $materials)",
+			debugSource = "${state.blockHolder.unwrapKey().get().location()}(materials = $materials)",
 		)
 	}
 	

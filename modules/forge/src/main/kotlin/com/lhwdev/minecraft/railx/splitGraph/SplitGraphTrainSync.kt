@@ -1,26 +1,32 @@
 package com.lhwdev.minecraft.railx.splitGraph
 
-import net.minecraft.core.UUIDUtil
-import net.minecraft.network.codec.ByteBufCodecs
-import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.syncher.EntityDataSerializer
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 
 object SplitGraphTrainSync {
 	class MergedInfo(val graphs: List<UUID>) {
 		companion object {
-			val STREAM_CODEC = StreamCodec.composite(
-				UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs.list()),
-				MergedInfo::graphs,
-				::MergedInfo
-			)
-			
-			val OPTIONAL_STREAM_CODEC =
-				ByteBufCodecs.optional(STREAM_CODEC)
-			
 			@JvmField
-			val SERIALIZER = EntityDataSerializer.forValueType(OPTIONAL_STREAM_CODEC)
+			val SERIALIZER = object : EntityDataSerializer<Optional<MergedInfo>> {
+				override fun write(buffer: FriendlyByteBuf, value: Optional<MergedInfo>) {
+					val v = value.getOrNull()
+					if(v == null) buffer.writeBoolean(false)
+					else {
+						buffer.writeBoolean(true)
+						buffer.writeCollection(v.graphs, FriendlyByteBuf::writeUUID)
+					}
+				}
+				
+				override fun read(buffer: FriendlyByteBuf): Optional<MergedInfo> = if(buffer.readBoolean()) {
+					MergedInfo(graphs = buffer.readList(FriendlyByteBuf::readUUID))
+						.let { Optional.of(it) }
+				} else Optional.empty()
+				
+				override fun copy(value: Optional<MergedInfo>): Optional<MergedInfo> = value
+			}
 		}
 	}
 }

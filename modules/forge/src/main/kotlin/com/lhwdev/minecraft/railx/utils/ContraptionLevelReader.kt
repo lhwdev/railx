@@ -19,14 +19,13 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.border.WorldBorder
 import net.minecraft.world.level.chunk.ChunkAccess
-import net.minecraft.world.level.chunk.status.ChunkStatus
+import net.minecraft.world.level.chunk.ChunkStatus
 import net.minecraft.world.level.dimension.DimensionType
 import net.minecraft.world.level.levelgen.Heightmap
 import net.minecraft.world.level.lighting.LevelLightEngine
 import net.minecraft.world.level.material.FluidState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.shapes.VoxelShape
-import net.minecraftforge.neoforge.client.model.data.ModelData
 import kotlin.math.abs
 
 
@@ -84,7 +83,6 @@ class ContraptionLevelReader(val level: Level, val contraption: Contraption) : L
 	
 	override fun getEntityCollisions(entity: Entity?, collisionBox: AABB): List<VoxelShape> = TODO()
 	
-	
-	override fun getModelData(pos: BlockPos): ModelData =
-		blockEntities.blockEntities[pos]?.modelData ?: ModelData.EMPTY
+	// override fun getModelData(pos: BlockPos): ModelData =
+	// 	blockEntities.blockEntities[pos]?.modelData ?: ModelData.EMPTY
 }

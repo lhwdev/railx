@@ -61,6 +61,7 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.extensions.common.IClientBlockExtensions
 import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
+import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks
@@ -535,6 +536,13 @@ open class FlexiTrackBlock(
 	}
 	
 	override fun getMaterial(): FlexiTrackMaterial = material
+	
+	@OnlyIn(Dist.CLIENT)
+	override fun initializeClient(consumer: Consumer<IClientBlockExtensions>) {
+		super.initializeClient(consumer)
+		consumer.accept(RenderProperties())
+	}
+	
 	
 	class RenderProperties : IClientBlockExtensions, MultiPosDestructionHandler {
 		override fun addDestroyEffects(

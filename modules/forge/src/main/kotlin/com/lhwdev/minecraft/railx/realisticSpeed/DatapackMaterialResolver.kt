@@ -14,15 +14,15 @@ import net.minecraft.tags.TagKey
 import net.minecraft.util.profiling.ProfilerFiller
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.AddReloadListenerEvent
+import net.minecraftforge.event.TagsUpdatedEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.neoforge.common.NeoForge
-import net.minecraftforge.neoforge.event.AddReloadListenerEvent
-import net.minecraftforge.neoforge.event.TagsUpdatedEvent
 
 
 object DatapackMaterialResolver : BlockMaterialResolver {
 	fun register() {
-		NeoForge.EVENT_BUS.register(this)
+		MinecraftForge.EVENT_BUS.register(this)
 	}
 	
 	
@@ -61,10 +61,10 @@ object DatapackMaterialResolver : BlockMaterialResolver {
 			val tag = element["tag"]?.asString
 			val material = BlockMaterial(priority, mass, debugSource = tag ?: element["block"]?.asString)
 			if(tag != null) {
-				TagMaterials += TagMaterial(tag = ResourceLocation.parse(tag), priority, material)
+				TagMaterials += TagMaterial(tag = ResourceLocation(tag), priority, material)
 			} else {
 				val block = element["block"]?.asString ?: throw IllegalArgumentException("no 'tag' or 'block' key")
-				val id = ResourceLocation.parse(block)
+				val id = ResourceLocation(block)
 				val previous = Materials[id]
 				if(previous == null || previous.priority < priority)
 					Materials[id] = material
@@ -99,7 +99,7 @@ object DatapackMaterialResolver : BlockMaterialResolver {
 				continue
 			}
 			for(block in tag.get()) {
-				MaterialsFromTag[block.key!!.location()] = item.material
+				MaterialsFromTag[block.unwrapKey().get().location()] = item.material
 			}
 		}
 	}

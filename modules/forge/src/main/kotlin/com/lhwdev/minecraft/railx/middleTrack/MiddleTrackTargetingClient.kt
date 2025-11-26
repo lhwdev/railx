@@ -16,6 +16,8 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
 import net.minecraft.util.Mth
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.phys.Vec3
@@ -23,7 +25,6 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.unaryMinus
 import kotlin.math.roundToInt
-import com.simibubi.create.AllDataComponents as CreateDataComponents
 
 
 @OnlyIn(Dist.CLIENT)
@@ -80,14 +81,18 @@ object MiddleTrackTargetingClient {
 		val item = stack.item as? TrackTargetingBlockItem ?: return
 		val type = item.getType(stack)
 		
-		val fromPos = stack.get(CreateDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS)
+		val tag = stack.tag
+		val fromPos = tag?.get("SelectedPos")?.let { NbtUtils.readBlockPos(it as CompoundTag) }
 		val selection = MiddleTrackOutline.result
 		val target = when {
 			// already selected
 			fromPos != null && !level.isLoaded(fromPos) -> Target(
 				fromPos = fromPos,
-				bezier = stack.get(CreateDataComponents.TRACK_TARGETING_ITEM_BEZIER) ?: return,
-				direction = stack.getOrDefault(CreateDataComponents.TRACK_TARGETING_ITEM_SELECTED_DIRECTION, false),
+				bezier = (tag.get("Bezier") as? CompoundTag)?.let { bezier ->
+					val key = NbtUtils.readBlockPos(bezier.getCompound("Key"))
+					BezierTrackPointLocation(key, bezier.getInt("Segment"))
+				} ?: return,
+				direction = tag.getBoolean("SelectedDirection"),
 				edgeType = type,
 			)
 			

@@ -1,23 +1,23 @@
 package com.lhwdev.minecraft.railx.utils
 
-import net.minecraftforge.neoforge.common.ModConfigSpec
+import net.minecraftforge.common.ForgeConfigSpec
 
 
-fun <T> ModConfigSpec.ConfigValue<T>.getOrNull(): T? = try {
+fun <T> ForgeConfigSpec.ConfigValue<T>.getOrNull(): T? = try {
 	get()
 } catch(_: IllegalStateException) {
 	null
 }
 
-fun <T> ModConfigSpec.ConfigValue<T>.getOrDefault(default: T): T = try {
+fun <T> ForgeConfigSpec.ConfigValue<T>.getOrDefault(default: T): T = try {
 	get()
 } catch(_: IllegalStateException) {
 	default
 }
 
-val ModConfigSpec.BooleanValue.orFalse: Boolean
+val ForgeConfigSpec.BooleanValue.orFalse: Boolean
 	get() = try {
-		isTrue
+		get()
 	} catch(_: IllegalStateException) {
 		false
 	}

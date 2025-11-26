@@ -10,11 +10,11 @@ import net.minecraft.resources.ResourceLocation
 
 object AllPonderScenes {
 	fun register(helper: PonderSceneRegistrationHelper<ResourceLocation>) {
-		val helper = helper.withKeyFunction(RegistryEntry<*, *>::getId)
+		val helper = helper.withKeyFunction(RegistryEntry<*>::getId)
 		
 		helper.forComponents(
 			FlexiTrackMaterial.allFlexiBlocks()
-				.filterIsInstance<RegistryEntry<*, *>>()
+				.filterIsInstance<RegistryEntry<*>>()
 		)
 			.addStoryBoard(Create.asResource("train_track/placement"), TrackScenes::placement)
 			.addStoryBoard(Create.asResource("train_track/portal"), TrackScenes::portal)

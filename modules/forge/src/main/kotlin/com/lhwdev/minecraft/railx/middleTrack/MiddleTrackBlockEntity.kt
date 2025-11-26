@@ -81,8 +81,8 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 		tag.put("Connections", connections.mapTo(ListTag()) { CompactBezierConnection.write(it, blockPos) })
 	}
 	
-	override fun loadAdditional(tag: CompoundTag) {
-		super.loadAdditional(tag)
+	override fun load(tag: CompoundTag) {
+		super.load(tag)
 		updateConnections((tag.get("Connections") as ListTag).mapNotNull { t ->
 			CompactBezierConnection.read(t as CompoundTag, blockPos)
 				?.also { require(it.primary) { "curve is not primary" } }

@@ -26,7 +26,7 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	}
 	
 	fun location(name: String): ResourceLocation =
-		ResourceLocation.fromNamespaceAndPath(modid, name)
+		ResourceLocation(modid, name)
 	
 	@Suppress("UNCHECKED_CAST")
 	fun <T> registryOf(key: ResourceKey<Registry<T>>): Registry<T> =

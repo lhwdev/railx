@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.fml.ModList
+import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
 
 
 private val ErrorNoWorldEdit =
@@ -57,7 +58,7 @@ fun RailXCommandBuildContext.cleanTrackGraphCommand(): LiteralArgumentBuilder<Co
 			val found = track.getConnected(level, pos, state, false, null)
 			val base = TrackNodeLocation.DiscoveredLocation(
 				level,
-				pos.bottomCenter + Vec3(0.0, track.getElevationAtCenter(level, pos, state), 0.0),
+				Vec3.atBottomCenterOf(pos) + Vec3(0.0, track.getElevationAtCenter(level, pos, state), 0.0),
 			)
 			for(end in found) {
 				if(end == base) continue

@@ -176,7 +176,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 		if(isInsideBoxCentered(from)) {
 			return BlockHitResult(
 				from.add(offset).toVec3(),
-				Direction.getNearest(delta.mul(-1.0).toVec3()),
+				Direction.getNearest(-delta.x, -delta.y, -delta.z),
 				pos,
 				true
 			)

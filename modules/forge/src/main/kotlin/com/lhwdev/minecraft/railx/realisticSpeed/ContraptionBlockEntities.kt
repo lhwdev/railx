@@ -69,7 +69,7 @@ class ServerSideContraptionBlockEntities(private val contraption: Contraption, p
 			nbt.putInt("x", pos.x)
 			nbt.putInt("y", pos.y)
 			nbt.putInt("z", pos.z)
-			val be = BlockEntity.loadStatic(pos, state, nbt, level.registryAccess())
+			val be = BlockEntity.loadStatic(pos, state, nbt)
 			postprocessReadBlockEntity(be, state)
 			return be
 		}
@@ -80,7 +80,7 @@ class ServerSideContraptionBlockEntities(private val contraption: Contraption, p
 		val be = block.newBlockEntity(pos, state)
 		postprocessReadBlockEntity(be, state)
 		if(be != null && nbt != null)
-			be.handleUpdateTag(nbt, level.registryAccess())
+			be.handleUpdateTag(nbt)
 		return be
 	}
 	

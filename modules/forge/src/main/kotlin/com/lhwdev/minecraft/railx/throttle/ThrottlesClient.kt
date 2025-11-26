@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.throttle
 
 import com.lhwdev.minecraft.railx.registry.AllKeys
+import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.utils.sign
 import com.mojang.blaze3d.platform.InputConstants
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
@@ -8,8 +9,8 @@ import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInp
 import com.simibubi.create.foundation.utility.ControlsUtil
 import net.minecraft.client.Minecraft
 import net.minecraft.world.level.LevelAccessor
-import net.minecraftforge.neoforge.network.PacketDistributor
 import org.lwjgl.glfw.GLFW
+import com.simibubi.create.AllPackets as CreatePackets
 
 
 object ThrottlesClient {
@@ -41,7 +42,7 @@ object ThrottlesClient {
 		if(packetCooldown > 0) packetCooldown--
 		if(entity.isRemoved || InputConstants.isKeyDown(mc.window.window, GLFW.GLFW_KEY_ESCAPE)) {
 			ControlsHandler.stopControlling()
-			PacketDistributor.sendToServer(
+			CreatePackets.getChannel().sendToServer(
 				ControlsInputPacket(ControlsHandler.currentlyPressed, false, entity.id, controlsPos, true)
 			)
 			return
@@ -79,7 +80,7 @@ object ThrottlesClient {
 				throttle = throttle,
 				otherKeys = pressedKeys,
 			)
-			PacketDistributor.sendToServer(packet)
+			AllPackets.sendToServer(packet)
 		}
 		
 		controls.forEach { it.isDown = false }

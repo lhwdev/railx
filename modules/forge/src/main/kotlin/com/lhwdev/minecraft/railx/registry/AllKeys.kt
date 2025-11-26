@@ -4,11 +4,11 @@ import com.lhwdev.minecraft.railx.RailX
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent
+import net.minecraftforge.event.TickEvent
 import net.minecraftforge.eventbus.api.EventPriority
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber
-import net.minecraftforge.neoforge.client.event.ClientTickEvent
-import net.minecraftforge.neoforge.client.event.RegisterKeyMappingsEvent
 import org.lwjgl.glfw.GLFW
 
 
@@ -63,7 +63,8 @@ enum class AllKeys(val description: String, val defaultKey: Int) {
 		}
 		
 		@SubscribeEvent(priority = EventPriority.HIGHEST)
-		private fun onTick(event: ClientTickEvent.Pre) {
+		private fun onTick(event: TickEvent.ClientTickEvent) {
+			if(event.phase != TickEvent.Phase.START) return
 			for(key in AllKeys.entries) {
 				key.updatePressed()
 			}
