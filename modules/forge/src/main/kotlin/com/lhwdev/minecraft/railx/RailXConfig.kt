@@ -47,6 +47,8 @@ object RailXConfig {
 		
 		val realisticSpeed = RealisticSpeed()
 		
+		val throttle = Throttle()
+		
 		val middleTrack = MiddleTrack()
 		
 		val flexiTrak = FlexiTrak()
@@ -158,6 +160,12 @@ object RailXConfig {
 			// val slipInFrozenBiome: BooleanValue = builder
 			// 	.comment("Train slips more when inside frozen biome.")
 			// 	.define("realistic_speed.slip.in_frozen_biome", false)
+		}
+		
+		inner class Throttle {
+			val enabled: BooleanValue = builder
+				.comment("Enables throttle control, which is similar to real-life master controller.")
+				.define("throttle.enabled", false)
 		}
 		
 		inner class MiddleTrack {

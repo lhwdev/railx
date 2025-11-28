@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.throttle
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsServerHandler
 import net.createmod.catnip.data.IntAttached
@@ -16,6 +17,8 @@ object ThrottlesServer {
 	
 	
 	fun tick(world: LevelAccessor) {
+		if(RailXConfig.Server.throttle.enabled.isFalse) return
+		
 		val worldThrottles = receivedThrottles[world].iterator()
 		val worldControls = ControlsServerHandler.receivedInputs[world]
 		while(worldThrottles.hasNext()) {
