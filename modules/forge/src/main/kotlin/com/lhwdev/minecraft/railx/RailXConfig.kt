@@ -92,7 +92,7 @@ object RailXConfig {
 		inner class RealisticSpeed {
 			val enabled: BooleanValue = builder
 				.comment("Enables trains to have realistic speed")
-				.define("realistic_speed.enabled", true)
+				.define("realistic_speed.enabled", false)
 			
 			val removePrevious: BooleanValue = builder
 				.comment("Removes previously saved realistic speed-related parameters/caches from train data.")
