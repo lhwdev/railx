@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.utils.ContraptionLevelReader
 import com.lhwdev.minecraft.railx.utils.pow2
+import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInteractionBehaviour
 import com.simibubi.create.content.trains.bogey.AbstractBogeyBlock
@@ -23,8 +24,6 @@ import kotlin.math.*
 
 
 class RealisticTrainSpeed(private val train: Train) {
-	var brake: Double = 0.0 // from 0 to 1
-	
 	private val config get() = RailXConfig.Server.realisticSpeed
 	
 	var p: TrainProps? = null
@@ -37,25 +36,19 @@ class RealisticTrainSpeed(private val train: Train) {
 		if(!config.enabled.get()) return false
 		
 		currentSpeed = train.speed
-		handleTargetSpeed()
 		
-		// TODO: we do not use accelerationMod,
-		val acceleration = train.acceleration() /* * accelerationMod */
-		return if(train.navigation.destination != null) {
-			approachAcceleration = 0.0
-			false // run pre-mixin original code,
-			// if(previousSpeed < target) train.speed = min(previousSpeed + acceleration, target)
-			// else train.speed = max(previousSpeed - acceleration, target)
-		} else {
-			// train.leaveStation() // handled by handleTickSpeed() -> calculateSpeed()
-			approachAcceleration = if(targetSpeedSource != 0.0) {
-				sign(targetSpeed - currentSpeed) * acceleration * 400
-			} else {
-				// passive deceleration where targetSpeed = 0, acceleration = (opposite)
-				0.0
-			}
-			true
+		handleTargetSpeed(target = train.targetSpeed)
+		
+		// In RailXConfig.Server.realisticSpeed.brakeAcceleration, it ensures targetBreak >= 1. (if not zero)
+		// TODO: need to adjust break to less than 1.5 or something, to be exactly 1.0?
+		
+		// Excludes manual control, as it gives accelerationMod=2 when giving countering acceleration
+		if(!train.manualTick || train.navigation.destination != null) {
+			targetThrottle *= accelerationMod
+			targetBreak *= accelerationMod
 		}
+		
+		return true
 	}
 	
 	fun handleTickSpeed(): Boolean {
@@ -63,30 +56,61 @@ class RealisticTrainSpeed(private val train: Train) {
 		if(train.derailed) return false
 		
 		currentSpeed = train.speed
-		// if(train.navigation.destination != null) {
-		// 	skipCount = 0
-		// 	stoppedFor = 0
-		// } else {
 		val speed = calculateSpeed()
+		
 		train.speed = speed
 		train.manualTick = false
+		targetSpeedSource = Double.NaN
 		return true
 	}
 	
-	fun handleTargetSpeed() {
-		val source = train.targetSpeed
-		if(source == targetSpeedSource) return
-		var target = source
+	// TODO: - should I need more acceleration on start(ie. speed <= 0.01)?
+	//       - apply natural slowdown when approaching close to top speed
+	fun handleTargetSpeed(target: Double) {
+		if(target == targetSpeedSource) return
 		
-		// Behavior of manual tick: passive -> targetSpeed=0, acceleration=-1 / break
-		if(train.manualTick) target = when(Mth.sign(currentSpeed * source)) {
-			1 -> target
-			0 -> target
-			-1 -> 0.0
-			else -> throw NoWhenBranchMatchedException()
+		targetSpeedSource = target
+		// in manual control, target = [throttle -> maxSpeed * direction, neutral -> 0, break -> -maxSpeed * direction]
+		val acceleration = 400 * train.acceleration().toDouble()
+		if(train.manualTick && train.navigation.destination == null) {
+			val direction = Mth.sign(currentSpeed * target)
+			when {
+				direction == 1 || currentSpeed == 0.0 -> { // throttle
+					targetSpeed = train.maxSpeed() * sign(target)
+					targetThrottle = acceleration * sign(target)
+					targetBreak = 0.0
+				}
+				
+				direction == 0 -> { // neutral
+					targetSpeed = currentSpeed
+					targetThrottle = 0.0
+					targetBreak = 0.0
+				}
+				
+				direction == -1 -> { // break
+					targetSpeed = 0.0
+					targetThrottle = 0.0
+					targetBreak = acceleration
+				}
+				
+				else -> throw NoWhenBranchMatchedException()
+			}
+		} else {
+			targetSpeed = target
+			val direction = sign(target - currentSpeed)
+			if(direction == 0.0) {
+				targetThrottle = 0.0
+				targetBreak = 0.0
+			} else {
+				if(currentSpeed * direction >= 0) { // throttle
+					targetThrottle = acceleration * direction
+					targetBreak = 0.0
+				} else { // break
+					targetThrottle = 0.0
+					targetBreak = acceleration
+				}
+			}
 		}
-		targetSpeedSource = source
-		targetSpeed = target
 	}
 	
 	fun read(tag: CompoundTag) {
@@ -123,10 +147,10 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	fun calculateSpeed(): Double {
-		handleTargetSpeed()
+		handleTargetSpeed(target = train.targetSpeed)
 		
-		val threshold = if(stoppedFor >= 20) 40 else config.updateTickRate.get()
-		val willUpdate = skipCount >= threshold || approachAcceleration != 0.0
+		val threshold = if(stoppedFor < 20 || targetSpeed != 0.0) config.updateTickRate.asInt else 40
+		val willUpdate = skipCount >= threshold
 		if(willUpdate) {
 			updateSpeed()
 			skipCount = 0
@@ -143,9 +167,10 @@ class RealisticTrainSpeed(private val train: Train) {
 			(s + slowdown / 400).coerceAtMost(0.0)
 		}
 		
-		if(approachAcceleration != 0.0) {
+		if(targetThrottle != 0.0) {
+			// in case targetThrottle overshoots
 			val a = applySlowdown(speed)
-			val b = applySlowdown(speed + approachAcceleration / 400)
+			val b = applySlowdown(speed + targetThrottle / 400)
 			speed = targetSpeed.coerceIn(min(a, b), max(a, b))
 		} else {
 			speed = applySlowdown(speed)
@@ -162,11 +187,8 @@ class RealisticTrainSpeed(private val train: Train) {
 			stoppedFor = 0
 		}
 		
-		approachAcceleration = 0.0
 		return speed
 	}
-	
-	private var approachAcceleration = 0.0
 	
 	private var netEnvironmentalAcceleration = 0.0
 	private var netWheelAcceleration = 0.0
@@ -176,6 +198,8 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	private var currentSpeed: Double = 0.0
 	private var targetSpeed: Double = 0.0
+	private var targetThrottle: Double = 0.0
+	private var targetBreak: Double = 0.0
 	private var targetSpeedSource: Double = 0.0
 	private var mass: Double = 1.0
 	
@@ -224,6 +248,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	
 	fun updateSpeed() {
+		debugEntries.clear()
 		netEnvironmentalAcceleration = 0.0
 		netWheelAcceleration = 0.0
 		netEnvironmentalSlowdown = 0.0
@@ -247,9 +272,9 @@ class RealisticTrainSpeed(private val train: Train) {
 		// debugEntries.keys.forEach { debugEntries[it] = "" }
 	}
 	
-	// private val debugEntries = mutableMapOf<String, String>()
+	private val debugEntries = mutableMapOf<String, String>()
 	private fun onResult(key: String, value: Double, debug: String = ""): Double {
-		// debugEntries[key] = "$value $debug"
+		debugEntries[key] = "${round(value, 10000)} $debug"
 		return value
 	}
 	
@@ -456,6 +481,8 @@ class RealisticTrainSpeed(private val train: Train) {
 		} else {
 			val p = p ?: return
 			var resistance = (p.rollingFactor + p.rolling2Factor * abs(currentSpeed)) / mass * normalMassRatio
+			resistance * config.rollingResistanceMultiplier.get()
+			
 			val creepingThreshold = 0.03
 			val creeping = creepingThreshold - abs(currentSpeed)
 			if(creeping > 0) {
@@ -478,10 +505,9 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	private fun handleBrake() {
 		val factor = config.brakeAcceleration.get()
-		if(factor == 0.0) return
 		
-		var brake = this.brake
-		if(config.automaticBrakeAtStation.get() && train.currentStation != null && approachAcceleration == 0.0) {
+		var brake = targetBreak
+		if(config.automaticBrakeAtStation.get() && train.currentStation != null && targetThrottle == 0.0) {
 			brake = max(brake, 1.0)
 		}
 		netWheelSlowdown += brake * factor
@@ -511,7 +537,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		val resistance = CurvatureResistance.calculate(curveRadius)
 		val result = factor * resistance * (sqrt(abs(train.speed) + 4) - 2)
-		netEnvironmentalSlowdown += onResult("curvatureResistance", result, debug = "R=$curveRadius")
+		netEnvironmentalSlowdown += onResult("curvatureResistance", result, debug = "R=${round(curveRadius, 10)}")
 	}
 	
 	private fun handleAirResistance() {
@@ -522,7 +548,6 @@ class RealisticTrainSpeed(private val train: Train) {
 		val p = p ?: return
 		if(!config.airResistance.get()) return
 		
-		// TODO: is speed > 0 means carriage[0] is taking forward? I don't think so
 		val factor = if(speed > 0) p.headAirResistanceFactor else p.tailAirResistanceFactor
 		if(factor == 0.0) { // config.airResistance changed OFF -> ON
 			this.p = null
@@ -542,7 +567,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		val friction = config.slipCoefficient.get() * normalMassRatio
 		// TODO: slip and underwater / frozen biome / ...etc
-		val wheelAcceleration = approachAcceleration + netWheelAcceleration - sign(train.speed) * netWheelSlowdown
+		val wheelAcceleration = targetThrottle + netWheelAcceleration - sign(train.speed) * netWheelSlowdown
 		val result = abs(wheelAcceleration) - friction
 		if(result > 0) {
 			slipAmount = result

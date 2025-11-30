@@ -7,6 +7,7 @@ import org.joml.Quaterniondc
 import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVec3
 import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVector3d
 import kotlin.math.abs
+import kotlin.math.round
 
 
 fun sign(value: Int): Int = when {
@@ -35,8 +36,12 @@ infix fun Double.floorMod(by: Double): Double {
 	else r
 }
 
+fun round(value: Double, points: Int): Double =
+	round(value * points) / points
+
 inline infix fun Double.similarTo(to: Double): Boolean =
 	abs(this - to) < 1e-10
+
 
 fun Quaterniondc.transform(vec: Vec3): Vec3 = transform(vec.toVector3d()).toVec3()
 

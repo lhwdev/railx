@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.common.addIfConnected
-import com.lhwdev.minecraft.railx.mixin.flexiTrack.BlockAccessor
 import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
@@ -102,8 +101,7 @@ open class FlexiTrackBlock(
 				FlexiBlockState.create(block as FlexiTrackBlock, values, propertiesCodec)
 			}
 		}
-		@Suppress("CAST_NEVER_SUCCEEDS")
-		(this as BlockAccessor).setStateDefinition(stateDefinition)
+		this.stateDefinition = stateDefinition
 		
 		registerDefaultState(
 			stateDefinition.possibleStates[0]

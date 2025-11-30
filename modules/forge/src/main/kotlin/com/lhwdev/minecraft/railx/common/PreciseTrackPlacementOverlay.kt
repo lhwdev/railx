@@ -6,6 +6,7 @@ import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.utils.orFalse
 import com.lhwdev.minecraft.railx.utils.pow3
+import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
@@ -32,7 +33,6 @@ import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.*
 import java.lang.invoke.MethodHandles
 import kotlin.math.PI
 import kotlin.math.log10
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 
@@ -307,6 +307,3 @@ object PreciseTrackPlacementOverlay : IGuiOverlay {
 		return if(minRadius > 100000.0 || !minRadius.isFinite()) "∞" else "${minRadius.roundToInt()}"
 	}
 }
-
-private fun round(value: Double, points: Int): Double =
-	round(value * points) / points

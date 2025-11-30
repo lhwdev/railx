@@ -16,7 +16,6 @@
     "common.reservedSignal.NixieTubeRendererMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
     "flexiTrack.BezierConnectionMixin",
-    "flexiTrack.BlockAccessor",
     "flexiTrack.BlueprintOverlayRendererMixin",
     "flexiTrack.GameDataMixin",
     "flexiTrack.PlacementInfoAccessor",
