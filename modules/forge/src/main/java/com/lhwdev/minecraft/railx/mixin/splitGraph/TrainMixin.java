@@ -33,21 +33,21 @@ import java.util.UUID;
 @Mixin(Train.class)
 public abstract class TrainMixin implements TrainForSplit {
 	
-	@Shadow public UUID id;
-	@Shadow public Component name;
-	@Shadow public boolean derailed;
-	@Shadow public TrackGraph graph;
-	@Shadow public List<Carriage> carriages;
+	@Shadow(remap = false) public UUID id;
+	@Shadow(remap = false) public Component name;
+	@Shadow(remap = false) public boolean derailed;
+	@Shadow(remap = false) public TrackGraph graph;
+	@Shadow(remap = false) public List<Carriage> carriages;
 	
-	@Shadow public Navigation navigation;
-	@Shadow public ScheduleRuntime runtime;
-	@Shadow public TrainStatus status;
+	@Shadow(remap = false) public Navigation navigation;
+	@Shadow(remap = false) public ScheduleRuntime runtime;
+	@Shadow(remap = false) public TrainStatus status;
 	
-	@Shadow public int migrationCooldown;
-	@Shadow List<TrainMigration> migratingPoints;
-	@Shadow public boolean updateSignalBlocks;
+	@Shadow(remap = false) public int migrationCooldown;
+	@Shadow(remap = false) List<TrainMigration> migratingPoints;
+	@Shadow(remap = false) public boolean updateSignalBlocks;
 	
-	@Shadow
+	@Shadow(remap = false)
 	public abstract GlobalStation getCurrentStation();
 	
 	
@@ -72,13 +72,13 @@ public abstract class TrainMixin implements TrainForSplit {
 		}
 	}
 	
-	@Inject(method = "read", at = @At("RETURN"))
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
 	private static void afterRead(CallbackInfoReturnable<Train> cir) {
 		var train = cir.getReturnValue();
 		((TrainMixin) (Object) train).railx$graph = train.graph;
 	}
 	
-	@Inject(method = "tick", at = @At("RETURN"))
+	@Inject(method = "tick", at = @At("RETURN"), remap = false)
 	void onTick(Level level, CallbackInfo ci) {
 		var previous = this.graph;
 		if(previous == null || previous != railx$graph) {
@@ -88,7 +88,7 @@ public abstract class TrainMixin implements TrainForSplit {
 			return;
 		}
 		
-		var found = new ReferenceArraySet<@Nullable TrackGraph>();
+		var found = new ReferenceArraySet<TrackGraph>();
 		for(var carriage : carriages) {
 			found.add(TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getFirst().leading()));
 			found.add(TravelingPointSplitUtils.getDestinationGraph(carriage.bogeys.getFirst().trailing()));
@@ -120,13 +120,13 @@ public abstract class TrainMixin implements TrainForSplit {
 			
 			if(i == graphs.size() && i == found.size()) return;
 			
-			var base = i == 0 ? graphs.getFirst() : null;
+			var base = i == 0 ? graphs.get(0) : null;
 			graphs.subList(i, graphs.size()).clear();
 			for(int j = 0; j < i; j++) found.remove(graphs.get(j));
 			for(var foundGraph : found) {
 				if(foundGraph == null) {
 					if(base != null) {
-						graphs.addFirst(base);
+						graphs.add(0, base);
 						base = null;
 					}
 				} else {
@@ -134,7 +134,7 @@ public abstract class TrainMixin implements TrainForSplit {
 					if(foundGraph == base) base = null;
 				}
 			}
-			if(graphs.size() == 1) this.graph = graphs.getFirst();
+			if(graphs.size() == 1) this.graph = graphs.get(0);
 		} else {
 			if(found.size() == 1) {
 				var single = found.iterator().next();
@@ -158,7 +158,7 @@ public abstract class TrainMixin implements TrainForSplit {
 			}
 			if(graphs.size() == 1) {
 				railx$setAllPointDestinations(null);
-				this.graph = graphs.getFirst(); // must be previous...
+				this.graph = graphs.get(0); // must be previous...
 				this.railx$graph = this.graph;
 			}
 			if(hasNull) railx$replaceAllPointDestinations(null, previous);
@@ -196,7 +196,7 @@ public abstract class TrainMixin implements TrainForSplit {
 	
 	@ModifyExpressionValue(method = {"tickOccupiedObservers", "updateNavigationTarget", "getCurrentStation"},
 		at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains/entity/Train;" +
-			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", opcode = Opcodes.GETFIELD))
+			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", opcode = Opcodes.GETFIELD, remap = false), remap = false)
 	TrackGraph getPathGraph(TrackGraph original) {
 		var pathGraph = ((SplittingNavigation) navigation).railx$currentPathGraph();
 		if(pathGraph != null) return pathGraph;
@@ -205,7 +205,7 @@ public abstract class TrainMixin implements TrainForSplit {
 	
 	@ModifyExpressionValue(method = "collectInitiallyOccupiedSignalBlocks", at = @At(value = "FIELD", target = "Lcom" +
 		"/simibubi" +
-		"/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;"))
+		"/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", remap = false), remap = false)
 	TrackGraph getGraphForCollectInitiallyOccupiedSignalBlocks(TrackGraph original) {
 		return getPathGraph(original);
 	}
@@ -213,7 +213,7 @@ public abstract class TrainMixin implements TrainForSplit {
 	@ModifyExpressionValue(method = "collectInitiallyOccupiedSignalBlocks", at = @At(value = "NEW", target = "(Lcom" +
 		"/simibubi/create/content/trains/graph/TrackNode;Lcom/simibubi/create/content/trains/graph/TrackNode;" +
 		"Lcom/simibubi/create/content/trains/graph/TrackEdge;DZ)" +
-		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;"))
+		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;", remap = false), remap = false)
 	TravellingPoint createTravelingPointForCollectInitiallyOccupiedSignalBlocks(TravellingPoint original) {
 		return new MovingTravellingPoint(original);
 	}
@@ -223,12 +223,12 @@ public abstract class TrainMixin implements TrainForSplit {
 	@Definition(id = "graph", field = "Lcom/simibubi/create/content/trains/entity/Train;" +
 		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;")
 	@Expression("train.graph != this.graph")
-	@ModifyExpressionValue(method = "findCollidingTrain", at = @At("MIXINEXTRAS:EXPRESSION"))
+	@ModifyExpressionValue(method = "findCollidingTrain", at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false), remap = false)
 	boolean isCollidingTrainNotReachableTo(boolean original, @Local(index = 9) Train train) {
 		return !TrackGraphConnectedIdUtils.isReachableTo(train.graph, graph);
 	}
 	
-	@Inject(method = "lambda$detachFromTracks$22", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "lambda$detachFromTracks$14", at = @At("HEAD"), cancellable = true, remap = false)
 	void createTrainMigration(TravellingPoint tp, CallbackInfo ci) {
 		if(!(graph instanceof MergedTrackGraph merged)) return;
 		var migration = new TrainMigration(tp);
@@ -243,7 +243,7 @@ public abstract class TrainMixin implements TrainForSplit {
 	 * @author lhwdev
 	 * @reason whole overhaul
 	 */
-	@Overwrite
+	@Overwrite(remap = false)
 	public void reattachToTracks(Level level) {
 		if(migrationCooldown > 0) {
 			migrationCooldown--;

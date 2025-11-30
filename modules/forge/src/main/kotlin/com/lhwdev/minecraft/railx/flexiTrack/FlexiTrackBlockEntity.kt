@@ -52,8 +52,10 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 	}
 	
 	
+	private var loaded = false
 	override fun onLoad() {
 		super.onLoad()
+		if(!loaded) return
 		if(state.isEmpty() && connections.isEmpty()) level!!.destroyBlock(blockPos, false)
 	}
 	
@@ -157,6 +159,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		if(tag.contains("BoundLocation")) return
 		super.read(tag, clientPacket)
 		
+		loaded = true
 		state = FlexiState.read(tag.getCompound("FlexiState"))
 		val level = level
 		for(behavior in allBehaviours)

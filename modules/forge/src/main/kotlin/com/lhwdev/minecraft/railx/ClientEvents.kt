@@ -43,20 +43,6 @@ object ClientEvents {
 	
 	
 	@SubscribeEvent
-	fun registerGuiOverlays(event: RegisterGuiOverlaysEvent) {
-		event.registerAbove(
-			VanillaGuiOverlay.EXPERIENCE_BAR.id(),
-			"throttle_hud",
-			ThrottleHUD
-		)
-		event.registerAbove(
-			VanillaGuiOverlay.HOTBAR.id(),
-			"precise_track_placement",
-			PreciseTrackPlacementOverlay
-		)
-	}
-	
-	@SubscribeEvent
 	fun onPreRenderGui(event: RenderGuiEvent.Pre) {
 		PreciseTrackPlacementOverlay.onPreRender(event)
 	}
@@ -80,6 +66,25 @@ object ClientEvents {
 			MiddleTracksRenderer.renderAll(ms, buffer, camera)
 		},
 	)
+}
+
+
+@OnlyIn(Dist.CLIENT)
+@EventBusSubscriber(Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+object ClientModBusEvents {
+	@SubscribeEvent
+	fun registerGuiOverlays(event: RegisterGuiOverlaysEvent) {
+		event.registerAbove(
+			VanillaGuiOverlay.EXPERIENCE_BAR.id(),
+			"throttle_hud",
+			ThrottleHUD
+		)
+		event.registerAbove(
+			VanillaGuiOverlay.HOTBAR.id(),
+			"precise_track_placement",
+			PreciseTrackPlacementOverlay
+		)
+	}
 }
 
 typealias Renderer = (ms: PoseStack, buffer: MultiBufferSource, camera: Vec3) -> Unit

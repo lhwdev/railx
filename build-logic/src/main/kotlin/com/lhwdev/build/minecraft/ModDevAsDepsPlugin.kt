@@ -19,12 +19,14 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.project
+import org.gradle.kotlin.dsl.getByName
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.named
 import org.gradle.process.ExecOperations
 import java.lang.invoke.MethodHandles
 import javax.inject.Inject
@@ -35,18 +37,22 @@ private const val MinecraftProject = ":minecraft"
 open class ModDevAsDepsPlugin @Inject constructor(objectFactory: ObjectFactory) : ModDevPlugin(objectFactory) {
 	override fun apply(project: Project) {
 		project.evaluationDependsOn(MinecraftProject)
-		project.dependencies {
-			add("implementation", project(MinecraftProject))
-		}
-		
 		super.apply(project)
 	}
 	
 	override fun enable(project: Project, settings: LegacyForgeModdingSettings, extension: LegacyForgeExtension) {
 		val minecraftProject = project.project(MinecraftProject)
-		var artifacts = minecraftProject.extensions.getByName("__internal_modDevArtifactsWorkflow")
-			as ModDevArtifactsWorkflow
-		artifacts = ModDevArtifactsWorkflow(
+		val configurations = project.configurations
+		val artifacts = minecraftProject.extensions
+			.getByName<ModDevArtifactsWorkflow>("__internal_modDevArtifactsWorkflow")
+		for(sourceSets in settings.enabledSourceSets) {
+			configurations.getByName(sourceSets.runtimeClasspathConfigurationName)
+				.extendsFrom(artifacts.runtimeDependencies)
+			configurations.getByName(sourceSets.compileClasspathConfigurationName)
+				.extendsFrom(artifacts.compileDependencies)
+		}
+		
+		val artifactsForRun = ModDevArtifactsWorkflow(
 			artifacts.project,
 			artifacts.dependencies,
 			artifacts.versionCapabilities,
@@ -59,7 +65,7 @@ open class ModDevAsDepsPlugin @Inject constructor(objectFactory: ObjectFactory) 
 			artifacts.artifactsBuildDir,
 		)
 		
-		ModDevRunWorkflow.create(project, Branding.MDG, artifacts, extension.runs)
+		ModDevRunWorkflow.create(project, Branding.MDG, artifactsForRun, extension.runs)
 		
 		val mixin = ExtensionUtils.getExtension(project, "mixin", MixinExtension::class.java)
 			as MixinExtension
@@ -67,18 +73,12 @@ open class ModDevAsDepsPlugin @Inject constructor(objectFactory: ObjectFactory) 
 		val obf = ExtensionUtils.getExtension(project, "obfuscation", ObfuscationExtension::class.java)
 			as ObfuscationExtension
 		
-		val namedToIntermediate = artifacts.requestAdditionalMinecraftArtifact(
-			"namedToIntermediaryMapping",
-			"namedToIntermediate.tsrg"
-		)
+		val namedToIntermediate = artifacts.getAdditionalMinecraftArtifact("namedToIntermediaryMapping")
 		obf.namedToSrgMappings.set(namedToIntermediate)
 		
-		val intermediateToNamed = artifacts.requestAdditionalMinecraftArtifact(
-			"intermediaryToNamedMapping",
-			"intermediateToNamed.srg"
-		)
+		val intermediateToNamed = artifacts.getAdditionalMinecraftArtifact("intermediaryToNamedMapping")
 		
-		val mappingsCsv = artifacts.requestAdditionalMinecraftArtifact("csvMapping", "intermediateToNamed.zip")
+		val mappingsCsv = artifacts.getAdditionalMinecraftArtifact("csvMapping")
 		obf.srgToNamedMappings.set(mappingsCsv)
 		
 		extension.runs.configureEach {
@@ -94,12 +94,12 @@ open class ModDevAsDepsPlugin @Inject constructor(objectFactory: ObjectFactory) 
 			programArguments.addAll(mixin.configs.map { cfgs -> cfgs.flatMap { listOf("--mixin.config", it) } })
 		}
 		val reobfJar = obf.reobfuscate(
-			project.tasks.named("jar", Jar::class.java),
-			project.extensions.getByType(SourceSetContainer::class.java).getByName("main"),
+			project.tasks.named<Jar>("jar"),
+			project.extensions.getByType<SourceSetContainer>().getByName("main"),
 		)
 		project.tasks.named("assemble") { dependsOn(reobfJar) }
 		
-		artifacts.runtimeDependencies.dependencies.add(project.dependencyFactory.create(project.files(mappingsCsv)))
+		// artifacts.runtimeDependencies.dependencies.add(project.dependencyFactory.create(project.files(mappingsCsv)))
 		
 		val remapDeps = project.configurations.create("remappingDependencies") {
 			description = "An internal configuration that contains the Minecraft dependencies, used for remapping mods"
@@ -112,7 +112,7 @@ open class ModDevAsDepsPlugin @Inject constructor(objectFactory: ObjectFactory) 
 		project.dependencies.registerTransform(RemappingTransform::class.java) {
 			parameters {
 				obf.configureSrgToNamedOperation(remapOperation)
-				minecraftDependencies.from(*arrayOf<Any>(remapDeps))
+				minecraftDependencies.from(remapDeps)
 			}
 			
 			from.attribute(
@@ -173,3 +173,6 @@ internal abstract class RemappingTransform @Inject constructor() : TransformActi
 			@PathSensitive(PathSensitivity.NONE) @InputFiles get
 	}
 }
+
+private fun ModDevArtifactsWorkflow.getAdditionalMinecraftArtifact(id: String): Provider<RegularFile> =
+	project.layout.file(createArtifacts.flatMap { it.additionalResults.getting(id) })

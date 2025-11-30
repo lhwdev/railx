@@ -2,12 +2,11 @@ package com.lhwdev.minecraft.railx.mixin.middleTrack;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.content.trains.track.TrackTargetingClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,21 +14,17 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(TrackTargetingClient.class)
 public class TrackTargetingClientMixin {
-	@WrapOperation(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;" +
-		"has" +
-		"(Lnet/minecraft/core/component/DataComponentType;)Z", ordinal = 0))
-	private static boolean preventClientTickIfMiddle(
-		ItemStack instance,
-		DataComponentType<?> type,
-		Operation<Boolean> original
-	) {
-		if(type != AllDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS) { // some error
-			return original.call(instance, type);
+	@WrapOperation(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/CompoundTag;" +
+		"contains(Ljava/lang/String;)Z", ordinal = 0, remap = true), remap = false)
+	private static boolean preventClientTickIfMiddle(CompoundTag instance, String key, Operation<Boolean> original) {
+		if(!key.equals("SelectedPos")) { // some error
+			return original.call(instance, key);
 		}
 		
-		if(!original.call(instance, type)) return false;
-		BlockPos hovered = instance.get(AllDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS);
-		if(hovered == null) return false;
+		if(!original.call(instance, key)) return false;
+		var hoveredTag = instance.get("SelectedPos");
+		if(hoveredTag == null) return false;
+		BlockPos hovered = NbtUtils.readBlockPos((CompoundTag) hoveredTag);
 		
 		Level level = Minecraft.getInstance().level;
 		if(level == null) return false;

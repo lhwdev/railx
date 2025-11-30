@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(TrainMigration.class)
 public class TrainMigrationMixin implements TrainMigrationForSplit {
-	@Shadow Couple<TrackNodeLocation> locations;
-	@Shadow double positionOnOldEdge;
+	@Shadow(remap = false) Couple<TrackNodeLocation> locations;
+	@Shadow(remap = false) double positionOnOldEdge;
 	
 	@Unique
 	int railx$graphIndex;
@@ -52,13 +52,13 @@ public class TrainMigrationMixin implements TrainMigrationForSplit {
 		return null;
 	}
 	
-	@Inject(method = "write", at = @At("RETURN"))
+	@Inject(method = "write", at = @At("RETURN"), remap = false)
 	void onWrite(CallbackInfoReturnable<CompoundTag> cir) {
 		if(railx$graphIndex != 0)
 			cir.getReturnValue().putInt("railx:GraphIndex", railx$graphIndex);
 	}
 	
-	@Inject(method = "read", at = @At("RETURN"))
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
 	private static void onRead(
 		CompoundTag tag,
 		DimensionPalette dimensions,

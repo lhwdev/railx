@@ -36,9 +36,9 @@ import java.util.UUID;
 
 @Mixin(Navigation.class)
 class NavigationMixin implements SplittingNavigation {
-	@Shadow public Train train;
-	@Shadow public GlobalStation destination;
-	@Shadow List<Couple<TrackNode>> currentPath;
+	@Shadow(remap = false) public Train train;
+	@Shadow(remap = false) public GlobalStation destination;
+	@Shadow(remap = false) List<Couple<TrackNode>> currentPath;
 	
 	
 	@Unique
@@ -51,7 +51,7 @@ class NavigationMixin implements SplittingNavigation {
 	
 	@ModifyExpressionValue(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
 		"/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 1, opcode =
-		Opcodes.GETFIELD))
+		Opcodes.GETFIELD, remap = false), remap = false)
 	TrackGraph trackGraphForTick(TrackGraph original) {
 		if(railx$currentPathGraph == null) return original;
 		return railx$currentPathGraph;
@@ -59,26 +59,26 @@ class NavigationMixin implements SplittingNavigation {
 	
 	@ModifyExpressionValue(method = "currentSignalResolved", at = @At(value = "FIELD", target = "Lcom/simibubi" +
 		"/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;",
-		ordinal = 0, opcode = Opcodes.GETFIELD))
+		ordinal = 0, opcode = Opcodes.GETFIELD, remap = false), remap = false)
 	TrackGraph trackGraphForCurrentSignalResolved(TrackGraph original) {
 		if(railx$currentPathGraph == null) return original;
 		return railx$currentPathGraph;
 	}
 	
-	@ModifyVariable(method = "navigateOptions", at = @At("HEAD"), index = 2, argsOnly = true)
+	@ModifyVariable(method = "navigateOptions", at = @At("HEAD"), index = 2, argsOnly = true, remap = false)
 	TrackGraph trackGraphForNavigateOptions(TrackGraph previous) {
 		if(railx$currentPathGraph == null) return previous;
 		return railx$currentPathGraph;
 	}
 	
-	@Inject(method = "startNavigation", at = @At("RETURN"))
+	@Inject(method = "startNavigation", at = @At("RETURN"), remap = false)
 	void updatePathGraph(DiscoveredPath pathTo, CallbackInfoReturnable<Double> cir) {
 		if(pathTo instanceof SlotObjects.SplitDiscoveredPath splitPath) {
 			railx$currentPathGraph = new MergedTrackGraphImpl(splitPath.getGraphs());
 		}
 	}
 	
-	@Inject(method = "cancelNavigation", at = @At("RETURN"))
+	@Inject(method = "cancelNavigation", at = @At("RETURN"), remap = false)
 	void onCancelNavigation(CallbackInfo ci) {
 		railx$currentPathGraph = null;
 	}
@@ -86,7 +86,8 @@ class NavigationMixin implements SplittingNavigation {
 	@ModifyExpressionValue(method = "findPathTo(Ljava/util/ArrayList;D)" +
 		"Lcom/simibubi/create/content/trains/graph/DiscoveredPath;",
 		at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains/entity/Train;" +
-			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 0, opcode = Opcodes.GETFIELD))
+			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 0, opcode = Opcodes.GETFIELD,
+			remap = false), remap = false)
 	TrackGraph trackGraphForFindPathTo(TrackGraph original) {
 		var graph = original;
 		if(graph == null) return null;
@@ -97,7 +98,7 @@ class NavigationMixin implements SplittingNavigation {
 	@WrapOperation(method = "findPathTo(Ljava/util/ArrayList;D)" +
 		"Lcom/simibubi/create/content/trains/graph/DiscoveredPath;", at = @At(value = "INVOKE", target = "Lcom" +
 		"/simibubi/create/content/trains/entity/Navigation;search(DDZLjava/util/ArrayList;" +
-		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V"))
+		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V", remap = false), remap = false)
 	void provideGraphForFindPathTo(
 		Navigation instance,
 		double maxDistance,
@@ -119,7 +120,7 @@ class NavigationMixin implements SplittingNavigation {
 	
 	@WrapOperation(method = "lambda$findPathTo$5", at = @At(value = "NEW", target = "(DDLjava/util/List;" +
 		"Lcom/simibubi/create/content/trains/station/GlobalStation;)" +
-		"Lcom/simibubi/create/content/trains/graph/DiscoveredPath;"))
+		"Lcom/simibubi/create/content/trains/graph/DiscoveredPath;", remap = false), remap = false)
 	private static DiscoveredPath createFoundPath(
 		double distance,
 		double cost,
@@ -155,7 +156,7 @@ class NavigationMixin implements SplittingNavigation {
 	@ModifyExpressionValue(method = "search(DDZLjava/util/ArrayList;" +
 		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V", at = @At(value = "FIELD", target =
 		"Lcom/simibubi/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;",
-		ordinal = 0, opcode = Opcodes.GETFIELD))
+		ordinal = 0, opcode = Opcodes.GETFIELD, remap = false), remap = false)
 	TrackGraph trackGraphForSearch(TrackGraph original) {
 		var graph = original;
 		if(graph == null) return null;
@@ -171,18 +172,20 @@ class NavigationMixin implements SplittingNavigation {
 	@Definition(id = "graph", local = @Local(type = TrackGraph.class, index = 8))
 	@Expression("otherTrain.fGraph != graph")
 	@ModifyExpressionValue(method = "search(DDZLjava/util/ArrayList;" +
-		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V", at = @At("MIXINEXTRAS:EXPRESSION"))
+		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V",
+		at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false), remap = false)
 	boolean isTrainNotReachable(boolean original, @Local(index = 13) Train otherTrain) {
 		return !TrackGraphConnectedIdUtils.isReachableTo(train, otherTrain);
 	}
 	
 	@Redirect(method = "search(DDZLjava/util/ArrayList;" +
 		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V", at = @At(value = "INVOKE", target =
-		"Lcom/simibubi/create/content/trains/entity/Train;getEndpointEdges()Lnet/createmod/catnip/data/Couple;"))
+		"Lcom/simibubi/create/content/trains/entity/Train;getEndpointEdges()Lnet/createmod/catnip/data/Couple;",
+		remap = false), remap = false)
 	Couple<Couple<TrackNode>> getEndpointEdgesForTrainCost(Train instance) {
 		return Couple.create(
-			instance.carriages.getFirst().getLeadingPoint(),
-			instance.carriages.getLast().getTrailingPoint()
+			instance.carriages.get(0).getLeadingPoint(),
+			instance.carriages.get(instance.carriages.size() - 1).getTrailingPoint()
 		).map(tp -> {
 			var graph = TravelingPointSplitUtils.getDestinationGraph(tp);
 			if(graph == null) graph = this.train.graph;
@@ -192,7 +195,7 @@ class NavigationMixin implements SplittingNavigation {
 	
 	@Redirect(method = "lambda$search$7", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
 		"/graph/TrackGraph;getConnection(Lnet/createmod/catnip/data/Couple;)" +
-		"Lcom/simibubi/create/content/trains/graph/TrackEdge;"))
+		"Lcom/simibubi/create/content/trains/graph/TrackEdge;", remap = false), remap = false)
 	private static TrackEdge getConnectionForTrainCost(
 		TrackGraph instance,
 		Couple<TrackNode> nodes,
@@ -203,7 +206,7 @@ class NavigationMixin implements SplittingNavigation {
 		return flip ? endpoint.getEdge2() : endpoint.getEdge();
 	}
 	
-	@Inject(method = "write", at = @At("RETURN"))
+	@Inject(method = "write", at = @At("RETURN"), remap = false)
 	void onWrite(DimensionPalette dimensions, CallbackInfoReturnable<CompoundTag> cir) {
 		if(destination != null && railx$currentPathGraph != null) {
 			var graphs = railx$currentPathGraph.getGraphs();
@@ -218,7 +221,7 @@ class NavigationMixin implements SplittingNavigation {
 		}
 	}
 	
-	@Inject(method = "read", at = @At("HEAD"))
+	@Inject(method = "read", at = @At("HEAD"), remap = false)
 	void onRead(CompoundTag tag, TrackGraph graph, DimensionPalette dimensions, CallbackInfo ci) {
 		if(tag.contains("railx:PathGraphs") && graph != null) {
 			var manager = Create.RAILWAYS;
@@ -233,14 +236,14 @@ class NavigationMixin implements SplittingNavigation {
 		}
 	}
 	
-	@ModifyVariable(method = "read", at = @At("HEAD"), index = 2, argsOnly = true)
+	@ModifyVariable(method = "read", at = @At("HEAD"), index = 2, argsOnly = true, remap = false)
 	TrackGraph getGraphForRead(TrackGraph graph) {
 		if(graph == null) return null;
 		return new AllConnectedTrackGraphs(Create.RAILWAYS, graph);
 	}
 	
 	@ModifyVariable(method = "read", at = @At(value = "INVOKE", target = "Ljava/util/List;clear()V", shift =
-		At.Shift.AFTER), index = 2, argsOnly = true)
+		At.Shift.AFTER, remap = false), index = 2, argsOnly = true, remap = false)
 	TrackGraph updatePathGraphForRead(TrackGraph graph) {
 		var networks = Create.RAILWAYS.trackNetworks;
 		if(networks.isEmpty()) {

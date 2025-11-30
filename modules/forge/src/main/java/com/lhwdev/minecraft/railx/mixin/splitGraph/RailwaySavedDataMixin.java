@@ -11,16 +11,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(RailwaySavedData.class)
 public class RailwaySavedDataMixin {
-	@ModifyExpressionValue(method = "load(Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)" +
+	@ModifyExpressionValue(method = "load(Lnet/minecraft/nbt/CompoundTag;)" +
 		"Lcom/simibubi/create/content/trains/RailwaySavedData;", at = @At(value = "NEW", target = "()Lcom/simibubi" +
-		"/create/content/trains/RailwaySavedData;"))
+		"/create/content/trains/RailwaySavedData;", remap = false), remap = false)
 	private static RailwaySavedData beforeLoad(RailwaySavedData sd) {
 		RailwayServerGlobals.INSTANCE.setSavedData(sd);
 		return sd;
 	}
 	
-	@Inject(method = "load(Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)" +
-		"Lcom/simibubi/create/content/trains/RailwaySavedData;", at = @At("RETURN"))
+	@Inject(method = "load(Lnet/minecraft/nbt/CompoundTag;)Lcom/simibubi/create/content/trains/RailwaySavedData;",
+		at = @At("RETURN"), remap = false)
 	private static void afterLoad(CallbackInfoReturnable<RailwaySavedData> cir) {
 		RailwayServerGlobals.INSTANCE.setSavedData(null);
 	}

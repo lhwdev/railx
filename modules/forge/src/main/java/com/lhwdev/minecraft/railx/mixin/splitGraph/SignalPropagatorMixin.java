@@ -20,7 +20,7 @@ public class SignalPropagatorMixin {
 	@ModifyVariable(method = {"onSignalRemoved", "notifySignalsOfNewNode", "propagateSignalGroup",
 		"collectChainedSignals", "walkSignals(Lcom/simibubi/create/content/trains/graph/TrackGraph;" +
 		"Lcom/simibubi/create/content/trains/signal/SignalBoundary;ZLjava/util/function/Predicate;" +
-		"Ljava/util/function/Predicate;Z)V"}, at = @At("HEAD"), argsOnly = true)
+		"Ljava/util/function/Predicate;Z)V"}, at = @At("HEAD"), argsOnly = true, remap = false)
 	private static TrackGraph graphForPropagator(TrackGraph value) {
 		if(value instanceof PropagatingTrackGraph propagating) return propagating;
 		return new PropagatingTrackGraph(Create.RAILWAYS, value);
@@ -31,7 +31,8 @@ public class SignalPropagatorMixin {
 		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;")
 	@Definition(id = "graph", local = @Local(type = TrackGraph.class, argsOnly = true))
 	@Expression("train.fGraph != graph")
-	@ModifyExpressionValue(method = "notifyTrains", at = @At("MIXINEXTRAS:EXPRESSION"))
+	@ModifyExpressionValue(method = "notifyTrains", at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false),
+		remap = false)
 	private static boolean is(
 		boolean original,
 		@Local(index = 7) Train train,

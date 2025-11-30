@@ -32,7 +32,8 @@ abstract class TrackPropagatorMixin {
 	@WrapOperation(method = "onRailRemoved", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
 		"/trains/track/ITrackBlock;getConnected(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;" +
 		"Lnet/minecraft/world/level/block/state/BlockState;" +
-		"ZLcom/simibubi/create/content/trains/graph/TrackNodeLocation;)Ljava/util/Collection;", ordinal = 0))
+		"ZLcom/simibubi/create/content/trains/graph/TrackNodeLocation;)Ljava/util/Collection;",
+		ordinal = 0, remap = false), remap = false)
 	private static Collection<TrackNodeLocation.DiscoveredLocation> getConnectedForCleanup(
 		ITrackBlock track,
 		BlockGetter worldIn,
@@ -51,7 +52,7 @@ abstract class TrackPropagatorMixin {
 	@WrapOperation(method = "onRailRemoved", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
 		"/trains/track/TrackPropagator;onRailAdded(Lnet/minecraft/world/level/LevelAccessor;" +
 		"Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)" +
-		"Lcom/simibubi/create/content/trains/graph/TrackGraph;"))
+		"Lcom/simibubi/create/content/trains/graph/TrackGraph;", remap = false), remap = false)
 	private static TrackGraph getGraphForSplit(
 		LevelAccessor reader,
 		BlockPos pos,
@@ -69,7 +70,7 @@ abstract class TrackPropagatorMixin {
 	}
 	
 	
-	@Inject(method = "onRailAdded", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "onRailAdded", at = @At("HEAD"), cancellable = true, remap = false)
 	private static void beforeRailAdded(
 		LevelAccessor reader,
 		BlockPos pos,
@@ -82,7 +83,7 @@ abstract class TrackPropagatorMixin {
 		}
 	}
 	
-	@Inject(method = "onRailAdded", at = @At(value = "INVOKE", target = "Ljava/util/Set;size()I", ordinal = 1))
+	@Inject(method = "onRailAdded", at = @At(value = "INVOKE", target = "Ljava/util/Set;size()I", ordinal = 1, remap = false), remap = false)
 	private static void preMergeGraph(
 		CallbackInfoReturnable<TrackGraph> cir,
 		@Local(ordinal = 1) LocalRef<Set<TrackGraph>> connectedGraphs
@@ -94,7 +95,7 @@ abstract class TrackPropagatorMixin {
 	
 	@Redirect(method = "onRailAdded", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains/track" +
 		"/ITrackBlock;walkConnectedTracks(Lnet/minecraft/world/level/BlockGetter;" +
-		"Lcom/simibubi/create/content/trains/graph/TrackNodeLocation;Z)Ljava/util/Collection;"))
+		"Lcom/simibubi/create/content/trains/graph/TrackNodeLocation;Z)Ljava/util/Collection;", remap = false), remap = false)
 	private static Collection<TrackNodeLocation.DiscoveredLocation> walkConnectedTracksForRemove(
 		BlockGetter worldIn,
 		TrackNodeLocation location,
@@ -122,7 +123,7 @@ abstract class TrackPropagatorMixin {
 		return list;
 	}
 	
-	@Inject(method = "onRailAdded", at = @At("TAIL"))
+	@Inject(method = "onRailAdded", at = @At("TAIL"), remap = false)
 	private static void afterRailAdded(
 		LevelAccessor reader,
 		BlockPos pos,

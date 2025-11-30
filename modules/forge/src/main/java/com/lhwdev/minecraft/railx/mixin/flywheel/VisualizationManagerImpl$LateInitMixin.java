@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.stream.Stream;
 
 
-@Mixin(targets = "dev.engine_room.flywheel.impl.visualization.VisualizationManagerImpl$LateInit")
+@Mixin(targets = "dev.engine_room.flywheel.impl.visualization.VisualizationManagerImpl$LateInit", remap = false)
 public abstract class VisualizationManagerImpl$LateInitMixin {
 	@Final
 	@Shadow

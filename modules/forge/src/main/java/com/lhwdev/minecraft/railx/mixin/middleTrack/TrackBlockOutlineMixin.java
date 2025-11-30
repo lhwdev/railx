@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(TrackBlockOutline.class)
 public class TrackBlockOutlineMixin {
-	@Inject(method = "pickCurves", at = @At("RETURN"))
+	@Inject(method = "pickCurves", at = @At("RETURN"), remap = false)
 	private static void pickUnloadedCurves(CallbackInfo ci) {
 		MiddleTrackOutline.INSTANCE.pickCurves();
 	}

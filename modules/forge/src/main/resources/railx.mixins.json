@@ -61,8 +61,7 @@
     "defaultRequire": 1
   },
   "client": [
-    "middleTrack.LevelRendererMixin",
-    "trainMap.GuiMapMixin"
+    "middleTrack.LevelRendererMixin"
   ],
   "mixinextras": {
     "minVersion": "0.5.0"

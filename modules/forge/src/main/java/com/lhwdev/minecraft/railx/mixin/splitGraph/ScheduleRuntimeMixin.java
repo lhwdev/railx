@@ -14,10 +14,10 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ScheduleRuntime.class)
 public class ScheduleRuntimeMixin {
-	@Shadow public Train train;
+	@Shadow(remap = false) public Train train;
 	
 	// not needed for ScheduleWaitCondition so far
-	@WrapMethod(method = "startCurrentInstruction")
+	@WrapMethod(method = "startCurrentInstruction", remap = false)
 	DiscoveredPath startCurrentInstruction(Level level, Operation<DiscoveredPath> original) {
 		var previous = train.graph;
 		train.graph = new AllConnectedTrackGraphs(Create.RAILWAYS, previous);

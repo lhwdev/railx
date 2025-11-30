@@ -84,12 +84,12 @@ object DatapackMaterialResolver : BlockMaterialResolver {
 	
 	
 	@SubscribeEvent
-	private fun registerResourceManagers(event: AddReloadListenerEvent) {
+	fun registerResourceManagers(event: AddReloadListenerEvent) {
 		event.addListener(MaterialsLoader)
 	}
 	
 	@SubscribeEvent
-	private fun onTagsUpdated(@Suppress("unused") event: TagsUpdatedEvent) {
+	fun onTagsUpdated(@Suppress("unused") event: TagsUpdatedEvent) {
 		MaterialsFromTag.clear()
 		for(item in TagMaterials) {
 			val tag = BuiltInRegistries.BLOCK.getTag(TagKey.create(Registries.BLOCK, item.tag))

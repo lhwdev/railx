@@ -19,13 +19,13 @@ public class CarriageMixin {
 	@Unique
 	private CarriageMetadata railx$carriageMetadata;
 	
-	@Inject(method = "<init>", at = @At("RETURN"))
+	@Inject(method = "<init>", at = @At("RETURN"), remap = false)
 	void onInitialize(CallbackInfo ci) {
 		railx$carriageMetadata = new CarriageMetadata();
 	}
 	
 	
-	@Inject(method = "read", at = @At("RETURN"))
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
 	private static void onRead(
 		CompoundTag tag,
 		TrackGraph graph,
@@ -35,7 +35,7 @@ public class CarriageMixin {
 		((CarriageMixin) (Object) cir.getReturnValue()).railx$carriageMetadata.readInline(tag);
 	}
 	
-	@Inject(method = "write", at = @At("RETURN"))
+	@Inject(method = "write", at = @At("RETURN"), remap = false)
 	void onWrite(CallbackInfoReturnable<CompoundTag> cir) {
 		railx$carriageMetadata.writeInline(cir.getReturnValue());
 	}

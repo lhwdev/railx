@@ -206,16 +206,12 @@ object DefaultMaterialResolver : BlockMaterialResolver {
 	)
 	
 	
-	private val BlockProperties = Block::class.java.getDeclaredField("properties")
-		.also { it.isAccessible = true }
-		.let { MethodHandles.lookup().unreflectGetter(it) }
-	
 	override fun resolve(
 		level: LevelReader,
 		pos: BlockPos,
 		state: BlockState,
 	): BlockMaterial {
-		(BlockProperties.invokeExact(state.block) as BlockBehaviour.Properties).initialPropertiesSource?.let { base ->
+		state.block.properties.initialPropertiesSource?.let { base ->
 			val result = BlockMaterials.resolve(level, pos, BlockHelper.copyProperties(state, base.defaultBlockState()))
 			val volume = state.getCollisionShape(level, pos).calculateVolume()
 			return if(volume == BlockVolume) {

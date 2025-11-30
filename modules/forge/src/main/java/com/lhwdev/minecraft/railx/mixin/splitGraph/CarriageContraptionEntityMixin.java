@@ -36,7 +36,7 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 	
 	
 	@SuppressWarnings("WrongEntityDataParameterClass")
-	@Inject(method = "<clinit>", at = @At("RETURN"))
+	@Inject(method = "<clinit>", at = @At("RETURN"), remap = false)
 	private static void onStaticInitialize(CallbackInfo ci) {
 		MERGED_TRACK_GRAPH = SynchedEntityData.defineId(
 			CarriageContraptionEntity.class,
@@ -47,12 +47,14 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 	
 	public CarriageContraptionEntityMixin(EntityType<?> type, Level world) {super(type, world);}
 	
-	@Shadow private Carriage carriage;
+	@Shadow(remap = false)
+	private Carriage carriage;
 	
-	@Shadow
+	@Shadow(remap = false)
 	protected abstract void updateTrackGraph();
 	
-	@Shadow @Final private static EntityDataAccessor<Optional<UUID>> TRACK_GRAPH;
+	@Shadow(remap = false) @Final
+	private static EntityDataAccessor<Optional<UUID>> TRACK_GRAPH;
 	
 	
 	@Unique
@@ -63,8 +65,8 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 	
 	
 	@Inject(method = "defineSynchedData", at = @At("TAIL"))
-	void defineSynchedData(SynchedEntityData.Builder builder, CallbackInfo ci) {
-		builder.define(MERGED_TRACK_GRAPH, Optional.empty());
+	void defineSynchedData(CallbackInfo ci) {
+		entityData.define(MERGED_TRACK_GRAPH, Optional.empty());
 	}
 	
 	@Unique
@@ -85,7 +87,7 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 	
 	@WrapOperation(method = "onSyncedDataUpdated", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
 		"/trains/entity/CarriageSyncData;apply(Lcom/simibubi/create/content/trains/entity/CarriageContraptionEntity;" +
-		"Lcom/simibubi/create/content/trains/entity/Carriage;)V"))
+		"Lcom/simibubi/create/content/trains/entity/Carriage;)V", remap = false))
 	void onCarriageDataUpdated(
 		CarriageSyncData instance,
 		CarriageContraptionEntity entity,
@@ -102,7 +104,7 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 			updateTrackGraph();
 	}
 	
-	@Inject(method = "tickContraption", at = @At(value = "RETURN", ordinal = 3))
+	@Inject(method = "tickContraption", at = @At(value = "RETURN", ordinal = 3), remap = false)
 	void tickContraptionServer(CallbackInfo ci) {
 		// no-op: if(carriage == null) return; // after if(carriage == null) ... return
 		// no-op: if(level().isClientSide) return; // return(ordinal=3) is inside if(!level.isClientSide))
@@ -113,7 +115,7 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 		entityData.set(MERGED_TRACK_GRAPH, Optional.ofNullable(info));
 	}
 	
-	@Inject(method = "tickContraption", at = @At(value = "RETURN", ordinal = 5))
+	@Inject(method = "tickContraption", at = @At(value = "RETURN", ordinal = 5), remap = false)
 	void tickContraptionClient(CallbackInfo ci) {
 		if(railx$pendingGraphUpdateAt <= tickCount) {
 			updateTrackGraph();
@@ -121,7 +123,7 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 		}
 	}
 	
-	@WrapMethod(method = "updateTrackGraph")
+	@WrapMethod(method = "updateTrackGraph", remap = false)
 	void updateTrackGraph(Operation<Void> original) {
 		if(carriage == null) return;
 		var info = entityData.get(MERGED_TRACK_GRAPH).orElse(null);
@@ -143,7 +145,7 @@ public abstract class CarriageContraptionEntityMixin extends OrientedContraption
 		carriage.train.derailed = false;
 	}
 	
-	@Inject(method = "setCarriage", at = @At("RETURN"))
+	@Inject(method = "setCarriage", at = @At("RETURN"), remap = false)
 	void setCarriage(Carriage carriage, CallbackInfo ci) {
 		var graph = carriage.train.graph;
 		if(graph instanceof MergedTrackGraph merged) {

@@ -19,45 +19,43 @@ import java.util.Map;
 import java.util.UUID;
 
 
-@Mixin(value = Train.class)
+@Mixin(Train.class)
 public class TrainMixin {
 	@Unique
 	private RealisticTrainSpeed railx$realisticSpeed;
 	
-	@Inject(method = "<init>*", at = @At("RETURN"))
+	@Inject(method = "<init>*", at = @At("RETURN"), remap = false)
 	private void onConstructed(CallbackInfo ci) {
 		railx$realisticSpeed = new RealisticTrainSpeed((Train) (Object) this);
 	}
 	
 	
-	@Inject(method = "tickPassiveSlowdown", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "tickPassiveSlowdown", at = @At("HEAD"), cancellable = true, remap = false)
 	void onTickPassiveSlowdown(CallbackInfo ci) {
 		boolean handled = railx$realisticSpeed.handleTickSpeed();
 		if(handled) ci.cancel();
 	}
 	
-	@Inject(method = "approachTargetSpeed", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "approachTargetSpeed", at = @At("HEAD"), cancellable = true, remap = false)
 	void onApproachTargetSpeed(float accelerationMod, CallbackInfo ci) {
 		boolean handled = railx$realisticSpeed.handleApproachTargetSpeed(accelerationMod);
 		if(handled) ci.cancel();
 	}
 	
-	@Inject(method = "write", at = @At("RETURN"))
+	@Inject(method = "write", at = @At("RETURN"), remap = false)
 	void onWrite(
 		DimensionPalette dimensions,
-		HolderLookup.Provider registries,
 		CallbackInfoReturnable<CompoundTag> cir
 	) {
 		CompoundTag tag = cir.getReturnValue();
 		CompoundTag realisticSpeedTag = railx$realisticSpeed.write();
-		if(realisticSpeedTag != null && !RailXConfig.Server.Value.getRealisticSpeed().getRemovePrevious().getAsBoolean())
+		if(realisticSpeedTag != null && !RailXConfig.Server.Value.getRealisticSpeed().getRemovePrevious().get())
 			tag.put("railx:RealisticSpeed", realisticSpeedTag);
 	}
 	
-	@Inject(method = "read", at = @At("RETURN"))
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
 	private static void onRead(
 		CompoundTag tag,
-		HolderLookup.Provider registries,
 		Map<UUID, TrackGraph> trackNetworks,
 		DimensionPalette dimensions,
 		CallbackInfoReturnable<Train> cir

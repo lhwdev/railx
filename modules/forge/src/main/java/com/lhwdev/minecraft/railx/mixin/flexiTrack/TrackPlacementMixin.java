@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(TrackPlacement.class)
 public class TrackPlacementMixin {
-	@Inject(method = "clientTick", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "clientTick", at = @At("HEAD"), cancellable = true, remap = false)
 	private static void onCancelClientTick(CallbackInfo ci) {
 		FlexiTrackPlacementClient.INSTANCE.clientTick(ci);
 	}

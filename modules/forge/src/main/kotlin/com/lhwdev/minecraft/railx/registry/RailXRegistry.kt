@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraftforge.eventbus.api.IEventBus
 
 
 val RailXRegistry = RailXRegistrate(RailX.Id)
@@ -45,4 +46,8 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	): BlockEntry<T> = (block(name, factory) as BlockBuilder<T, RailXRegistrate>)
 		.apply(block)
 		.register()
+	
+	
+	override fun getModEventBus(): IEventBus =
+		RailX.bus
 }

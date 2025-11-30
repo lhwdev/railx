@@ -18,13 +18,14 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class NixieTubeRendererMixin {
 	@Redirect(method = "renderAsSignal", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/render" +
 		"/CachedBuffers;partial(Ldev/engine_room/flywheel/lib/model/baked/PartialModel;" +
-		"Lnet/minecraft/world/level/block/state/BlockState;)Lnet/createmod/catnip/render/SuperByteBuffer;"))
+		"Lnet/minecraft/world/level/block/state/BlockState;)Lnet/createmod/catnip/render/SuperByteBuffer;",
+		remap = false), remap = false)
 	SuperByteBuffer partial(
 		PartialModel partial,
 		BlockState referenceState,
 		@Local(index = 1, argsOnly = true) NixieTubeBlockEntity be
 	) {
-		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse())
+		if(!RailXConfig.Common.Value.getCommon().getReservedSignal().get())
 			return CachedBuffers.partial(partial, referenceState);
 		var result = ReservedSignalNixieTubeRenderer.INSTANCE.partialModelBase(be, partial, referenceState);
 		return result != null ? result : CachedBuffers.partial(partial, referenceState);

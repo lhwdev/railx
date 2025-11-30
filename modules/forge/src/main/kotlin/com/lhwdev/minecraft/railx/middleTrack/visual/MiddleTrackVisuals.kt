@@ -34,7 +34,10 @@ object MiddleTrackVisuals {
 		previousMiddles = middles
 		
 		val loadedTracks = MiddleTrackClient.LoadedTracks
-		for(added in loadedTracks - previousLoadedTracks) connections.getAll(added).forEach(manager::queueUpdate)
+		for(added in loadedTracks - previousLoadedTracks) connections.getAll(added).forEach {
+			manager.queueAdd(it) // in case not added
+			manager.queueUpdate(it)
+		}
 		for(removed in previousLoadedTracks - loadedTracks) connections.getAll(removed).forEach(manager::queueUpdate)
 		previousLoadedTracks = loadedTracks
 	}

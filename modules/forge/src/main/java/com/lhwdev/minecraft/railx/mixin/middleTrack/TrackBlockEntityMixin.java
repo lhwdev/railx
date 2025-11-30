@@ -30,7 +30,7 @@ import java.util.Objects;
 @Mixin(TrackBlockEntity.class)
 public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements MiddleTrackLikeBlockEntity {
 	@Unique
-	private List<@NotNull BezierConnection> railx$previousConnections;
+	private List<BezierConnection> railx$previousConnections;
 	
 	public TrackBlockEntityMixin(
 		BlockEntityType<?> type,
@@ -40,18 +40,18 @@ public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements 
 		super(type, pos, blockState);
 	}
 	
-	@Inject(method = "<init>", at = @At("RETURN"))
+	@Inject(method = "<init>", at = @At("RETURN"), remap = false)
 	void onInitialize(BlockEntityType<?> type, BlockPos pos, BlockState state, CallbackInfo ci) {
 		railx$previousConnections = getConnectionValues();
 	}
 	
 	@Override
-	public @NotNull List<@NotNull BezierConnection> getConnectionValues() {
+	public @NotNull List<BezierConnection> getConnectionValues() {
 		return List.copyOf(connections.values());
 	}
 	
-	@Inject(method = "read", at = @At("RETURN"))
-	void afterRead(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
+	void afterRead(CompoundTag tag, boolean clientPacket, CallbackInfo ci) {
 		Level level = this.level;
 		if(level == null) return;
 		if(level.isClientSide) ConnectionMiddlesKt.getGlobalConnections().get(level)
@@ -81,7 +81,7 @@ public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements 
 		railx$previousConnections = List.of();
 	}
 	
-	@Inject(method = "remove", at = @At("HEAD"))
+	@Inject(method = "remove", at = @At("HEAD"), remap = false)
 	void onRemove(CallbackInfo ci) {
 		Level level = Objects.requireNonNull(this.level);
 		if(level.isClientSide) ConnectionMiddlesKt.getGlobalConnections().get(level)
@@ -89,17 +89,17 @@ public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements 
 		railx$previousConnections = List.of();
 	}
 	
-	@Shadow
+	@Shadow(remap = false)
 	private void removeFromCurveInteraction() {}
 	
-	@Shadow
+	@Shadow(remap = false)
 	Map<BlockPos, BezierConnection> connections;
 	
 	/**
 	 * @author lhwdev
 	 * @reason too lazy to inject
 	 */
-	@Overwrite
+	@Overwrite(remap = false)
 	public void manageFakeTracksAlong(BezierConnection bc, boolean remove) {
 		FakeTracks.manageFakeTracksAlong((TrackBlockEntity) (Object) this, bc, remove);
 	}

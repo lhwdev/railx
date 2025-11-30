@@ -21,18 +21,18 @@ import java.util.UUID;
 
 @Mixin(SignalBoundary.class)
 public class SignalBoundaryMixin {
-	@Shadow private Couple<Map<UUID, Boolean>> chainedSignals;
+	@Shadow(remap = false) private Couple<Map<UUID, Boolean>> chainedSignals;
 	
 	@Redirect(method = "resolveSignalChain", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
 		"/trains/signal/SignalPropagator;collectChainedSignals(Lcom/simibubi/create/content/trains/graph/TrackGraph;" +
-		"Lcom/simibubi/create/content/trains/signal/SignalBoundary;Z)Ljava/util/Map;"))
+		"Lcom/simibubi/create/content/trains/signal/SignalBoundary;Z)Ljava/util/Map;", remap = false), remap = false)
 	Map<UUID, Boolean> collectChainedSignals(TrackGraph graph, SignalBoundary signal, boolean front) {
 		return SplitSignalPropagator.INSTANCE.collectChainedSignals(graph, signal, front);
 	}
 	
 	@WrapOperation(method = "resolveSignalChain", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
 		"/trains/graph/TrackGraph;getPoint(Lcom/simibubi/create/content/trains/graph/EdgePointType;Ljava/util/UUID;)" +
-		"Lcom/simibubi/create/content/trains/signal/TrackEdgePoint;"))
+		"Lcom/simibubi/create/content/trains/signal/TrackEdgePoint;", remap = false), remap = false)
 	TrackEdgePoint getPointForResolveSignalChain(
 		TrackGraph instance,
 		EdgePointType<?> type,

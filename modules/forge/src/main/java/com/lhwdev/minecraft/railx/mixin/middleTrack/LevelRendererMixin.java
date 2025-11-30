@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LevelRenderer.class)
 public class LevelRendererMixin {
-	@Inject(method = "compileSections", at = @At("RETURN"))
+	@Inject(method = "compileChunks", at = @At("RETURN"))
 	void afterCompileSections(Camera camera, CallbackInfo ci) {
 		MiddleTrackClient.INSTANCE.tick();
 	}

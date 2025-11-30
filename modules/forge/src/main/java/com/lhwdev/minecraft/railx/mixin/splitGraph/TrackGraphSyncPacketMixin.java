@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.trains.GlobalRailwayManager;
+import com.simibubi.create.content.trains.graph.DimensionPalette;
 import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackGraphSyncPacket;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;
@@ -31,16 +32,15 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 		railx$connectedId = id;
 	}
 	
-	@Inject(method = "<init>(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("TAIL"))
+	@Inject(method = "<init>(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("TAIL"), remap = false)
 	void onRead(FriendlyByteBuf buffer, CallbackInfo ci) {
 		if(buffer.readBoolean())
 			railx$connectedId = buffer.readUUID();
 	}
 	
 	@WrapOperation(method = "<init>(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At(value = "INVOKE", target =
-		"Lnet" +
-			"/createmod/catnip/data/Pair;of(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;",
-		ordinal = 0))
+		"Lnet/createmod/catnip/data/Pair;of(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;",
+		ordinal = 0, remap = false), remap = false)
 	Pair<TrackNodeLocation, Vec3> onReadNode(
 		Object first,
 		Object second,
@@ -50,14 +50,14 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 		var result = original.call(first, second);
 		if(!buffer.readBoolean()) return result;
 		
-		var location = (TrackNodeLocation) result.getFirst();
-		var normal = (Vec3) result.getSecond();
+		var location = result.getFirst();
+		var normal = result.getSecond();
 		return new SlotObjects.TrackGraphSyncPacketSplitNodePair(
 			SplittingTrackNode.Data.read(buffer), location, normal);
 	}
 	
 	
-	@Inject(method = "write", at = @At("TAIL"))
+	@Inject(method = "write", at = @At("TAIL"), remap = false)
 	void onWrite(FriendlyByteBuf buffer, CallbackInfo ci) {
 		if(railx$connectedId != null) {
 			buffer.writeBoolean(true);
@@ -65,11 +65,9 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 		} else buffer.writeBoolean(false);
 	}
 	
-	@Inject(method = "lambda$write$4", at = @At("TAIL"))
+	@Inject(method = "lambda$write$3", at = @At("TAIL"), remap = false)
 	private static void onWriteNode(
-		FriendlyByteBuf buffer,
-		Pair<?, ?> loc,
-		CallbackInfo ci
+		FriendlyByteBuf buffer, DimensionPalette dimensions, Integer node, Pair<?, ?> loc, CallbackInfo ci
 	) {
 		if(loc instanceof SlotObjects.TrackGraphSyncPacketSplitNodePair pair) {
 			buffer.writeBoolean(true);
@@ -80,7 +78,7 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 	}
 	
 	
-	@Inject(method = "handle", at = @At("TAIL"))
+	@Inject(method = "handle", at = @At("TAIL"), remap = false)
 	void onHandle(GlobalRailwayManager manager, TrackGraph graph, CallbackInfo ci) {
 		if(railx$connectedId != null) {
 			((TrackGraphForSplit) graph).railx$setConnectedId(
@@ -91,7 +89,7 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 	
 	@WrapOperation(method = "handle", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains/graph" +
 		"/TrackGraph;loadNode(Lcom/simibubi/create/content/trains/graph/TrackNodeLocation;" +
-		"ILnet/minecraft/world/phys/Vec3;)V"))
+		"ILnet/minecraft/world/phys/Vec3;)V", remap = false), remap = false)
 	void onLoadNode(
 		TrackGraph instance,
 		TrackNodeLocation location,

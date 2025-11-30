@@ -52,9 +52,10 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 		// }
 	}
 	
+	private var loaded = false
 	override fun onLoad() {
 		super.onLoad()
-		
+		if(!loaded) return
 		if(connections.isEmpty() || RailXConfig.Server.middleTrack.removePrevious.get()) {
 			level!!.destroyBlock(blockPos, false)
 			return
@@ -83,6 +84,7 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	
 	override fun load(tag: CompoundTag) {
 		super.load(tag)
+		loaded = true
 		updateConnections((tag.get("Connections") as ListTag).mapNotNull { t ->
 			CompactBezierConnection.read(t as CompoundTag, blockPos)
 				?.also { require(it.primary) { "curve is not primary" } }

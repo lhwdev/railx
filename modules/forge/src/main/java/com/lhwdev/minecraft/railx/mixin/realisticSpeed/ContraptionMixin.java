@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(Contraption.class)
 public abstract class ContraptionMixin implements ContraptionWithBlockEntity {
-	@Shadow
+	@Shadow(remap = false)
 	public abstract ClientContraption getOrCreateClientContraptionLazy();
 	
 	@Unique

@@ -12,5 +12,5 @@ import java.util.List;
 public interface MiddleTrackLikeBlockEntity {
 	@NotNull BlockPos getBlockPos();
 	
-	@NotNull List<@NotNull BezierConnection> getConnectionValues();
+	@NotNull List<BezierConnection> getConnectionValues();
 }

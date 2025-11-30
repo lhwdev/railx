@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 @Mixin(BezierConnection.class)
 public class BezierConnectionMixin {
 	@ModifyArg(method = "addItemsToPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item" +
-		"/ItemStack;<init>(Lnet/minecraft/world/level/ItemLike;I)V"), index = 0)
+		"/ItemStack;<init>(Lnet/minecraft/world/level/ItemLike;I)V", remap = true), index = 0, remap = false)
 	private ItemLike getFlexiTrackRequirements(ItemLike item) {
 		if(item instanceof TrackBlock) {
 			var material = ((BezierConnection) (Object) this).getMaterial();

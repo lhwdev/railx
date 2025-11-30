@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.mixin.throttle;
 
+import com.lhwdev.minecraft.railx.RailXConfig;
 import com.lhwdev.minecraft.railx.throttle.ThrottlesClient;
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler;
 import net.minecraft.world.level.LevelAccessor;
@@ -11,23 +12,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ControlsHandler.class)
 public class ControlsHandlerMixin {
-	@Inject(method = "levelUnloaded", at = @At("HEAD"))
+	@Inject(method = "levelUnloaded", at = @At("HEAD"), remap = false)
 	private static void onLevelUnloaded(LevelAccessor level, CallbackInfo ci) {
+		if(!RailXConfig.Server.Value.getThrottle().getEnabled().get()) return;
 		ThrottlesClient.INSTANCE.levelUnloaded(level);
 	}
 	
-	@Inject(method = "startControlling", at = @At("HEAD"))
+	@Inject(method = "startControlling", at = @At("HEAD"), remap = false)
 	private static void onStartControlling(CallbackInfo ci) {
+		if(!RailXConfig.Server.Value.getThrottle().getEnabled().get()) return;
 		ThrottlesClient.INSTANCE.startControlling();
 	}
 	
-	@Inject(method = "stopControlling", at = @At("HEAD"))
+	@Inject(method = "stopControlling", at = @At("HEAD"), remap = false)
 	private static void onStopControlling(CallbackInfo ci) {
+		if(!RailXConfig.Server.Value.getThrottle().getEnabled().get()) return;
 		ThrottlesClient.INSTANCE.stopControlling();
 	}
 	
-	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "tick", at = @At("HEAD"), cancellable = true, remap = false)
 	private static void tick(CallbackInfo ci) {
+		if(!RailXConfig.Server.Value.getThrottle().getEnabled().get()) return;
 		ThrottlesClient.INSTANCE.tick();
 		ci.cancel();
 	}

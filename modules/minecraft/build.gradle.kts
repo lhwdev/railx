@@ -18,7 +18,7 @@ neoForge {
 	
 	validateAccessTransformers = true
 	accessTransformers {
-		from("src/main/resources/accesstransformer.cfg")
+		from("src/main/resources/META-INF/accesstransformer.cfg")
 	}
 }
 

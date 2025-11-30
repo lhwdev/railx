@@ -30,7 +30,7 @@ import java.util.Objects;
 public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNodeLocation {
 	public TrackNodeLocationMixin(int x, int y, int z) {super(x, y, z);}
 	
-	@Shadow
+	@Shadow(remap = false)
 	public abstract Vec3 getLocation();
 	
 	@Unique
@@ -39,13 +39,13 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	
 	// NOTE: <init>(DDD)V constructor is never called anywhere so far (other than (BlockPos)V one)
 	//       so did not handle that case
-	@Inject(method = "<init>(Lnet/minecraft/world/phys/Vec3;)V", at = @At("RETURN"))
+	@Inject(method = "<init>(Lnet/minecraft/world/phys/Vec3;)V", at = @At("RETURN"), remap = false)
 	void onInit(Vec3 vec, CallbackInfo ci) {
 		railx$location = TrackNodeLocationDelta.of((TrackNodeLocation) (Object) this, vec);
 	}
 	
 	
-	@Inject(method = "getLocation", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "getLocation", at = @At("HEAD"), cancellable = true, remap = false)
 	void onGetLocation(CallbackInfoReturnable<Vec3> cir) {
 		if(railx$location != null) cir.setReturnValue(railx$location.getLocation());
 	}
@@ -67,7 +67,7 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 		}
 	}
 	
-	@Inject(method = "equalsIgnoreDim", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "equalsIgnoreDim", at = @At("RETURN"), cancellable = true, remap = false)
 	void onEqualsIgnoreDim(Object other, CallbackInfoReturnable<Boolean> cir) {
 		if(!cir.getReturnValue()) return;
 		if(other instanceof TrackNodeLocation node) {
@@ -84,7 +84,7 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	}
 	
 	
-	@Inject(method = "write", at = @At("RETURN"))
+	@Inject(method = "write", at = @At("RETURN"), remap = false)
 	void onWrite(DimensionPalette dimensions, CallbackInfoReturnable<CompoundTag> cir) {
 		TrackNodeLocationDelta location = railx$location;
 		if(location != null) {
@@ -92,7 +92,7 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 		}
 	}
 	
-	@Inject(method = "send", at = @At("RETURN"))
+	@Inject(method = "send", at = @At("RETURN"), remap = false)
 	void onSend(FriendlyByteBuf buffer, DimensionPalette dimensions, CallbackInfo ci) {
 		TrackNodeLocationDelta location = railx$location;
 		if(location == null) {
@@ -103,7 +103,7 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	}
 	
 	
-	@Inject(method = "read", at = @At("RETURN"))
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
 	private static void onRead(
 		CompoundTag tag,
 		DimensionPalette dimensions,
@@ -120,7 +120,7 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 		}
 	}
 	
-	@Inject(method = "receive", at = @At("RETURN"))
+	@Inject(method = "receive", at = @At("RETURN"), remap = false)
 	private static void onReceive(
 		FriendlyByteBuf buffer,
 		DimensionPalette dimensions,

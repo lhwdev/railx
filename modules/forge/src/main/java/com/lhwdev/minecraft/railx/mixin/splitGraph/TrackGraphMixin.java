@@ -36,19 +36,20 @@ import java.util.*;
 @SuppressWarnings("DataFlowIssue")
 @Mixin(TrackGraph.class)
 public abstract class TrackGraphMixin implements TrackGraphForSplit {
-	@Shadow
+	@Shadow(remap = false)
 	public UUID id;
 	
-	@Shadow
+	@Shadow(remap = false)
 	public abstract void invalidateBounds();
 	
-	@Shadow
+	@Shadow(remap = false)
 	public abstract void markDirty();
 	
-	@Shadow
+	@Shadow(remap = false)
 	public abstract void addNode(TrackNode node);
 	
-	@Shadow Map<TrackNodeLocation, TrackNode> nodes;
+	@Shadow(remap = false)
+	Map<TrackNodeLocation, TrackNode> nodes;
 	
 	
 	/// Managing SplittingGraphNode
@@ -85,12 +86,12 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 	}
 	
 	
-	@Inject(method = "<init>(Ljava/util/UUID;)V", at = @At("RETURN"))
+	@Inject(method = "<init>(Ljava/util/UUID;)V", at = @At("RETURN"), remap = false)
 	void onInitialize(CallbackInfo ci) {
 		railx$connectedGraphs = new HashMap<>();
 	}
 	
-	@Inject(method = "addNode", at = @At("TAIL"))
+	@Inject(method = "addNode", at = @At("TAIL"), remap = false)
 	void onAddNode(TrackNode node, CallbackInfo ci) {
 		if(node instanceof SplittingTrackNode split) {
 			var splits = railx$connectedGraphs.computeIfAbsent(split.getOtherGraph(), (id) -> new IntArraySet());
@@ -101,7 +102,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		}
 	}
 	
-	@Inject(method = "addNodeIfAbsent", at = @At("TAIL"))
+	@Inject(method = "addNodeIfAbsent", at = @At("TAIL"), remap = false)
 	void onAddNodeIfAbsent(TrackNode node, CallbackInfoReturnable<Boolean> cir) {
 		if(node instanceof SplittingTrackNode split) {
 			var splits = railx$connectedGraphs.computeIfAbsent(split.getOtherGraph(), (id) -> new IntArraySet());
@@ -112,7 +113,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		}
 	}
 	
-	@Inject(method = "removeNode", at = @At("HEAD"))
+	@Inject(method = "removeNode", at = @At("HEAD"), remap = false)
 	void onRemoveNode(LevelAccessor level, TrackNodeLocation location, CallbackInfoReturnable<Boolean> cir) {
 		TrackNode node = nodes.get(location);
 		if(node instanceof SplittingTrackNode split) {
@@ -132,7 +133,8 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 	@Definition(id = "graph", field = "Lcom/simibubi/create/content/trains/entity/Train;" +
 		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;")
 	@Expression("train.graph != this")
-	@ModifyExpressionValue(method = "removeNode", at = @At("MIXINEXTRAS:EXPRESSION"))
+	@ModifyExpressionValue(method = "removeNode", at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false),
+		remap = false)
 	boolean isTrainReachableForRemoveNode(boolean original, @Local(index = 7) Train train) {
 		if(train.graph instanceof MergedTrackGraph merged) {
 			return !MergedTrackGraph.contains(merged, (TrackGraph) (Object) this);
@@ -140,7 +142,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		return original;
 	}
 	
-	@Inject(method = "transfer", at = @At("RETURN"))
+	@Inject(method = "transfer", at = @At("RETURN"), remap = false)
 	void onTransfer(LevelAccessor level, TrackNode node, TrackGraph target, CallbackInfo ci) {
 		if(node instanceof SplittingTrackNode split) {
 			var otherId = split.getOtherGraph();
@@ -155,7 +157,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		}
 	}
 	
-	@Inject(method = "transferAll", at = @At("RETURN"))
+	@Inject(method = "transferAll", at = @At("RETURN"), remap = false)
 	void onTransferAll(TrackGraph graph, CallbackInfo ci) {
 		for(Train train : Create.RAILWAYS.trains.values()) {
 			if(!(train.graph instanceof MergedTrackGraph merged)) continue;
@@ -200,12 +202,12 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 	}
 	
 	@Override
-	public @NotNull Collection<@NotNull UUID> railx$connectedGraphs() {
+	public @NotNull Collection<UUID> railx$connectedGraphs() {
 		return railx$connectedGraphs.keySet();
 	}
 	
 	@Override
-	public @NotNull Set<@NotNull TrackGraph> railx$allConnectedGraphsIncludingSelf(@NotNull GlobalRailwayManager manager) {
+	public @NotNull Set<TrackGraph> railx$allConnectedGraphsIncludingSelf(@NotNull GlobalRailwayManager manager) {
 		if(railx$allConnectedGraphs == null) {
 			railx$allConnectedGraphs = TrackGraphForSplitUtils.allConnectedGraphsIncludingSelfImpl(
 				(TrackGraph) (Object) this,
@@ -236,29 +238,28 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		return railx$allConnectedGraphs;
 	}
 	
-	@Inject(method = "write", at = @At("RETURN"))
+	@Inject(method = "write", at = @At("RETURN"), remap = false)
 	void onWrite(CallbackInfoReturnable<CompoundTag> cir) {
 		if(railx$connectedId != null)
 			cir.getReturnValue().putUUID("railx:ConnectedId", railx$connectedId);
 	}
 	
 	@Inject(method = "write", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/nbt/ListTag;add" +
-		"(Ljava/lang/Object;)Z", ordinal = 0))
+		"(Ljava/lang/Object;)Z", ordinal = 0, remap = false), remap = false)
 	void onWriteGraphNode(
 		CallbackInfoReturnable<CompoundTag> cir,
 		@Local ListTag nodesList,
 		@Local TrackNode node
 	) {
 		if(!(node instanceof SplittingTrackNode splitting)) return;
-		CompoundTag nodeTag = (CompoundTag) nodesList.getLast();
+		CompoundTag nodeTag = (CompoundTag) nodesList.get(nodesList.size() - 1);
 		nodeTag.put("railx:Splitting", splitting.writeSplit());
 	}
 	
 	
-	@Inject(method = "read", at = @At("RETURN"))
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
 	private static void onRead(
 		CompoundTag tag,
-		HolderLookup.Provider registries,
 		DimensionPalette dimensions,
 		CallbackInfoReturnable<TrackGraph> cir
 	) {
@@ -270,7 +271,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 	
 	@WrapOperation(method = "read", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains/graph" +
 		"/TrackGraph;loadNode(Lcom/simibubi/create/content/trains/graph/TrackNodeLocation;" +
-		"ILnet/minecraft/world/phys/Vec3;)V"))
+		"ILnet/minecraft/world/phys/Vec3;)V", remap = false), remap = false)
 	private static void onReadGraphNode(
 		TrackGraph instance,
 		TrackNodeLocation location, int netId, Vec3 normal,
@@ -291,7 +292,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 	
 	/// Updating SplittingTrackNode.otherGraph
 	
-	@Inject(method = "transfer", at = @At("RETURN"))
+	@Inject(method = "transfer", at = @At("RETURN"), remap = false)
 	void updateSplitOnTransfer(LevelAccessor level, TrackNode node, TrackGraph target, CallbackInfo ci) {
 		if(node instanceof SplittingTrackNode split) {
 			var otherGraph = Create.RAILWAYS.trackNetworks.get(split.getOtherGraph());
@@ -305,7 +306,7 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		}
 	}
 	
-	@Inject(method = "transferAll", at = @At("HEAD"))
+	@Inject(method = "transferAll", at = @At("HEAD"), remap = false)
 	void updateSplitOnTransferAll(TrackGraph to, CallbackInfo ci) {
 		for(var node : nodes.values()) {
 			if(!(node instanceof SplittingTrackNode split)) continue;

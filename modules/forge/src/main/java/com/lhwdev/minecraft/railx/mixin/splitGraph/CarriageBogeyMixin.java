@@ -16,18 +16,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(CarriageBogey.class)
 public class CarriageBogeyMixin {
-	@Redirect(method = "<init>(Lcom/simibubi/create/content/trains/bogey/AbstractBogeyBlock;" +
-		"ZLnet/minecraft/nbt/CompoundTag;)V", at = @At(value = "NEW", target = "()Lcom/simibubi/create/content" +
-		"/trains/entity/TravellingPoint;"))
-	private static TravellingPoint travellingPointForCtor() {
-		return new MovingTravellingPoint();
-	}
-	
 	@WrapOperation(method = "<init>(Lcom/simibubi/create/content/trains/bogey/AbstractBogeyBlock;" +
 		"ZLnet/minecraft/nbt/CompoundTag;Lcom/simibubi/create/content/trains/entity/TravellingPoint;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;)V", at = @At(value = "INVOKE", target = "Lnet" +
 		"/createmod/catnip/data/Couple;create(Ljava/lang/Object;Ljava/lang/Object;)" +
-		"Lnet/createmod/catnip/data/Couple;", ordinal = 0))
+		"Lnet/createmod/catnip/data/Couple;", ordinal = 0, remap = false), remap = false)
 	Couple<TravellingPoint> mapTravellingPointsForCtor(
 		Object point,
 		Object point2,
@@ -43,11 +36,11 @@ public class CarriageBogeyMixin {
 		return original.call(p, p2);
 	}
 	
-	@Redirect(method = "lambda$read$4", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
+	@Redirect(method = "lambda$read$1", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
 		"/entity/TravellingPoint;read(Lnet/minecraft/nbt/CompoundTag;" +
 		"Lcom/simibubi/create/content/trains/graph/TrackGraph;" +
 		"Lcom/simibubi/create/content/trains/graph/DimensionPalette;)" +
-		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;"))
+		"Lcom/simibubi/create/content/trains/entity/TravellingPoint;", remap = false), remap = false)
 	private static TravellingPoint readTravellingPoint(
 		CompoundTag tag, TrackGraph graph,
 		DimensionPalette dimensions

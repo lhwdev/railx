@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(TravellingPoint.class)
 public class TravellingPointMixin implements TravellingPointForSplit {
-	@Shadow public boolean blocked;
-	@Shadow public TrackNode node1;
-	@Shadow public TrackNode node2;
+	@Shadow(remap = false) public boolean blocked;
+	@Shadow(remap = false) public TrackNode node1;
+	@Shadow(remap = false) public TrackNode node2;
 	
 	@Unique private TrackGraph railx$destinationGraph;
 	
@@ -57,7 +57,7 @@ public class TravellingPointMixin implements TravellingPointForSplit {
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$IEdgePointListener;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$ITurnListener;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$IPortalListener;)D",
-		at = @At("HEAD"), index = 1, argsOnly = true)
+		at = @At("HEAD"), index = 1, argsOnly = true, remap = false)
 	TrackGraph railx$graphForTravel(TrackGraph graph) {
 		return railx$prepareTravel(graph);
 	}
@@ -67,7 +67,7 @@ public class TravellingPointMixin implements TravellingPointForSplit {
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$IEdgePointListener;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$ITurnListener;" +
 		"Lcom/simibubi/create/content/trains/entity/TravellingPoint$IPortalListener;)D",
-		at = @At("TAIL"), cancellable = true)
+		at = @At("TAIL"), cancellable = true, remap = false)
 	void afterTravel(
 		TrackGraph graph,
 		double distance,
@@ -90,21 +90,21 @@ public class TravellingPointMixin implements TravellingPointForSplit {
 		cir.setReturnValue(moved + result);
 	}
 	
-	@ModifyVariable(method = "edgeTraversedFrom", at = @At("HEAD"), index = 1, argsOnly = true)
+	@ModifyVariable(method = "edgeTraversedFrom", at = @At("HEAD"), index = 1, argsOnly = true, remap = false)
 	TrackGraph graphForEdgeTraversedFrom(TrackGraph original) {
 		var destinationGraph = railx$destinationGraph;
 		if(destinationGraph != null) return destinationGraph;
 		return original;
 	}
 	
-	@ModifyVariable(method = "reverse", at = @At("HEAD"), index = 1, argsOnly = true)
+	@ModifyVariable(method = "reverse", at = @At("HEAD"), index = 1, argsOnly = true, remap = false)
 	TrackGraph graphForReverse(TrackGraph original) {
 		var destinationGraph = railx$destinationGraph;
 		if(destinationGraph != null) return destinationGraph;
 		return original;
 	}
 	
-	@ModifyVariable(method = "getPositionWithOffset", at = @At("HEAD"), index = 1, argsOnly = true)
+	@ModifyVariable(method = "getPositionWithOffset", at = @At("HEAD"), index = 1, argsOnly = true, remap = false)
 	TrackGraph graphForGetPositionWithOffset(TrackGraph original) {
 		var destinationGraph = railx$destinationGraph;
 		if(destinationGraph != null) return destinationGraph;

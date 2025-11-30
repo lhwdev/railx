@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 @Mixin(BlueprintOverlayRenderer.class)
 public class BlueprintOverlayRendererMixin {
 	@ModifyArg(method = "displayTrackRequirements", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item" +
-		"/ItemStack;<init>(Lnet/minecraft/world/level/ItemLike;I)V"), index = 0)
+		"/ItemStack;<init>(Lnet/minecraft/world/level/ItemLike;I)V", remap = true), index = 0, remap = false)
 	private static ItemLike getFlexiTrackRequirements(
 		ItemLike item,
 		@Local(argsOnly = true, ordinal = 0) TrackPlacement.PlacementInfo info

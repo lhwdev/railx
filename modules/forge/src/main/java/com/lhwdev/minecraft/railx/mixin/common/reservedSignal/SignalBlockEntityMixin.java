@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class SignalBlockEntityMixin extends SmartBlockEntity implements ReservedAwareSignalBlockEntity {
 	public SignalBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState state) {super(type, pos, state);}
 	
-	@Shadow
+	@Shadow(remap = false)
 	public abstract @Nullable SignalBoundary getSignal();
 	
 	
@@ -37,9 +37,9 @@ public abstract class SignalBlockEntityMixin extends SmartBlockEntity implements
 	}
 	
 	
-	@Inject(method = "tick", at = @At("TAIL"))
+	@Inject(method = "tick", at = @At("TAIL"), remap = false)
 	void tickServer(CallbackInfo ci) {
-		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse()) return;
+		if(!RailXConfig.Common.Value.getCommon().getReservedSignal().get()) return;
 		SignalBoundary boundary = getSignal();
 		if(boundary == null) return; // won't happen but...
 		var side = boundary.blockEntities.getFirst().containsKey(getBlockPos());
@@ -53,15 +53,15 @@ public abstract class SignalBlockEntityMixin extends SmartBlockEntity implements
 	}
 	
 	
-	@Inject(method = "write", at = @At("RETURN"))
-	void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
-		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse()) return;
+	@Inject(method = "write", at = @At("RETURN"), remap = false)
+	void write(CompoundTag tag, boolean clientPacket, CallbackInfo ci) {
+		if(!RailXConfig.Common.Value.getCommon().getReservedSignal().get()) return;
 		if(clientPacket) tag.putBoolean("railx:Reserved", railx$isReserved);
 	}
 	
-	@Inject(method = "read", at = @At("RETURN"))
-	void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
-		if(RailXConfig.Common.Value.getCommon().getReservedSignal().isFalse()) return;
+	@Inject(method = "read", at = @At("RETURN"), remap = false)
+	void read(CompoundTag tag, boolean clientPacket, CallbackInfo ci) {
+		if(!RailXConfig.Common.Value.getCommon().getReservedSignal().get()) return;
 		if(clientPacket) railx$isReserved = tag.getBoolean("railx:Reserved");
 	}
 }

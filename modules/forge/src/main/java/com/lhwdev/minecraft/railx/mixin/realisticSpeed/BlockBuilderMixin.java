@@ -17,15 +17,15 @@ class BlockBuilderMixin<T extends Block, P> {
 	private NonNullSupplier<? extends Block> railx$initialPropertiesSource;
 	
 	
-	@Inject(method = "initialProperties", at = @At("RETURN"))
+	@Inject(method = "initialProperties", at = @At("RETURN"), remap = false)
 	void onInitialProperties(NonNullSupplier<? extends Block> block, CallbackInfoReturnable<BlockBuilder<T, P>> cir) {
 		railx$initialPropertiesSource = block;
 	}
 	
-	@Inject(method = "createEntry()Lnet/minecraft/world/level/block/Block;", at = @At("RETURN"))
+	@Inject(method = "createEntry()Lnet/minecraft/world/level/block/Block;", at = @At("RETURN"), remap = false)
 	void onCreateEntry(CallbackInfoReturnable<T> cir) {
 		if(railx$initialPropertiesSource != null) {
-			((BlockPropertiesWithSource) cir.getReturnValue().properties())
+			((BlockPropertiesWithSource) cir.getReturnValue().properties)
 				.setInitialPropertiesSource(railx$initialPropertiesSource.get());
 		}
 	}

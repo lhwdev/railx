@@ -11,7 +11,7 @@
 // @EventBusSubscriber(modid = RailX.Id)
 // internal object FakeTrackNoSerialize {
 // 	@SubscribeEvent
-// 	private fun onSaveChunkData(event: ChunkDataEvent.Save) {
+// 	fun onSaveChunkData(event: ChunkDataEvent.Save) {
 // 		val blockEntities = event.data["block_entities"] as? ListTag ?: return
 // 		val iterator = blockEntities.iterator()
 // 		while(iterator.hasNext()) {

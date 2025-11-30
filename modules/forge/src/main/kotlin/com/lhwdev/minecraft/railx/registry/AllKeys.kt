@@ -54,7 +54,7 @@ enum class AllKeys(val description: String, val defaultKey: Int) {
 	@EventBusSubscriber
 	companion object {
 		@SubscribeEvent
-		private fun register(event: RegisterKeyMappingsEvent) {
+		fun register(event: RegisterKeyMappingsEvent) {
 			for(key in entries) {
 				val mapping = KeyMapping(key.description, key.defaultKey, RailX.Name)
 				key.bound = mapping
@@ -63,7 +63,7 @@ enum class AllKeys(val description: String, val defaultKey: Int) {
 		}
 		
 		@SubscribeEvent(priority = EventPriority.HIGHEST)
-		private fun onTick(event: TickEvent.ClientTickEvent) {
+		fun onTick(event: TickEvent.ClientTickEvent) {
 			if(event.phase != TickEvent.Phase.START) return
 			for(key in AllKeys.entries) {
 				key.updatePressed()

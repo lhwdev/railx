@@ -8,9 +8,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
-@Mixin(Train.class)
+@Mixin(value = Train.class)
 public class TrainMixin {
-	@Inject(method = "canDisassemble", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "canDisassemble", at = @At("HEAD"), cancellable = true, remap = false)
 	void canDisassemble(CallbackInfoReturnable<Boolean> cir) {
 		if(!ManualStation.INSTANCE.canDisassemble((Train) (Object) this))
 			cir.setReturnValue(false);

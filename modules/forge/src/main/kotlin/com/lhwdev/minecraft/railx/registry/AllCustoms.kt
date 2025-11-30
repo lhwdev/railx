@@ -11,10 +11,18 @@ object AllCustoms {
 	val Registry = RailXRegistry
 	
 	val BlockMaterials: ResourceKey<Registry<BlockMaterialResolver>> =
-		Registry.makeRegistry("railx.realistic_speed/materials") { RegistryBuilder() }
+		Registry.makeRegistry("railx.realistic_speed/materials") {
+			RegistryBuilder<BlockMaterialResolver>().apply { hasWrapper() }
+		}
 	
 	
 	fun register() {
 		BlockMaterialResolvers.register()
 	}
+}
+
+private fun RegistryBuilder<*>.hasWrapper() {
+	RegistryBuilder::class.java.getDeclaredField("hasWrapper")
+		.also { it.isAccessible = true }
+		.set(this, true)
 }

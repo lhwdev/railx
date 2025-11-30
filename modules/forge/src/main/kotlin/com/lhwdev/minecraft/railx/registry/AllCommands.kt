@@ -13,7 +13,7 @@ object AllCommands {
 	fun register() {}
 	
 	@SubscribeEvent
-	private fun registerCommands(event: RegisterCommandsEvent) {
+	fun registerCommands(event: RegisterCommandsEvent) {
 		val dispatcher = event.dispatcher
 		
 		with(RailXCommandBuildContext(context = event.buildContext)) {

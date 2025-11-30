@@ -75,11 +75,11 @@ class RealisticTrainSpeed(private val train: Train) {
 	
 	fun handleTargetSpeed() {
 		val source = train.targetSpeed
+		if(source == targetSpeedSource) return
 		var target = source
-		if(target == targetSpeedSource) return
 		
 		// Behavior of manual tick: passive -> targetSpeed=0, acceleration=-1 / break
-		if(train.manualTick) target = when(Mth.sign(currentSpeed * target)) {
+		if(train.manualTick) target = when(Mth.sign(currentSpeed * source)) {
 			1 -> target
 			0 -> target
 			-1 -> 0.0

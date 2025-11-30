@@ -20,7 +20,7 @@ public class TrackBlockItemMixin {
 		"/TrackPlacement;tryConnect(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;" +
 		"Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;" +
 		"Lnet/minecraft/world/item/ItemStack;ZZ)" +
-		"Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;"))
+		"Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;", remap = false))
 	TrackPlacement.PlacementInfo tryConnectTracks(
 		Level level, Player player, BlockPos pos2, BlockState state2,
 		ItemStack stack, boolean girder, boolean maximiseTurn,

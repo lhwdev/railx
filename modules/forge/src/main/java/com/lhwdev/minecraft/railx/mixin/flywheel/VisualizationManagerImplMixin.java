@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
-@Mixin(VisualizationManagerImpl.class)
+@Mixin(value = VisualizationManagerImpl.class, remap = false)
 @Implements(@Interface(iface = VisualizationManagerContainer.class, prefix = "accessor$"))
 public abstract class VisualizationManagerImplMixin {
 	@Unique
@@ -39,13 +39,13 @@ public abstract class VisualizationManagerImplMixin {
 	
 	
 	@Accessor("effects")
-	public abstract @NotNull VisualManagerImpl<@NotNull Effect, @NotNull EffectStorage> accessor$getEffects();
+	public abstract @NotNull VisualManagerImpl<Effect, EffectStorage> accessor$getEffects();
 	
 	@Accessor("entities")
-	public abstract @NotNull VisualManagerImpl<@NotNull Entity, @NotNull EntityStorage> accessor$getEntities();
+	public abstract @NotNull VisualManagerImpl<Entity, EntityStorage> accessor$getEntities();
 	
 	@Accessor("blockEntities")
-	public abstract @NotNull VisualManagerImpl<@NotNull BlockEntity, @NotNull BlockEntityStorage> accessor$getBlockEntities();
+	public abstract @NotNull VisualManagerImpl<BlockEntity, BlockEntityStorage> accessor$getBlockEntities();
 	
 	@Accessor("frameFlag")
 	public abstract @NotNull Flag accessor$getFrameFlag();

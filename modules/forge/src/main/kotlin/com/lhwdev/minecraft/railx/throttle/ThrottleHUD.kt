@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.throttle
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.minecraft.client.Minecraft
@@ -18,6 +19,7 @@ object ThrottleHUD : IGuiOverlay {
 		
 		val entity = ControlsHandler.getContraption()
 		if(entity !is CarriageContraptionEntity) return
+		if(!RailXConfig.Server.throttle.enabled.get()) return
 		
 		if(entity.carriage == null) return
 		if(mc.cameraEntity == null) return

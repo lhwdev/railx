@@ -4,6 +4,12 @@
     <annotationProcessing>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
+        <option name="defaultObfuscationEnv" value="searge" />
+        <option name="mappingTypes" value="tsrg" />
+        <option name="outRefMapFile" value="D:\develop\game\minecraft-mod\railx-1.20\modules\forge\build\mixin\railx.refmap.json" />
+        <option name="outTsrgFile" value="D:\develop\game\minecraft-mod\railx-1.20\modules\forge\build\mixin\railx.refmap.json.mappings.tsrg" />
+        <option name="pluginVersion" value="0.7" />
+        <option name="reobfTsrgFile" value="D:\develop\game\minecraft-mod\railx-1.20\modules\minecraft\build\moddev\artifacts\namedToIntermediate.tsrg" />
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-common/0.5.0/286da96036621082491d971dfc62bee8fc37d161/mixinextras-common-0.5.0.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/6d1c8bf4c28e697f472a83bd6add76ec4951734/mixin-0.8.5-processor.jar" />
@@ -12,5 +18,10 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="railx.forge.main" options="-AreobfTsrgFile=D:\develop\game\minecraft-mod\railx-1.20\modules\minecraft\build\moddev\artifacts\namedToIntermediate.tsrg -AoutTsrgFile=D:\develop\game\minecraft-mod\railx-1.20\modules\forge\build\mixin\railx.refmap.json.mappings.tsrg -AoutRefMapFile=D:\develop\game\minecraft-mod\railx-1.20\modules\forge\build\mixin\railx.refmap.json -AmappingTypes=tsrg -ApluginVersion=0.7 -AdefaultObfuscationEnv=searge" />
+    </option>
   </component>
 </project>

@@ -17,12 +17,12 @@ import java.util.List;
 @Mixin(ScrollValueRenderer.class)
 public class ScrollValueRendererMixin {
 	@WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/blockEntity" +
-		"/behaviour/ValueSettingsClient;showHoverTip(Ljava/util/List;)V"))
+		"/behaviour/ValueSettingsClient;showHoverTip(Ljava/util/List;)V", remap = false), remap = false)
 	private static void showHoverTip(
 		ValueSettingsClient instance,
 		List<MutableComponent> tip,
 		Operation<Void> original,
-		@Local ScrollValueBehaviour behavior
+		@Local(index = 10) ScrollValueBehaviour behavior
 	) {
 		if(behavior instanceof ScrollValueBehaviorExtension extension)
 			extension.addExtraTips(tip);

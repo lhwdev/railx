@@ -24,12 +24,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Collection;
 
 
-@Mixin(CarriageContraptionEntity.class)
+@Mixin(value = CarriageContraptionEntity.class)
 public abstract class CarriageContraptionEntityMixin {
-	@Shadow private Carriage carriage;
+	@Shadow(remap = false) private Carriage carriage;
 	
 	
-	@Shadow
+	@Shadow(remap = false)
 	protected abstract void sendPrompt(Player player, MutableComponent component, boolean shadow);
 	
 	@Unique
@@ -37,15 +37,16 @@ public abstract class CarriageContraptionEntityMixin {
 	
 	
 	@WrapOperation(method = "control", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
-		"/entity/Navigation;findNearestApproachable(Z)Lcom/simibubi/create/content/trains/station/GlobalStation;"))
+		"/entity/Navigation;findNearestApproachable(Z)Lcom/simibubi/create/content/trains/station/GlobalStation;",
+		remap = false), remap = false)
 	GlobalStation findNearestApproachable(Navigation instance, boolean forward, Operation<GlobalStation> original) {
-		if(RailXConfig.Server.Value.getCommon().getManualStation().isFalse())
+		if(!RailXConfig.Server.Value.getCommon().getManualStation().get())
 			return original.call(instance, forward);
 		
 		return null;
 	}
 	
-	@Inject(method = "control", at = @At(value = "TAIL"))
+	@Inject(method = "control", at = @At(value = "TAIL"), remap = false)
 	void onControl(
 		BlockPos controlsLocalPos,
 		Collection<Integer> heldControls,
@@ -54,7 +55,7 @@ public abstract class CarriageContraptionEntityMixin {
 		@Local(index = 6) boolean inverted,
 		@Local(index = 7) int targetSpeed
 	) {
-		if(RailXConfig.Server.Value.getCommon().getManualStation().isFalse()) return;
+		if(!RailXConfig.Server.Value.getCommon().getManualStation().get()) return;
 		
 		var train = carriage.train;
 		var directedSpeed = targetSpeed != 0 ? targetSpeed : carriage.train.speed;
@@ -68,7 +69,7 @@ public abstract class CarriageContraptionEntityMixin {
 			return;
 		}
 		
-		double distanceLimit = RailXConfig.Server.Value.getCommon().getManualStationDistanceLimit().getAsDouble();
+		double distanceLimit = RailXConfig.Server.Value.getCommon().getManualStationDistanceLimit().get();
 		
 		GlobalStation station = result.getStation();
 		double distance = result.getDistance();
