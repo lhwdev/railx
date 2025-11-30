@@ -33,7 +33,6 @@ import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.*
 import java.lang.invoke.MethodHandles
 import kotlin.math.PI
 import kotlin.math.log10
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 
@@ -280,7 +279,12 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		val radToDeg = 180 / PI
 		val angle = "${((rot.direction * radToDeg + 360) % 360).roundToInt()}°"
 		if(normal.x != 0.0 || normal.z != 0.0) {
-			return "$angle (Grad=${tangent.gradient()}, Tilt=${round(rot.tilt * radToDeg, 100)})"
+			return "$angle (Grad=${tangent.gradient()}, Tilt=${
+				com.lhwdev.minecraft.railx.utils.round(
+					rot.tilt * radToDeg,
+					100
+				)
+			})"
 		} else {
 			val knownLength = log10(FlexiDirection.Known.DivisionCount.toDouble()).toInt() + 1
 			tangent.asKnown()
@@ -293,7 +297,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	
 	private fun Vec3.gradient(): String {
 		val mille = 1000 * y / horizontalDistance()
-		return "${round(mille, 100)}‰"
+		return "${com.lhwdev.minecraft.railx.utils.round(mille, 100)}‰"
 	}
 	
 	private fun radiusAt(curve: BezierConnection, offset: Double): String {
@@ -308,6 +312,3 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		return if(minRadius > 100000.0 || !minRadius.isFinite()) "∞" else "${minRadius.roundToInt()}"
 	}
 }
-
-private fun round(value: Double, points: Int): Double =
-	round(value * points) / points

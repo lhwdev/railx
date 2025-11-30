@@ -114,17 +114,21 @@ object RailXConfig {
 				.comment("How often physical values, such as mass, gravitational force, etc. are calculated")
 				.defineInRange("realistic_speed.update_tick_rate", 3, 1, Int.MAX_VALUE)
 			
+			// Note: should not be less than 1.0, as navigation fails to approach. see handleApproachTargetSpeed
 			val brakeAcceleration: DoubleValue = builder
-				.comment("Define acceleration of brake; braking is disabled if set to 0.")
-				.defineInRange("realistic_speed.brake_acceleration", 1.3, 0.0, 100.0)
+				.comment("Define acceleration multiplier of brake. Proportional to Create train acceleration.")
+				.defineInRange("realistic_speed.brake_acceleration", 1.5, 1.0, 100.0)
 			
 			val automaticBrakeAtStation: BooleanValue = builder
 				.comment("Applies brake automatically if train is at train station.")
 				.define("realistic_speed.brake_at_station", true)
 			
-			val rollingResistance: DoubleValue = builder
-				.comment("Rolling resistance factor; how much trains are decelerated when given no other force")
-				.defineInRange("realistic_speed.passive_deceleration", 0.01, 0.0, 1.0)
+			val rollingResistanceMultiplier: DoubleValue = builder
+				.comment(
+					"Rolling resistance multiplier; how much trains are decelerated naturally by friction between" +
+						" bogey, axles and rail. Does not affect starting resistance."
+				)
+				.defineInRange("realistic_speed.passive_deceleration", 1.0, 0.0, Double.POSITIVE_INFINITY)
 			
 			val startingResistance: DoubleValue = builder
 				.comment("Starting rolling resistance per block")

@@ -20,14 +20,12 @@ public class ControlsHandlerMixin {
 	
 	@Inject(method = "startControlling", at = @At("HEAD"))
 	private static void onStartControlling(CallbackInfo ci) {
-		
 		if(RailXConfig.Server.Value.getThrottle().getEnabled().isFalse()) return;
 		ThrottlesClient.INSTANCE.startControlling();
 	}
 	
 	@Inject(method = "stopControlling", at = @At("HEAD"))
 	private static void onStopControlling(CallbackInfo ci) {
-		
 		if(RailXConfig.Server.Value.getThrottle().getEnabled().isFalse()) return;
 		ThrottlesClient.INSTANCE.stopControlling();
 	}
