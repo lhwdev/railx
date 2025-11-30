@@ -9,8 +9,6 @@ import net.neoforged.moddevgradle.internal.ModDevArtifactsWorkflow
 import net.neoforged.moddevgradle.internal.ModDevRunWorkflow
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.project
 
 
 private const val MinecraftProject = ":minecraft"
@@ -18,9 +16,6 @@ private const val MinecraftProject = ":minecraft"
 open class ModDevAsDepsPlugin : ModDevPlugin() {
 	override fun apply(project: Project) {
 		project.evaluationDependsOn(MinecraftProject)
-		project.dependencies {
-			add("implementation", project(MinecraftProject))
-		}
 		
 		super.apply(project)
 	}

@@ -1,11 +1,14 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.lhwdev.build.minecraft.utils.ProjectOnlyDependencyFilter
+
 
 plugins {
 	id("java-library")
 	id("maven-publish")
 	id("idea")
 	id("railx.neoforged.moddev.asDeps")
+	id("com.gradleup.shadow")
 	kotlin("jvm")
 }
 
@@ -110,6 +113,7 @@ dependencies {
 		return add("runClientSourcesOptionalMod", dependency)
 	}
 	
+	implementation(projects.minecraft)
 	implementation(projects.ccAsm)
 	
 	// kfflib>=5.8.0 won't resolve extension functions: https://github.com/thedarkcolour/KotlinForForge/issues/131
@@ -138,8 +142,15 @@ dependencies {
 	runClientOnly("maven.modrinth:worldedit:7.3.8")
 }
 
+tasks.jar { isEnabled = false }
+tasks.shadowJar {
+	archiveClassifier = null
+	dependencyFilter = ProjectOnlyDependencyFilter(project)
+}
+
+
 file("build/mod_output_path.txt").let { output ->
-	val jar: Jar by tasks
+	val jar = tasks.getByName<Jar>("shadowJar")
 	if(output.exists()) {
 		val copyModJarToServer by tasks.registering(Copy::class) {
 			from(jar)
