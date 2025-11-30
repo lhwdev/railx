@@ -1,4 +1,5 @@
-name: Build railx for NeoForged 1.21.1
+name: Build
+run-name: Build railx for NeoForged 1.21.1
 on:
   workflow_dispatch: { }
 jobs:
