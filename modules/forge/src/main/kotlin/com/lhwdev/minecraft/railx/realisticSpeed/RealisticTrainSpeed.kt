@@ -149,7 +149,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	fun calculateSpeed(): Double {
 		handleTargetSpeed(target = train.targetSpeed)
 		
-		val threshold = if(stoppedFor < 20 || targetSpeed != 0.0) config.updateTickRate.asInt else 40
+		val threshold = if(stoppedFor < 20 || targetSpeed != 0.0) config.updateTickRate.get() else 40
 		val willUpdate = skipCount >= threshold
 		if(willUpdate) {
 			updateSpeed()
