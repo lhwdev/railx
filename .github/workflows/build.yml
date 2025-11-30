@@ -1,4 +1,5 @@
-name: Build railx for Forge 1.20.1
+name: Build
+run-name: Build railx for Forge 1.20.1
 on:
   workflow_dispatch: { }
 jobs:
