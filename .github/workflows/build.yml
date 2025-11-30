@@ -1,4 +1,4 @@
-name: Build railx for NeoForged 1.2.1
+name: Build railx for Forge 1.20.1
 on:
   workflow_dispatch: { }
 jobs:
@@ -26,5 +26,5 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: NeoForged Mod Jar 1.21.1
+          name: Forge Mod Jar 1.20.1
           path: modules/forge/build/libs
