@@ -7,3 +7,7 @@ neoForge {
 	enable {}
 }
 
+dependencies {
+	implementation(projects.minecraft)
+}
+
