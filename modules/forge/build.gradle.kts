@@ -53,7 +53,6 @@ neoForge {
 			systemProperty("mixin.debug", "true")
 			
 			sourceSet = runClientSources
-			// jvmArguments.add("-Dmixin.debug.export=true")
 		}
 		
 		register("server") {
@@ -120,12 +119,13 @@ dependencies {
 	}
 	
 	implementation(projects.minecraft)
+	implementation(projects.utils)
 	implementation(projects.ccAsm)
 	
-	modImplementation("thedarkcolour:kotlinforforge:4.11.0")
-	modImplementation("thedarkcolour:kffmod:4.11.0") // mod* is not transitive
-	modImplementation("thedarkcolour:kfflib:4.11.0")
-	modImplementation("thedarkcolour:kfflang:4.11.0")
+	modImplementation("thedarkcolour:kotlinforforge:${libs.versions.kotlinForForge.get()}")
+	modImplementation("thedarkcolour:kffmod:${libs.versions.kotlinForForge.get()}") // mod* is not transitive
+	modImplementation("thedarkcolour:kfflib:${libs.versions.kotlinForForge.get()}")
+	modImplementation("thedarkcolour:kfflang:${libs.versions.kotlinForForge.get()}")
 	
 	modImplementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}:slim")
 	
@@ -153,7 +153,17 @@ tasks.shadowJar {
 	archiveClassifier = null
 	dependencyFilter = ProjectOnlyDependencyFilter(project)
 	
+	from(tasks.jarJar)
+	from(layout.buildDirectory.dir("mixin").map { it.file("railx.refmap.json") })
 	manifest.attributes("MixinConfigs" to "railx.mixins.json")
+}
+
+tasks.named("reobfJar") {
+	dependsOn(tasks.shadowJar) // to fix 'uses output of task without declaring an explicit or implicit dependency' error
+}
+
+obfuscation {
+	reobfuscate(tasks.shadowJar, sourceSets.main.get())
 }
 
 
@@ -181,7 +191,7 @@ var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
 		"minecraft_version" to libs.versions.minecraft.get(),
 		"minecraft_version_range" to "[1.20.1,1.20.2)",
 		"forge_version_range" to "[${libs.versions.forge.get()},)",
-		"loader_version_range" to "[4.11,)",
+		"loader_version_range" to "[${libs.versions.kotlinForForge.get()},)",
 		"mod_id" to modId,
 		"mod_name" to "RailX",
 		"mod_license" to "All Rights Reserved",

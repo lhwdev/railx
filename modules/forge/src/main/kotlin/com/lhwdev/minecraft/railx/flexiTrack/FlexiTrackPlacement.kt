@@ -6,6 +6,8 @@ import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult.PlaceError
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.utils.vectors.minus
+import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import com.simibubi.create.foundation.utility.BlockHelper
@@ -28,8 +30,6 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.EntityBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.unaryMinus
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.sign

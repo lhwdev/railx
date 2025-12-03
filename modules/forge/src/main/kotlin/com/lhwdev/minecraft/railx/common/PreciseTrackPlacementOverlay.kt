@@ -8,6 +8,11 @@ import com.lhwdev.minecraft.railx.utils.orFalse
 import com.lhwdev.minecraft.railx.utils.pow3
 import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.utils.vectors.minus
+import com.lhwdev.minecraft.utils.vectors.plus
+import com.lhwdev.minecraft.utils.vectors.times
+import com.lhwdev.minecraft.utils.vectors.toVec3
+import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
@@ -29,7 +34,6 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.event.RenderGuiEvent
 import net.minecraftforge.client.gui.overlay.ForgeGui
 import net.minecraftforge.client.gui.overlay.IGuiOverlay
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.*
 import java.lang.invoke.MethodHandles
 import kotlin.math.PI
 import kotlin.math.log10

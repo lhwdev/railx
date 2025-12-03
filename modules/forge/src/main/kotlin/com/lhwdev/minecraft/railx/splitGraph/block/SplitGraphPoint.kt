@@ -1,11 +1,11 @@
 package com.lhwdev.minecraft.railx.splitGraph.block
 
+import com.lhwdev.minecraft.utils.vectors.plus
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
 
 
 interface SplitGraphPoint {

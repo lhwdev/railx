@@ -3,14 +3,14 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.rotationValue
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.maybeCompound
+import com.lhwdev.minecraft.utils.vectors.toVec3
+import com.lhwdev.minecraft.utils.vectors.toVector3d
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVec3
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVector3d
 
 
 class FlexiState(

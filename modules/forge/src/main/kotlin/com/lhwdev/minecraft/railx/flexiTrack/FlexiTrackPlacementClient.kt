@@ -3,6 +3,8 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement.tryConnect
 import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
+import com.lhwdev.minecraft.utils.vectors.minus
+import com.lhwdev.minecraft.utils.vectors.plus
 import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
@@ -26,8 +28,6 @@ import net.minecraft.world.phys.Vec3
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.plus
 import kotlin.math.max
 import kotlin.math.min
 import com.simibubi.create.AllSpecialTextures as CreateSpecialTextures

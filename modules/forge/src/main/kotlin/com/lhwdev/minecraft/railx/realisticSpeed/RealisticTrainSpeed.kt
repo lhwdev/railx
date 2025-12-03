@@ -6,6 +6,7 @@ import com.lhwdev.minecraft.railx.utils.ContraptionLevelReader
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.utils.vectors.minus
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInteractionBehaviour
 import com.simibubi.create.content.trains.bogey.AbstractBogeyBlock
 import com.simibubi.create.content.trains.entity.Carriage
@@ -18,7 +19,6 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Vec3i
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.util.Mth
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
 import java.io.*
 import kotlin.math.*
 

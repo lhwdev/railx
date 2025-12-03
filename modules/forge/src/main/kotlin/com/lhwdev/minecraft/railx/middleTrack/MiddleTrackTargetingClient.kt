@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.defaultBlockState
+import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.trains.graph.EdgePointType
@@ -23,7 +24,6 @@ import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.unaryMinus
 import kotlin.math.roundToInt
 
 

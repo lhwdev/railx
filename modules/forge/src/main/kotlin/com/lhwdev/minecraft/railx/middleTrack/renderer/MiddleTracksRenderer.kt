@@ -4,6 +4,8 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.rendering.CommonTrackRenderer
 import com.lhwdev.minecraft.railx.middleTrack.GlobalConnections
 import com.lhwdev.minecraft.railx.utils.orFalse
+import com.lhwdev.minecraft.utils.vectors.minus
+import com.lhwdev.minecraft.utils.vectors.toVec3
 import com.mojang.blaze3d.vertex.PoseStack
 import dev.engine_room.flywheel.api.visualization.VisualizationManager
 import dev.engine_room.flywheel.lib.transform.TransformStack
@@ -14,8 +16,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.minus
-import thedarkcolour.kotlinforforge.forge.vectorutil.v3d.toVec3
 
 
 @OnlyIn(Dist.CLIENT)
