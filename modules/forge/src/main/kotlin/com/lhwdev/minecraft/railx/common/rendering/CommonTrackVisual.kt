@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.common.rendering
 
 import com.lhwdev.minecraft.railx.common.from
 import com.lhwdev.minecraft.railx.utils.createInstances
+import com.lhwdev.minecraft.utils.vectors.minus
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.trains.track.BezierConnection
@@ -19,7 +20,6 @@ import it.unimi.dsi.fastutil.longs.LongSet
 import net.createmod.catnip.data.Couple
 import net.createmod.catnip.data.Iterate
 import net.minecraft.core.SectionPos
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import kotlin.math.max
 import kotlin.math.min
 

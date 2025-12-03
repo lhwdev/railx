@@ -6,8 +6,14 @@ import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.utils.orFalse
 import com.lhwdev.minecraft.railx.utils.pow3
+import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.AllDataComponents
+import com.lhwdev.minecraft.utils.vectors.minus
+import com.lhwdev.minecraft.utils.vectors.plus
+import com.lhwdev.minecraft.utils.vectors.times
+import com.lhwdev.minecraft.utils.vectors.toVec3
+import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
@@ -29,7 +35,6 @@ import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.neoforge.client.event.RenderGuiEvent
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.*
 import java.lang.invoke.MethodHandles
 import kotlin.math.PI
 import kotlin.math.log10
@@ -297,7 +302,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	
 	private fun Vec3.gradient(): String {
 		val mille = 1000 * y / horizontalDistance()
-		return "${com.lhwdev.minecraft.railx.utils.round(mille, 100)}‰"
+		return "${round(mille, 100)}‰"
 	}
 	
 	private fun radiusAt(curve: BezierConnection, offset: Double): String {

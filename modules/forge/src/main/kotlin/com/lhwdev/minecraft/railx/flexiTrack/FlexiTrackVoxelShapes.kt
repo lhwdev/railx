@@ -5,6 +5,9 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.direction
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.rotationValue
 import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.utils.vectors.toVec3
+import com.lhwdev.minecraft.utils.vectors.toVector3d
+import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList
 import it.unimi.dsi.fastutil.doubles.DoubleList
 import net.minecraft.core.BlockPos
@@ -19,10 +22,6 @@ import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.toVector3d
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.unaryMinus
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -169,7 +168,7 @@ private open class TrackVoxelInfo(rotation: Quaterniond) {
 	fun clip(from: Vec3, to: Vec3, pos: BlockPos): BlockHitResult? {
 		// if(range.clip(from, to)) // AABB.clip is not that faster than this... I think; need some benchmark? maybe?
 		
-		val offset = pos.toVector3d() + Center
+		val offset = pos.toVector3d().add(Center)
 		val delta = to.toVector3d().sub(from.x, from.y, from.z)
 		val from = from.toVector3d().sub(offset)
 		

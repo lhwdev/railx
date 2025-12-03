@@ -83,6 +83,7 @@ dependencyResolutionManagement {
 
 val projects = listOf(
 	":minecraft",
+	":utils",
 	":cc-asm", ":api",
 	":forge"
 )

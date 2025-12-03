@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.utils.*
+import com.lhwdev.minecraft.utils.vectors.minus
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
@@ -9,7 +10,6 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import kotlin.math.PI
 
 

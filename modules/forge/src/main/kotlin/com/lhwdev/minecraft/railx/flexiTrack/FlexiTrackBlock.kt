@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.common.addIfConnected
 import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
+import com.lhwdev.minecraft.utils.vectors.plus
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement
@@ -59,7 +60,6 @@ import net.minecraft.world.ticks.LevelTickAccess
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
 import kotlin.math.max
 import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks

@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.common.commands
 
 import com.lhwdev.minecraft.railx.registry.RailXCommandBuildContext
+import com.lhwdev.minecraft.utils.vectors.plus
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import com.simibubi.create.Create
@@ -17,7 +18,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.Vec3
 import net.neoforged.fml.ModList
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.plus
 
 
 private val ErrorNoWorldEdit =

@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.middleTrack
 import com.lhwdev.minecraft.railx.common.TrackBezierPointSelection
 import com.lhwdev.minecraft.railx.common.primaryPositions
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVoxelShapes
+import com.lhwdev.minecraft.utils.vectors.minus
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.BezierTrackPointLocation
@@ -30,7 +31,6 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
-import thedarkcolour.kotlinforforge.neoforge.forge.vectorutil.v3d.minus
 import kotlin.math.PI
 import kotlin.math.min
 import com.simibubi.create.AllShapes as CreateShapes

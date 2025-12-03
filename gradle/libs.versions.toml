@@ -3,6 +3,8 @@ kotlin = "2.3.0-Beta2" # cannot use 2.2: https://youtrack.jetbrains.com/projects
 minecraft = "1.21.1"
 neoForge = "21.1.209"
 #neoForgeModDev # declared in build-logic/build.gradle.kts
+mixinExtras = "0.5.0"
+kotlinForForge = "4.11.0"
 
 create = "6.0.8-168"
 ponder = "1.0.64"

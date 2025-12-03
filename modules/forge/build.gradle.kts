@@ -50,9 +50,9 @@ neoForge {
 		register("client") {
 			client()
 			systemProperty("neoforge.enabledGameTestNamespaces", modId)
+			systemProperty("mixin.debug", "true")
 			
 			sourceSet = runClientSources
-			// jvmArguments.add("-Dmixin.debug.export=true")
 		}
 		
 		register("server") {
@@ -114,11 +114,11 @@ dependencies {
 	}
 	
 	implementation(projects.minecraft)
+	implementation(projects.utils)
 	implementation(projects.ccAsm)
 	
 	// kfflib>=5.8.0 won't resolve extension functions: https://github.com/thedarkcolour/KotlinForForge/issues/131
-	compileOnly("thedarkcolour:kotlinforforge-neoforge:5.7.0")
-	runtimeOnly("thedarkcolour:kotlinforforge-neoforge:5.10.0")
+	implementation("thedarkcolour:kotlinforforge-neoforge:5.10.0")
 	
 	implementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}") {
 		isTransitive = false
