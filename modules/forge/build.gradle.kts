@@ -91,6 +91,7 @@ neoForge {
 			// "REGISTRIES": For firing of registry events.
 			// "REGISTRYDUMP": For getting the contents of all registries.
 			systemProperty("forge.logging.markers", "REGISTRIES")
+			systemProperty("railx_mixin_bypass", "true")
 			
 			logLevel = org.slf4j.event.Level.DEBUG
 		}
