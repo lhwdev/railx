@@ -1,7 +1,9 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.TrackBlockEntity
+import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.createmod.catnip.data.Couple
 import net.createmod.catnip.data.WorldAttached
@@ -15,7 +17,7 @@ val GlobalConnections: WorldAttached<ConnectionMiddles> = WorldAttached { level 
 
 class ConnectionMiddles(private val level: LevelAccessor) : Iterable<ConnectionMiddleState> {
 	private val primaryToMiddles =
-		Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<ConnectionMiddleState>>()
+		Long2ObjectOpenHashMap<Long2ObjectArrayMap<ConnectionMiddleState>>()
 	
 	operator fun get(from: BlockPos, to: BlockPos): ConnectionMiddleState? =
 		primaryToMiddles.get(from.asLong())?.get(to.asLong())
@@ -51,12 +53,14 @@ class ConnectionMiddles(private val level: LevelAccessor) : Iterable<ConnectionM
 		}
 		
 		for(toAdd in value withoutIdentity previous) {
+			if(toAdd.length < RailXConfig.Server.middleTrack.placeGap.asInt) return
+			
 			var pos = toAdd.bePositions
 			if(!toAdd.primary) pos = pos.swap()
 			
 			val from = pos.first.asLong()
 			val to = pos.second.asLong()
-			val state = primaryToMiddles.getOrPut(from) { Long2ObjectOpenHashMap() }
+			val state = primaryToMiddles.getOrPut(from) { Long2ObjectArrayMap() }
 				.getOrPut(to) { ConnectionMiddleState(level, curve = if(toAdd.primary) toAdd else toAdd.secondary()) }
 			state.addMiddle(be.blockPos)
 		}

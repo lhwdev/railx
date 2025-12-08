@@ -6,6 +6,7 @@ import com.lhwdev.minecraft.railx.utils.getOrNull
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.Component
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 
@@ -29,6 +30,16 @@ object MiddleTrackClient {
 			LoadedTracks = emptySet()
 			MiddleTrackVisuals.tickDisable(level)
 			return
+		}
+		
+		if(RailXConfig.Server.common.optimizeFakeTracks.isFalse) {
+			minecraft.player?.sendSystemMessage(
+				Component.literal(
+					"railx: common.optimizeFakeTracks is turned off, but required for middleTrack feature. " +
+						"turning it on..."
+				)
+			)
+			RailXConfig.Server.common.optimizeFakeTracks.set(true)
 		}
 		
 		val tracks = mutableSetOf<BlockPos>()

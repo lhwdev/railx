@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx
 
 import com.lhwdev.minecraft.railx.common.PreciseTrackPlacementOverlay
+import com.lhwdev.minecraft.railx.flexiTrack.CurvedFlexiTrackInteraction
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackInteraction
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackOutline
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackTargetingClient
@@ -32,6 +33,8 @@ object ClientEvents {
 		var result = event.isCanceled
 		
 		if(!result) result = CurvedMiddleTrackInteraction.onClickInput(event)
+		
+		if(!result) result = CurvedFlexiTrackInteraction.onClickInput(event)
 		
 		if(result) event.isCanceled = true
 	}

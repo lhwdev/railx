@@ -7,20 +7,27 @@ import kotlin.math.floor
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-
-// x/z: in -63..63; y in 0..63
-private const val HScale = 64.0
-private const val HBase = 63
-private const val VScale = 128.0
-
-
 class TrackNodeLocationDelta private constructor(
 	base: TrackNodeLocation,
 	@JvmField val x: Int,
 	@JvmField val y: Int,
 	@JvmField val z: Int,
 ) {
+	/** returns -1 if this cannot be replaced with `yOffset`. */
+	fun asYOffset(): Int {
+		if(x != 0 || z != 0) return -1
+		if(y % VScaleToYOffset != 0) return -1
+		return y / VScaleToYOffset
+	}
+	
 	companion object {
+		// x/z: in -63..63; y in 0..127
+		const val HScale = 64.0
+		const val HBase = 63
+		const val VScale = 128.0
+		private const val VScaleToYOffset = VScale.toInt() / 16
+		
+		
 		@JvmStatic
 		fun of(base: TrackNodeLocation, vec: Vec3): TrackNodeLocationDelta? {
 			if(vec.isIntTrackNodeLocation()) return null
@@ -32,7 +39,7 @@ class TrackNodeLocationDelta private constructor(
 		}
 		
 		@JvmField
-		val DummyBytes: ByteArray = byteArrayOf(HBase.toByte(), 0, HBase.toByte())
+		val DefaultAsBytes: ByteArray = byteArrayOf(HBase.toByte(), 0, HBase.toByte())
 		
 		@JvmStatic
 		fun fromByteArray(base: TrackNodeLocation, array: ByteArray): TrackNodeLocationDelta? {

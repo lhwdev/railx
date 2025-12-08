@@ -5,6 +5,6 @@ package com.lhwdev.minecraft.railx.flexiTrack.graph
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 
 
-fun TrackNodeLocation.roundToOriginal() {
+fun TrackNodeLocation.restoreToOriginal() {
 	(this as ITrackNodeLocation).setVecLocation(null)
 }
