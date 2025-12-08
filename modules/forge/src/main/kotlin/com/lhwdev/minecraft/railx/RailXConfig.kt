@@ -71,6 +71,31 @@ object RailXConfig {
 			val manualStationDisassembleLimit: DoubleValue = builder
 				.comment("Specify maximum distance between which train can disassemble.")
 				.defineInRange("common.manual_station.disassemble_limit", 0.2, 0.0, 0.5)
+			
+			val fakeTracksManageTickRate: IntValue = builder
+				.comment("Overrides tick rate how often fake tracks are updated. Set to 0 to use default value in create, which is 100 ticks.")
+				.defineInRange("common.fake_tracks.update_tick_rate", 0, 0, Int.MAX_VALUE)
+			
+			val noFakeTracksForUnloadedChunk: BooleanValue = builder
+				.comment(
+					"Does not update fake tracks when additional chunk loading is required. This would reduce lag for" +
+						" long curves, but some fake tracks would be able to placed."
+				)
+				.define("common.fake_tracks.disable_for_unloaded_chunk", false)
+			
+			val optimizeFakeTracks: BooleanValue = builder
+				.comment("Enables optimized fake tracks caching. Does not dramatically improve performance. Required for middleTrack.")
+				.define("common.fake_tracks.optimize", true)
+			
+			val noFakeTracks: BooleanValue = builder
+				.comment(
+					"Disables placing fake tracks entirely, except for middle tracks if configured. Fake tracks are " +
+						"placed every 5 seconds (100 ticks), and placing them requires all chunks spanning curve to " +
+						"be loaded. This becomes enormous burden for long curves. railx already optimizes fake track " +
+						"placement, but this make it better. If good integration for your map mod exists then you " +
+						"will not need it in most cases."
+				)
+				.define("common.fake_tracks.no_fake_tracks", false)
 		}
 		
 		

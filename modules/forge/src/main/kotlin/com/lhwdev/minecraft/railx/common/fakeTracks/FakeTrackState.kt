@@ -1,50 +1,98 @@
-@file:JvmName("FakeTracks")
-
-package com.lhwdev.minecraft.railx.common
+package com.lhwdev.minecraft.railx.common.fakeTracks
 
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlockEntity
 import com.lhwdev.minecraft.railx.registry.AllBlocks
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.FakeTrackBlock
-import com.simibubi.create.content.trains.track.TrackBlockEntity
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.LongArrayList
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
+import net.minecraft.core.SectionPos
 import net.minecraft.core.Vec3i
 import net.minecraft.util.Mth
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.Vec3
+import java.util.*
 import kotlin.math.abs
 import com.simibubi.create.AllBlocks as CreateBlocks
 
 
-abstract class LongFakeTrackState {
+abstract class FakeTrackState {
+	abstract val blocksCount: Int
+	
+	abstract fun isInvalid(): Boolean
+	
+	abstract fun isAllChunksLoaded(level: Level): Boolean
+	
+	abstract fun placeFakeTracks(level: Level, blocksRange: IntRange, remove: Boolean)
+	
+	fun placeAllFakeTracks(level: Level, remove: Boolean) {
+		placeFakeTracks(level, blocksRange = 0 until blocksCount, remove)
+	}
 	
 	
-	protected abstract fun placeFakeTracks(level: Level, segments: IntRange, remove: Boolean)
-	
-	
+	object Empty : FakeTrackState() {
+		override val blocksCount: Int
+			get() = 0
+		
+		override fun isInvalid(): Boolean =
+			RailXConfig.Server.common.noFakeTracks.isFalse
+		
+		override fun isAllChunksLoaded(level: Level): Boolean =
+			true
+		
+		override fun placeFakeTracks(level: Level, blocksRange: IntRange, remove: Boolean) {}
+	}
 }
 
 
 private const val MiddlePlacementBaseGap = 16
 
-class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrackState() {
-	private val middles = bc.rasterizeMiddlesOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
+
+abstract class FakeTrackStateBase(val curve: BezierConnection) : FakeTrackState() {
+	override fun isInvalid(): Boolean =
+		RailXConfig.Server.common.noFakeTracks.isTrue
+}
+
+class MiddleOnlyFakeTrackState(curve: BezierConnection) : FakeTrackStateBase(curve) {
+	private val middles: LongArrayList
+	private val middleIndices: BitSet
 	
-	
-	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
+	init {
+		val (middles, middleIndices) = curve.rasterizeMiddlesOrdered(offset = curve.bePositions.first.offset(0, 1, 0))
+		this.middles = middles
+		this.middleIndices = middleIndices
+	}
 	
 	private val pos = BlockPos.MutableBlockPos()
+	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.asBoolean
 	
-	override fun placeFakeTracks(level: Level, segments: IntRange, remove: Boolean) {
-		for(index in segments) {
-			if(index % 16 != 0) continue
+	override val blocksCount: Int
+		get() = middles.size
+	
+	override fun isInvalid(): Boolean =
+		super.isInvalid()
+			|| RailXConfig.Server.middleTrack.enabled.isFalse
+			|| RailXConfig.Server.middleTrack.removePrevious.asBoolean != removePrevious
+	
+	override fun isAllChunksLoaded(level: Level): Boolean {
+		for(index in 0 until blocksCount) {
+			if(!middleIndices[index]) continue
+			pos.set(middles.getLong(index))
+			if(!level.hasChunk(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z)))
+				return false
+		}
+		return true
+	}
+	
+	override fun placeFakeTracks(level: Level, blocksRange: IntRange, remove: Boolean) {
+		for(index in blocksRange) {
+			if(!middleIndices[index]) continue
 			pos.set(middles.getLong(index))
 			val state = level.getBlockState(pos)
 			if(remove) removeFakeTrack(level, state) else placeFakeTrack(level, state)
@@ -59,8 +107,8 @@ class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrack
 		var middlePlaced = false
 		if(AllBlocks.MiddleTrack.has(stateAtPos)) {
 			val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
-			if(previous != null && previous.connections.none { it.bePositions == bc.bePositions }) {
-				previous.updateConnections(previous.connections.plus<BezierConnection>(bc))
+			if(previous != null && previous.connections.none { it.bePositions == curve.bePositions }) {
+				previous.updateConnections(previous.connections.plus<BezierConnection>(curve))
 				middlePlaced = true
 			}
 		}
@@ -70,7 +118,7 @@ class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrack
 				ProperWaterloggedBlock.withWater(level, AllBlocks.MiddleTrack.defaultState, pos),
 				3
 			)
-			(level.getBlockEntity(pos) as? MiddleTrackBlockEntity)?.updateConnections(listOf(bc))
+			(level.getBlockEntity(pos) as? MiddleTrackBlockEntity)?.updateConnections(listOf(curve))
 		}
 		
 		FakeTrackBlock.keepAlive(level, pos)
@@ -92,7 +140,7 @@ class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrack
 				level.removeBlock(pos, false)
 				return
 			}
-			val previous = middle.connections.indexOfFirst { it.bePositions == bc.bePositions }
+			val previous = middle.connections.indexOfFirst { it.bePositions == curve.bePositions }
 			if(previous != -1) {
 				val connections = middle.connections.toMutableList().also { it.removeAt(previous) }
 				if(connections.isEmpty()) {
@@ -105,8 +153,8 @@ class LongMiddleOnlyTrackState(private val bc: BezierConnection) : LongFakeTrack
 	}
 }
 
-class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackState() {
-	private val blocks = bc.rasterizeOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
+class FakeTrackStateImpl(curve: BezierConnection) : FakeTrackStateBase(curve) {
+	private val blocks = curve.rasterizeOrdered(offset = curve.bePositions.first.offset(0, 1, 0))
 	
 	private val middleIndices: IntArrayList = IntArrayList().also { indices ->
 		val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
@@ -126,13 +174,29 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 	}
 	
 	private val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.isTrue
-	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
+	private val removePrevious = RailXConfig.Server.middleTrack.removePrevious.asBoolean
 	
 	private val pos = BlockPos.MutableBlockPos()
 	
+	override val blocksCount: Int
+		get() = blocks.size
 	
-	override fun placeFakeTracks(level: Level, segments: IntRange, remove: Boolean) {
-		for(index in segments) {
+	override fun isInvalid(): Boolean =
+		super.isInvalid()
+			|| RailXConfig.Server.middleTrack.enabled.isFalse
+			|| RailXConfig.Server.middleTrack.removePrevious.asBoolean != removePrevious
+	
+	override fun isAllChunksLoaded(level: Level): Boolean {
+		for(index in 0 until blocksCount step 8) {
+			pos.set(blocks.getLong(index))
+			if(!level.hasChunk(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z)))
+				return false
+		}
+		return true
+	}
+	
+	override fun placeFakeTracks(level: Level, blocksRange: IntRange, remove: Boolean) {
+		for(index in blocksRange) {
 			pos.set(blocks.getLong(index))
 			val state = level.getBlockState(pos)
 			if(remove) removeFakeTrack(level, state) else placeFakeTrack(level, index, state)
@@ -148,8 +212,8 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 		if(index % MiddlePlacementBaseGap == 0 && placeMiddle && middleIndices.contains(index)) {
 			if(AllBlocks.MiddleTrack.has(stateAtPos)) {
 				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
-				if(previous != null && previous.connections.none { it.bePositions == bc.bePositions }) {
-					previous.updateConnections(previous.connections.plus<BezierConnection>(bc))
+				if(previous != null && previous.connections.none { it.bePositions == curve.bePositions }) {
+					previous.updateConnections(previous.connections.plus<BezierConnection>(curve))
 					middlePlaced = true
 				}
 			}
@@ -159,7 +223,7 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 					ProperWaterloggedBlock.withWater(level, AllBlocks.MiddleTrack.defaultState, pos),
 					3
 				)
-				(level.getBlockEntity(pos) as? MiddleTrackBlockEntity)?.updateConnections(listOf(bc))
+				(level.getBlockEntity(pos) as? MiddleTrackBlockEntity)?.updateConnections(listOf(curve))
 			}
 		} else if(!CreateBlocks.FAKE_TRACK.has(stateAtPos) && !AllBlocks.MiddleTrack.has(stateAtPos) && stateAtPos.canBeReplaced()) {
 			level.setBlock(
@@ -188,7 +252,7 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 				level.removeBlock(pos, false)
 				return
 			}
-			val previous = middle.connections.indexOfFirst { it.bePositions == bc.bePositions }
+			val previous = middle.connections.indexOfFirst { it.bePositions == curve.bePositions }
 			if(previous != -1) {
 				val connections = middle.connections.toMutableList().also { it.removeAt(previous) }
 				if(connections.isEmpty()) {
@@ -202,90 +266,7 @@ class LongFakeTrackStateImpl(private val bc: BezierConnection) : LongFakeTrackSt
 }
 
 
-fun manageFakeTracksAlong(be: TrackBlockEntity, bc: BezierConnection, remove: Boolean) {
-	val level = be.level!!
-	val pos = BlockPos.MutableBlockPos()
-	val blocks = bc.rasterizeOrdered(offset = bc.bePositions.first.offset(0, 1, 0))
-	
-	if(blocks.isEmpty()) return
-	var chunkX = BlockPos.getX(blocks.getLong(0)) shr 4
-	var chunkZ = BlockPos.getZ(blocks.getLong(0)) shr 4
-	val maxGap = RailXConfig.Server.middleTrack.placeGap.asInt
-	val placeMiddle = RailXConfig.Server.middleTrack.enablePlacing.isTrue
-	val removePrevious = RailXConfig.Server.middleTrack.removePrevious.isTrue
-	
-	
-	var middlesPlaced = 0
-	
-	for(index in blocks.indices) {
-		pos.set(blocks.getLong(index))
-		val stateAtPos = level.getBlockState(pos)
-		val fakePresent = CreateBlocks.FAKE_TRACK.has(stateAtPos)
-		val middlePresent = AllBlocks.MiddleTrack.has(stateAtPos)
-		
-		if(remove) {
-			if(fakePresent) level.removeBlock(pos, false)
-			if(middlePresent) {
-				if(removePrevious) {
-					level.removeBlock(pos, false)
-					continue
-				}
-				val middle = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
-				if(middle == null) {
-					level.removeBlock(pos, false)
-					continue
-				}
-				val previous = middle.connections.indexOfFirst { it.bePositions == bc.bePositions }
-				if(previous != -1) {
-					val connections = middle.connections.toMutableList().also { it.removeAt(previous) }
-					if(connections.isEmpty()) {
-						level.removeBlock(pos, false)
-					} else {
-						middle.updateConnections(connections)
-					}
-				}
-			}
-			continue
-		}
-		
-		val fluidState = stateAtPos.fluidState
-		if(!fluidState.isEmpty && !fluidState.isSourceOfType(Fluids.WATER)) continue
-		
-		val newChunkX = pos.x shr 4
-		val newChunkZ = pos.z shr 4
-		val middle = abs(newChunkX - chunkX) >= maxGap || abs(newChunkZ - chunkZ) >= maxGap
-		
-		var middlePlaced = false
-		if(placeMiddle && middle) {
-			if(middlePresent) {
-				val previous = level.getBlockEntity(pos) as? MiddleTrackBlockEntity
-				if(previous != null && previous.connections.none { it.bePositions == bc.bePositions }) {
-					previous.updateConnections(previous.connections.plus<BezierConnection>(bc))
-					middlePlaced = true
-				}
-			}
-			if(!middlePlaced && stateAtPos.canBeReplaced()) {
-				level.setBlock(pos, ProperWaterloggedBlock.withWater(level, AllBlocks.MiddleTrack.defaultState, pos), 3)
-				(level.getBlockEntity(pos) as? MiddleTrackBlockEntity)?.updateConnections(listOf(bc))
-				middlePlaced = true
-			}
-			
-			if(middlePlaced) {
-				chunkX = newChunkX
-				chunkZ = newChunkZ
-				middlesPlaced++
-			}
-		} else if(!fakePresent && !middlePresent && stateAtPos.canBeReplaced()) {
-			level.setBlock(pos, ProperWaterloggedBlock.withWater(level, CreateBlocks.FAKE_TRACK.defaultState, pos), 3)
-		}
-		
-		FakeTrackBlock.keepAlive(level, pos)
-	}
-}
-
-
-fun BezierConnection.rasterizeMiddlesOrdered(offset: Vec3i): LongArrayList {
-	val result = LongArrayList()
+fun BezierConnection.rasterizeMiddlesOrdered(offset: Vec3i): Pair<LongArrayList, BitSet> {
 	val tePosition = bePositions.first
 	val end1 = starts.first
 		.subtract(Vec3.atLowerCornerOf(tePosition))
@@ -329,8 +310,11 @@ fun BezierConnection.rasterizeMiddlesOrdered(offset: Vec3i): LongArrayList {
 		chunkZ = Mth.floor(railMiddle.z) + offset.z shr 4
 	}
 	
-	for(i in MiddlePlacementBaseGap..<segCount step MiddlePlacementBaseGap) {
-		val t = Mth.clamp((i + 0.5f) * lut[i] / segCount, 0f, 1f)
+	val result = LongArrayList(segCount / MiddlePlacementBaseGap)
+	val indices = BitSet(segCount / MiddlePlacementBaseGap)
+	for(index in MiddlePlacementBaseGap..<segCount step MiddlePlacementBaseGap) {
+		val segmentIndex = index / MiddlePlacementBaseGap
+		val t = Mth.clamp((segmentIndex + 0.5f) * lut[segmentIndex] / segCount, 0f, 1f)
 		val point = VecHelper.bezier(end1, end2, finish1, finish2, t)
 		val derivative = VecHelper.bezierDerivative(end1, end2, finish1, finish2, t)
 			.normalize()
@@ -351,13 +335,17 @@ fun BezierConnection.rasterizeMiddlesOrdered(offset: Vec3i): LongArrayList {
 		val newChunkX = x shr 4
 		val newChunkZ = z shr 4
 		val placeMiddle = abs(newChunkX - chunkX) >= maxGap || abs(newChunkZ - chunkZ) >= maxGap
-		if(!placeMiddle) continue
 		
+		if(!placeMiddle) {
+			result.add(0)
+			continue
+		}
 		result.add(pos)
+		indices.set(index)
 		chunkX = newChunkX
 		chunkZ = newChunkZ
 	}
-	return result
+	return result to indices
 }
 
 fun BezierConnection.rasterizeOrdered(offset: Vec3i): LongArrayList {
