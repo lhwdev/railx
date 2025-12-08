@@ -142,7 +142,7 @@ object RailXConfig {
 			// Note: should not be less than 1.0, as navigation fails to approach. see handleApproachTargetSpeed
 			val brakeAcceleration: DoubleValue = builder
 				.comment("Define acceleration multiplier of brake. Proportional to Create train acceleration.")
-				.defineInRange("realistic_speed.brake_acceleration", 1.5, 1.0, 100.0)
+				.defineInRange("realistic_speed.brake_acceleration", 1.5, 0.0, 100.0)
 			
 			val automaticBrakeAtStation: BooleanValue = builder
 				.comment("Applies brake automatically if train is at train station.")

@@ -19,8 +19,7 @@ class ThrottlePacket(
 	val throttle: Throttle,
 	val otherKeys: List<Int>,
 	val stopControlling: Boolean = false,
-) :
-	ServerboundPacketPayload {
+) : ServerboundPacketPayload {
 	companion object : RailXPacketType<ThrottlePacket>() {
 		private val throttleCodec = StreamCodec.composite(
 			StreamCodecs.enum(), Throttle::reverser,
@@ -51,8 +50,16 @@ class ThrottlePacket(
 			return
 		}
 		
-		if(entity.toGlobalVector(controlsPos.center, 0f).closerThan(player.position(), 16.0))
-			ThrottlesServer.receiveThrottle(world, entity, controlsPos, uniqueId = player.uuid, throttle = throttle)
+		if(entity.toGlobalVector(controlsPos.center, 0f).closerThan(player.position(), 16.0)) {
+			ThrottlesServer.receiveThrottle(
+				world,
+				entity,
+				controlsPos,
+				uniqueId = player.uuid,
+				throttle = throttle,
+				otherKeys = otherKeys,
+			)
+		}
 	}
 	
 	override fun getTypeProvider(): BasePacketPayload.PacketTypeProvider =

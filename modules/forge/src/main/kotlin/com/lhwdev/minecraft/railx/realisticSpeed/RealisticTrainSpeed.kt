@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.realisticSpeed
 
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.RailXConfig
+import com.lhwdev.minecraft.railx.throttle.Throttles
 import com.lhwdev.minecraft.railx.utils.ContraptionLevelReader
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.round
@@ -23,12 +24,32 @@ import java.io.*
 import kotlin.math.*
 
 
+interface ITrainWithRealisticTrainSpeed {
+	val `railx$realisticSpeed`: RealisticTrainSpeed?
+}
+
+val Train.realisticSpeed: RealisticTrainSpeed?
+	get() = (this as ITrainWithRealisticTrainSpeed).`railx$realisticSpeed`
+
+
 class RealisticTrainSpeed(private val train: Train) {
 	private val config get() = RailXConfig.Server.realisticSpeed
 	
 	var p: TrainProps? = null
 	var powerAmount: Double = Double.NaN
 	
+	
+	private val manualControl: Boolean
+		get() = train.manualTick || train.carriages.any { carriage ->
+			carriage.entities.values.any { it.entity.get()?.controllingPlayer != null }
+		}
+	
+	private var currentSpeed: Double = 0.0
+	private var targetSpeed: Double = 0.0
+	private var targetThrottle: Double = 0.0
+	private var targetBreak: Double = 0.0
+	private var targetSpeedHandled = false
+	private var targetUpdated = false
 	
 	// NOTE: handleApproachTargetSpeed is called prior to handleTickSpeed
 	//       as, in create:CommonEvents.onServerWorldTick, ControlsServerHandler.tick() then Create.RAILWAYS.tick().
@@ -37,13 +58,12 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		currentSpeed = train.speed
 		
-		handleTargetSpeed(target = train.targetSpeed)
-		
-		// In RailXConfig.Server.realisticSpeed.brakeAcceleration, it ensures targetBreak >= 1. (if not zero)
-		// TODO: need to adjust break to less than 1.5 or something, to be exactly 1.0?
-		
-		// Excludes manual control, as it gives accelerationMod=2 when giving countering acceleration
-		if(!train.manualTick || train.navigation.destination != null) {
+		onHandleTargetSpeed {
+			handleTargetSpeed(target = train.targetSpeed)
+			
+			// In RailXConfig.Server.realisticSpeed.brakeAcceleration, it ensures targetBreak >= 1. (if not zero)
+			// TODO: need to adjust break to less than 1.5 or something, to be exactly 1.0?
+			
 			targetThrottle *= accelerationMod
 			targetBreak *= accelerationMod
 		}
@@ -51,33 +71,44 @@ class RealisticTrainSpeed(private val train: Train) {
 		return true
 	}
 	
-	fun handleTickSpeed(): Boolean {
-		if(!config.enabled.isTrue) return false
-		if(train.derailed) return false
+	fun handleManualThrottle(throttle: Throttles.Throttle, target: Double): Unit = onHandleTargetSpeed {
+		targetSpeedHandled = true
 		
-		currentSpeed = train.speed
-		val speed = calculateSpeed()
-		
-		train.speed = speed
-		train.manualTick = false
-		targetSpeedSource = Double.NaN
-		return true
+		val force = 400 * train.acceleration().toDouble()
+		val gear = throttle.acceleration
+		when {
+			gear == 0.0 -> {
+				targetSpeed = currentSpeed
+				targetThrottle = 0.0
+				targetBreak = 0.0
+			}
+			
+			gear > 0.0 -> {
+				targetSpeed = target
+				targetThrottle = force * gear * sign(target)
+				targetBreak = 0.0
+			}
+			
+			else -> {
+				targetSpeed = 0.0
+				targetThrottle = 0.0
+				targetBreak = force * -gear
+			}
+		}
 	}
 	
-	// TODO: - should I need more acceleration on start(ie. speed <= 0.01)?
+	// TODO: - need more acceleration on start(ie. speed <= 0.01)?
 	//       - apply natural slowdown when approaching close to top speed
-	fun handleTargetSpeed(target: Double) {
-		if(target == targetSpeedSource) return
-		
-		targetSpeedSource = target
+	private fun handleTargetSpeed(target: Double) {
+		targetSpeedHandled = true
 		// in manual control, target = [throttle -> maxSpeed * direction, neutral -> 0, break -> -maxSpeed * direction]
-		val acceleration = 400 * train.acceleration().toDouble()
-		if(train.manualTick && train.navigation.destination == null) {
+		val force = 400 * train.acceleration().toDouble()
+		if(manualControl && train.navigation.destination == null) {
 			val direction = Mth.sign(currentSpeed * target)
 			when {
 				direction == 1 || currentSpeed == 0.0 -> { // throttle
-					targetSpeed = train.maxSpeed() * sign(target)
-					targetThrottle = acceleration * sign(target)
+					targetSpeed = target
+					targetThrottle = force * sign(target)
 					targetBreak = 0.0
 				}
 				
@@ -90,7 +121,7 @@ class RealisticTrainSpeed(private val train: Train) {
 				direction == -1 -> { // break
 					targetSpeed = 0.0
 					targetThrottle = 0.0
-					targetBreak = acceleration
+					targetBreak = force
 				}
 				
 				else -> throw NoWhenBranchMatchedException()
@@ -103,15 +134,58 @@ class RealisticTrainSpeed(private val train: Train) {
 				targetBreak = 0.0
 			} else {
 				if(currentSpeed * direction >= 0) { // throttle
-					targetThrottle = acceleration * direction
+					targetThrottle = force * direction
 					targetBreak = 0.0
 				} else { // break
 					targetThrottle = 0.0
-					targetBreak = acceleration
+					targetBreak = force
 				}
 			}
 		}
 	}
+	
+	private fun handleDefaultTargetSpeed() {
+		targetSpeedHandled = true
+		
+		val isIdle = !manualControl && train.navigation.destination == null
+		if(isIdle) {
+			if(targetThrottle != 0.0 || targetBreak != 0.0) targetUpdated = true
+			targetSpeed = 0.0
+			targetThrottle = 0.0
+			targetBreak = 0.0
+		}
+	}
+	
+	private inline fun <R> onHandleTargetSpeed(block: () -> R): R {
+		val previousSpeed = targetSpeed
+		val previousThrottle = targetThrottle
+		val previousBreak = targetBreak
+		return try {
+			block()
+		} finally {
+			if(previousSpeed != targetSpeed || previousThrottle != targetThrottle || previousBreak != targetBreak)
+				targetUpdated = true
+		}
+	}
+	
+	
+	fun handleTickSpeed(): Boolean {
+		if(!config.enabled.isTrue) return false
+		if(train.derailed) return false
+		
+		currentSpeed = train.speed
+		if(!targetSpeedHandled)
+			handleDefaultTargetSpeed()
+		
+		val speed = calculateSpeed()
+		
+		train.speed = speed
+		train.manualTick = false
+		targetSpeedHandled = false
+		targetUpdated = false
+		return true
+	}
+	
 	
 	fun read(tag: CompoundTag) {
 		val props = tag.getByteArray("Props")
@@ -136,26 +210,15 @@ class RealisticTrainSpeed(private val train: Train) {
 	private var stoppedFor = 0
 	
 	private var debugEnabled = false
-	private var debugCounter = 0
-	private fun debug(text: String) {
-		if(debugCounter == 0 && stoppedFor < 20) println("railx:realistic $text")
-	}
-	
-	private fun debugHandle(key: String, log: String) {
-		if(!debugEnabled) return
-		debug("railx:rs[name=${train.name.tryCollapseToString()}] $key: $log")
-	}
+	private val debugEntries = mutableMapOf<String, String>()
 	
 	fun calculateSpeed(): Double {
-		handleTargetSpeed(target = train.targetSpeed)
-		
 		val threshold = if(stoppedFor < 20 || targetSpeed != 0.0) config.updateTickRate.asInt else 40
-		val willUpdate = skipCount >= threshold
+		val willUpdate = skipCount >= threshold || targetUpdated
 		if(willUpdate) {
 			updateSpeed()
 			skipCount = 0
 		}
-		if(debugCounter++ >= 5) debugCounter = 0
 		
 		val acceleration = netWheelAcceleration + netEnvironmentalAcceleration
 		val slowdown = netWheelSlowdown + netEnvironmentalSlowdown
@@ -196,11 +259,6 @@ class RealisticTrainSpeed(private val train: Train) {
 	private var netWheelSlowdown = 0.0
 	private var slipAmount = 0.0
 	
-	private var currentSpeed: Double = 0.0
-	private var targetSpeed: Double = 0.0
-	private var targetThrottle: Double = 0.0
-	private var targetBreak: Double = 0.0
-	private var targetSpeedSource: Double = 0.0
 	private var mass: Double = 1.0
 	
 	private var gravitationalAcceleration: Double = 0.0
@@ -254,7 +312,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		netEnvironmentalSlowdown = 0.0
 		netWheelSlowdown = 0.0
 		
-		if(train.presentDimensions.isEmpty()) return
+		if(train.carriages.none { it.anyAvailableDimensionalCarriage() != null }) return
 		
 		ensureTrainProps()
 		updatePhysicalState()
@@ -266,15 +324,10 @@ class RealisticTrainSpeed(private val train: Train) {
 		handleAirResistance()
 		
 		handleSlip()
-		
-		// if(debugEnabled && debugCounter == 0 && stoppedFor <= 20)
-		// 	for((key, value) in debugEntries) println("$key = $value")
-		// debugEntries.keys.forEach { debugEntries[it] = "" }
 	}
 	
-	private val debugEntries = mutableMapOf<String, String>()
-	private fun onResult(key: String, value: Double, debug: String = ""): Double {
-		debugEntries[key] = "${round(value, 10000)} $debug"
+	private inline fun onResult(key: String, value: Double, debug: () -> String = { "" }): Double {
+		if(debugEnabled) debugEntries[key] = "${round(value, 10000)} ${debug()}"
 		return value
 	}
 	
@@ -343,7 +396,7 @@ class RealisticTrainSpeed(private val train: Train) {
 			
 			
 			// NOTE: There is article that, if you don't know bogie drag coefficient, just exclude that term. Should I?
-			// TODO: make it differ by its type; use CFD to compute existing bogies (including Steam 'n Rails)
+			// TODO: make it differ by its type; use CFD or heuristics to compute existing bogies (including SnR bogies)
 			val bogieDragCoefficient = 0.2
 			val bogieCount = if(carriage.isOnTwoBogeys) 2 else 1
 			bogieDrags += bogieDragCoefficient * bogieCount
@@ -537,7 +590,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		
 		val resistance = CurvatureResistance.calculate(curveRadius)
 		val result = factor * resistance * (sqrt(abs(train.speed) + 4) - 2)
-		netEnvironmentalSlowdown += onResult("curvatureResistance", result, debug = "R=${round(curveRadius, 10)}")
+		netEnvironmentalSlowdown += onResult("curvatureResistance", result) { "R=${round(curveRadius, 10)}" }
 	}
 	
 	private fun handleAirResistance() {
