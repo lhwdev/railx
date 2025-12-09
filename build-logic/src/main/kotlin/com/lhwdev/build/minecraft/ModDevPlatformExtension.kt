@@ -2,8 +2,6 @@ package com.lhwdev.build.minecraft
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.DependencyFilter
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import net.neoforged.moddevgradle.dsl.InternalModelHelper
-import net.neoforged.moddevgradle.dsl.NeoForgeExtension
 import net.neoforged.moddevgradle.internal.utils.ExtensionUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectProvider
@@ -79,6 +77,9 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 				"FMLModType" to "LIBRARY",
 			)
 		}
+		
+		tasks.named("classes") { dependsOn(modDevRuntimeStandaloneJar) }
+		
 		modDevRuntime = sourceSets.register("modDevRuntime") {
 			val main = mainTask.get()
 			
@@ -95,22 +96,6 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 				extendsFrom(modDevRuntimeMods.get())
 				
 				dependencies.add(project.dependencyFactory.create(main.output))
-			}
-		}
-		
-		// add to legacyClasspath
-		project.afterEvaluate {
-			configurations.named("additionalRuntimeClasspath") {
-				val standaloneJar = modDevRuntimeStandaloneJar.map { it.outputs.files }
-				dependencies.add(project.dependencyFactory.create(project.files(standaloneJar)))
-			}
-			
-			// IDK why task dependency is not added from configuration
-			val neoForge = project.extensions.getByName<NeoForgeExtension>("neoForge")
-			neoForge.runs.configureEach {
-				tasks.named(InternalModelHelper.nameOfRun(this, "write", "legacyClasspath")) {
-					dependsOn(modDevRuntimeStandaloneJar)
-				}
 			}
 		}
 		
