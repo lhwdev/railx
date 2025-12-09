@@ -4,7 +4,10 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.*
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
-import com.lhwdev.minecraft.railx.utils.*
+import com.lhwdev.minecraft.railx.utils.ColorsArgb
+import com.lhwdev.minecraft.railx.utils.orFalse
+import com.lhwdev.minecraft.railx.utils.round
+import com.lhwdev.minecraft.railx.utils.similarTo
 import com.lhwdev.minecraft.utils.vectors.*
 import com.simibubi.create.AllDataComponents
 import com.simibubi.create.content.trains.track.BezierConnection
@@ -211,7 +214,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			if(curvePoint != null) first.append(", R=")
 				.append(
 					valueStyle(
-						curvePoint.curve.radiusAt(curvePoint.curve.getSegmentT(curvePoint.segmentIndex).toDouble())
+						curvePoint.curve.radiusTextAt(curvePoint.curve.getSegmentT(curvePoint.segmentIndex).toDouble())
 					)
 				)
 			lines += first
@@ -283,14 +286,14 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 				Component.empty()
 					.append(dimTitle("From", from = true))
 					.append(": R=")
-					.append(valueStyle(curve.radiusAt(t = 0.0)))
+					.append(valueStyle(curve.radiusTextAt(t = 0.0)))
 			})
 			line2.append(" -> ")
 			line2.append(dimContent(from = false) {
 				Component.empty()
 					.append(dimTitle("To", from = false))
 					.append(": R=")
-					.append(valueStyle(curve.radiusAt(t = 1.0)))
+					.append(valueStyle(curve.radiusTextAt(t = 1.0)))
 			})
 			
 			if(bezierPoint != null) line2.append(", at ")
@@ -351,11 +354,13 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		return combinedDistance * length
 	}
 	
-	private fun BezierConnection.radiusAt(t: Double): String {
-		val derivative = derivative(t)
-		val derivative2 = derivative2(t)
-		val radius = derivative.length().pow3() / derivative.cross(derivative2).length()
-		return if(radius.isFinite()) "${radius.roundToInt()}" else "?"
+	private fun BezierConnection.radiusTextAt(t: Double): String {
+		val value = radiusAt(t)
+		return when {
+			value.isFinite() -> value.roundToInt().toString()
+			value == Double.POSITIVE_INFINITY -> "∞"
+			else -> "???"
+		}
 	}
 	
 	private fun minRadius(curve: BezierConnection): String {

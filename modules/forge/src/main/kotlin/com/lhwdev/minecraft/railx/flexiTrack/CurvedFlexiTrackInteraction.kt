@@ -11,7 +11,7 @@ import com.simibubi.create.AllItems as CreateItems
 @OnlyIn(Dist.CLIENT)
 object CurvedFlexiTrackInteraction {
 	fun onClickInput(event: InputEvent.InteractionKeyMappingTriggered): Boolean {
-		// didn't use TracksOutline, as this requires both chunks to be loaded
+		// didn't use TracksOutline, as it requires both chunks to be loaded
 		val result = TrackBlockOutline.result ?: return false
 		
 		val mc = Minecraft.getInstance()

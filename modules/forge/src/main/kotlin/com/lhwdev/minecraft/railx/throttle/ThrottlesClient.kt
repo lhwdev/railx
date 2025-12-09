@@ -79,10 +79,10 @@ object ThrottlesClient {
 		}
 		
 		// TODO: hold long to move more
-		if(reverser != Throttles.Reverser.Neutral && AllKeys.ThrottleAccelerate.isKeyDown)
-			gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)
+		if(AllKeys.ThrottleAccelerate.isKeyDown) gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)
 		if(AllKeys.ThrottleNeutral.isKeyDown) gear += -sign(gear)
 		if(AllKeys.ThrottleBrake.isKeyDown) gear = (gear - 1).coerceAtLeast(-Throttles.maxBreak)
+		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
 		
 		val throttle = Throttles.Throttle(reverser, steering, gear)
 		if(pressedKeys != ControlsHandler.currentlyPressed || throttle != previous || packetCooldown == 0) {

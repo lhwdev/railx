@@ -36,7 +36,34 @@ internal interface IBezierConnectionExtension {
 	fun minRadius(): Double
 }
 
+
 private fun Vec3.toFlat(): Vector3d = Vector3d(x, 0.0, z)
+
+fun BezierConnection.radiusAt(t: Double): Double {
+	val p1 = starts.first.toFlat()
+	val p2 = starts.second.toFlat()
+	val q1 = axes.first.toFlat().mul(handleLength).add(p1)
+	val q2 = axes.second.toFlat().mul(handleLength).add(p2)
+	
+	val derivative = Vector3d()
+	derivative.fma(-3 * t * t + 6 * t - 3, p1)
+	derivative.fma(9 * t * t - 12 * t + 3, q1)
+	derivative.fma(-9 * t * t + 6 * t, q2)
+	derivative.fma(3 * t * t, p2)
+	
+	val derivative2 = Vector3d()
+	derivative2.fma(-6 * t + 6, p1)
+	derivative2.fma(18 * t - 12, q1)
+	derivative2.fma(-18 * t + 6, q2)
+	derivative2.fma(6 * t, p2)
+	
+	val derivativeLength = derivative.length().pow3()
+	
+	derivative.cross(derivative2)
+	val denominator = derivative.length()
+	if(denominator < 1e-6) return Double.POSITIVE_INFINITY
+	return derivativeLength / denominator
+}
 
 internal fun BezierConnection.calculateMinRadius(): Double {
 	var minRadius = Double.POSITIVE_INFINITY
@@ -51,16 +78,16 @@ internal fun BezierConnection.calculateMinRadius(): Double {
 		val t = getSegmentT(segment).toDouble()
 		
 		derivative.set(0.0)
-		p1.mul(-3 * t * t + 6 * t - 3, derivative)
-		q1.mul(9 * t * t - 12 * t + 3, derivative)
-		q2.mul(-9 * t * t + 6 * t, derivative)
-		p2.mul(3 * t * t, derivative)
+		derivative.fma(-3 * t * t + 6 * t - 3, p1)
+		derivative.fma(9 * t * t - 12 * t + 3, q1)
+		derivative.fma(-9 * t * t + 6 * t, q2)
+		derivative.fma(3 * t * t, p2)
 		
 		derivative2.set(0.0)
-		p1.mul(-6 * t + 6, derivative2)
-		q1.mul(18 * t - 12, derivative2)
-		q2.mul(-18 * t + 6, derivative2)
-		p2.mul(6 * t, derivative2)
+		derivative2.fma(-6 * t + 6, p1)
+		derivative2.fma(18 * t - 12, q1)
+		derivative2.fma(-18 * t + 6, q2)
+		derivative2.fma(6 * t, p2)
 		
 		val derivativeLength = derivative.length().pow3()
 		
