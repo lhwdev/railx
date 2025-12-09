@@ -4,25 +4,22 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.*
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
+import com.lhwdev.minecraft.railx.utils.ColorsArgb
 import com.lhwdev.minecraft.railx.utils.orFalse
-import com.lhwdev.minecraft.railx.utils.pow3
 import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.similarTo
-import com.lhwdev.minecraft.utils.vectors.minus
-import com.lhwdev.minecraft.utils.vectors.plus
-import com.lhwdev.minecraft.utils.vectors.times
-import com.lhwdev.minecraft.utils.vectors.toVec3
-import com.lhwdev.minecraft.utils.vectors.unaryMinus
+import com.lhwdev.minecraft.utils.vectors.*
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackPlacement
 import net.createmod.catnip.outliner.Outliner
-import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Style
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
@@ -36,6 +33,7 @@ import net.minecraftforge.client.gui.overlay.ForgeGui
 import net.minecraftforge.client.gui.overlay.IGuiOverlay
 import java.lang.invoke.MethodHandles
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.roundToInt
 
@@ -192,32 +190,11 @@ object PreciseTrackPlacementOverlay : IGuiOverlay {
 	class PrecisePlacementInfo(
 		val from: FlexiPlacementInfo.TrackPoint,
 		val to: FlexiPlacementInfo.TrackPoint,
-		val curve: BezierConnection?,
+		val curve: BezierConnection,
 	) : PreciseInfo() {
 		override val targetTrack = TrackPoint(to.pos.toVec3(), to.tangent)
 		
-		override val lines = mutableListOf<Component>()
-		
-		init {
-			val delta = to.pos - from.pos
-			val curve = curve
-			
-			val line = Component.empty()
-			line.append("Axis = ${displayPoint(direction(from.tangent, from.normal))}")
-				.append(" -> ${displayPoint(direction(to.tangent, to.normal))}")
-			line.append(", Delta = ${with(delta) { "[$x, $y, $z]" }}")
-			if(curve != null) line.append(", R = ${minRadius(curve)}")
-			if(delta.y != 0) line.append(", Grad = ${delta.toVec3().gradient()}")
-			lines += line
-			
-			val onStraightLine = to.tangent.cross(delta.toVec3()).length() < 0.001
-			if(curve != null && !onStraightLine) {
-				val line2 = Component.empty()
-				line2.append("End Radius = ${radiusAt(curve, offset = 0.0)}")
-					.append(" -> ${radiusAt(curve, offset = 1.0)}")
-				lines += line2
-			}
-		}
+		override val lines = curveInfo(curve, title = "Placement")
 	}
 	
 	class PreciseTrackInfo(
@@ -234,29 +211,20 @@ object PreciseTrackPlacementOverlay : IGuiOverlay {
 		init {
 			val first = Component.literal("Axis = ${displayPoint(direction)}")
 			if(tilted) first.append(" (Tilted)")
+			if(curvePoint != null) first.append(", R=")
+				.append(
+					valueStyle(
+						curvePoint.curve.radiusTextAt(curvePoint.curve.getSegmentT(curvePoint.segmentIndex).toDouble())
+					)
+				)
 			lines += first
 			
-			if(curvePoint != null) {
-				val line = Component.empty()
-				val curve = curvePoint.curve
-				val delta = curve.bePositions.second - curve.bePositions.first
-				
-				line.append(Component.literal("This Curve: ").withStyle(ChatFormatting.WHITE))
-				line.append("Axis = ${displayPoint(direction(curve.axes.first, curve.normals.first))}")
-					.append(" -> ${displayPoint(direction(curve.axes.second, curve.normals.second))}")
-				line.append(", Delta = ${with(delta) { "[$x, $y, $z]" }}")
-				line.append(", R = ${minRadius(curve)}")
-				if(delta.y != 0) line.append(", Grad = ${delta.toVec3().gradient()}")
-				lines += line.withStyle(ChatFormatting.AQUA)
-				
-				val onStraightLine = curve.axes.second.cross(delta.toVec3()).length() < 0.001
-				if(!onStraightLine) {
-					val line2 = Component.empty()
-					line2.append("End Radius = ${radiusAt(curve, offset = 0.0)}")
-						.append(" -> ${radiusAt(curve, offset = 1.0)}")
-					lines += line2.withStyle(ChatFormatting.AQUA)
-				}
-			}
+			if(curvePoint != null) lines += curveInfo(
+				curvePoint.curve,
+				title = "Hovered Curve",
+				baseColor = 0xcce8ff,
+				bezierPoint = curvePoint,
+			)
 			
 			if(virtual) {
 				val center = pos.add(0.0, 1.0 / 16.0, 0.0)
@@ -271,10 +239,91 @@ object PreciseTrackPlacementOverlay : IGuiOverlay {
 	}
 	
 	
+	private var contextColor: Int = 0
+	
+	private fun curveInfo(
+		curve: BezierConnection,
+		title: String,
+		baseColor: Int = 0xffffff,
+		bezierPoint: TrackBezierPointSelection? = null,
+	): List<MutableComponent> {
+		contextColor = baseColor
+		
+		val lines = mutableListOf<MutableComponent>()
+		val delta = curve.bePositions.second - curve.bePositions.first
+		
+		val line = Component.empty()
+		line.append(Component.literal(title))
+		line.append(" | Axis: ")
+			.append(valueStyle(displayPoint(direction(curve.axes.first, curve.normals.first))))
+			.append(" -> ")
+			.append(valueStyle(displayPoint(direction(curve.axes.second, curve.normals.second))))
+		line.append(", Δ=")
+			.append(valueStyle(with(delta) { "[$x, $y, $z]" }))
+		line.append(", L=")
+			.append(valueStyle(round(curve.length, 100).toString()))
+		line.append(", R=")
+			.append(valueStyle(minRadius(curve)))
+		if(delta.y != 0) line.append(", Grad=")
+			.append(valueStyle(delta.toVec3().gradient()))
+		lines += line.withStyle(Style.EMPTY.withColor(baseColor))
+		
+		val onStraightLine = curve.axes.second.cross(delta.toVec3()).length() < 0.001
+		if(!onStraightLine) {
+			val line2 = Component.empty()
+			val dimFrom = if(bezierPoint != null) curve.getSegmentT(bezierPoint.segmentIndex) > 0.5 else null
+			
+			fun dimTitle(name: String, from: Boolean) = if(dimFrom == null || from == dimFrom) {
+				Component.literal(name)
+			} else {
+				Component.literal(name).withStyle(Style.EMPTY.withColor(0xffffff))
+			}
+			
+			fun dimContent(from: Boolean, block: () -> MutableComponent) =
+				if(dimFrom == from) withColor(ColorsArgb.multiply(baseColor, 0xcccccc), block) else block()
+			
+			line2.append(dimContent(from = true) {
+				Component.empty()
+					.append(dimTitle("From", from = true))
+					.append(": R=")
+					.append(valueStyle(curve.radiusTextAt(t = 0.0)))
+			})
+			line2.append(" -> ")
+			line2.append(dimContent(from = false) {
+				Component.empty()
+					.append(dimTitle("To", from = false))
+					.append(": R=")
+					.append(valueStyle(curve.radiusTextAt(t = 1.0)))
+			})
+			
+			if(bezierPoint != null) line2.append(", at ")
+				.append(valueStyle(round(curve.lengthTo(segmentIndex = bezierPoint.segmentIndex + 1), 100).toString()))
+			
+			lines += line2.withStyle(Style.EMPTY.withColor(baseColor))
+		}
+		return lines
+	}
+	
+	private inline fun withColor(color: Int, block: () -> MutableComponent): MutableComponent {
+		val previous = contextColor
+		contextColor = color
+		return try {
+			block().withStyle(Style.EMPTY.withColor(color))
+		} finally {
+			contextColor = previous
+		}
+	}
+	
+	private fun valueStyle(value: String): Component =
+		Component.literal(value).withStyle(Style.EMPTY.withColor(ColorsArgb.multiply(contextColor, 0xffd1a6)))
+	
 	private fun direction(tangent: Vec3, normal: Vec3) = when {
 		normal.x similarTo 0.0 && normal.z similarTo 0.0 -> FlexiDirection.FlatImpl(tangent.normalize())
 		else -> FlexiDirection.Two(tangent.normalize(), normal.normalize())
 	}
+	
+	private fun displayPoint(point: FlexiPlacementInfo.TrackPoint): String =
+		displayPoint(direction(point.tangent, point.normal))
 	
 	private fun displayPoint(direction: FlexiDirection): String {
 		val tangent = direction.tangent
@@ -282,7 +331,7 @@ object PreciseTrackPlacementOverlay : IGuiOverlay {
 		val rot = direction.toRotation()
 		val radToDeg = 180 / PI
 		val angle = "${((rot.direction * radToDeg + 360) % 360).roundToInt()}°"
-		if(normal.x != 0.0 || normal.z != 0.0) {
+		if(abs(normal.x) > 1e-5 || abs(normal.z) > 1e-5) { // lesser than similarTo
 			return "$angle (Grad=${tangent.gradient()}, Tilt=${round(rot.tilt * radToDeg, 100)})"
 		} else {
 			val knownLength = log10(FlexiDirection.Known.DivisionCount.toDouble()).toInt() + 1
@@ -299,11 +348,19 @@ object PreciseTrackPlacementOverlay : IGuiOverlay {
 		return "${round(mille, 100)}‰"
 	}
 	
-	private fun radiusAt(curve: BezierConnection, offset: Double): String {
-		val derivative = curve.derivative(offset)
-		val derivative2 = curve.derivative2(offset)
-		val radius = derivative.length().pow3() / derivative.cross(derivative2).length()
-		return if(radius.isFinite()) "R=${radius.roundToInt()}" else "R=?"
+	private fun BezierConnection.lengthTo(segmentIndex: Int): Double {
+		val lut = stepLUT[segmentIndex] // lut = (t=i/segments) / (combinedDistance=lengthToSegment/length)
+		val combinedDistance = (segmentIndex.toDouble() / segmentCount) / lut
+		return combinedDistance * length
+	}
+	
+	private fun BezierConnection.radiusTextAt(t: Double): String {
+		val value = radiusAt(t)
+		return when {
+			value.isFinite() -> value.roundToInt().toString()
+			value == Double.POSITIVE_INFINITY -> "∞"
+			else -> "???"
+		}
 	}
 	
 	private fun minRadius(curve: BezierConnection): String {

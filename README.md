@@ -52,6 +52,8 @@ track block is not loaded, this block will render the curve instead of you. You 
 'Middle Track' is placed, but each middle track copies curve information from track block so it takes more space in
 world file.
 
+TODO: support rendering TrackTargeting for block entities, like Station Block or Signal Block
+
 ### `splitGraph`
 
 Stage: **In Development**; features are quite complete, but not optimized or tested enough.

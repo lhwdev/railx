@@ -33,6 +33,8 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	@Shadow(remap = false)
 	public abstract Vec3 getLocation();
 	
+	@Shadow(remap = false) public int yOffsetPixels;
+	
 	@Unique
 	private TrackNodeLocationDelta railx$location;
 	
@@ -41,7 +43,12 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	//       so did not handle that case
 	@Inject(method = "<init>(Lnet/minecraft/world/phys/Vec3;)V", at = @At("RETURN"), remap = false)
 	void onInit(Vec3 vec, CallbackInfo ci) {
-		railx$location = TrackNodeLocationDelta.of((TrackNodeLocation) (Object) this, vec);
+		var location = TrackNodeLocationDelta.of((TrackNodeLocation) (Object) this, vec);
+		if(location != null) {
+			var asYOffset = location.asYOffset();
+			if(asYOffset != -1) yOffsetPixels = asYOffset;
+			else railx$location = location;
+		}
 	}
 	
 	
@@ -96,7 +103,7 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	void onSend(FriendlyByteBuf buffer, DimensionPalette dimensions, CallbackInfo ci) {
 		TrackNodeLocationDelta location = railx$location;
 		if(location == null) {
-			buffer.writeBytes(TrackNodeLocationDelta.DummyBytes);
+			buffer.writeBytes(TrackNodeLocationDelta.DefaultAsBytes);
 		} else {
 			buffer.writeBytes(location.toByteArray());
 		}

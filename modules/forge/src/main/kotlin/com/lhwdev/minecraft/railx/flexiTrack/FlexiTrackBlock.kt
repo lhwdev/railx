@@ -66,15 +66,6 @@ import kotlin.math.min
 import com.simibubi.create.AllBlocks as CreateBlocks
 
 
-// private val Properties_offsetFunction = Properties::class.java.getDeclaredField("offsetFunction")
-// 	.also { it.isAccessible = true }
-//
-// private fun Properties.offsetFunction(fn: BlockBehaviour.OffsetFunction): Properties {
-// 	Properties_offsetFunction.set(this, fn)
-// 	return this
-// }
-
-
 open class FlexiTrackBlock(
 	properties: Properties,
 	@get:JvmName("getMaterialKt")

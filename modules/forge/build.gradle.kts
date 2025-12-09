@@ -1,13 +1,12 @@
 @file:Suppress("UnstableApiUsage")
 
-import com.lhwdev.build.minecraft.utils.ProjectOnlyDependencyFilter
-
 
 plugins {
 	id("java-library")
 	id("maven-publish")
 	id("idea")
 	id("railx.neoforged.moddev.asDeps")
+	id("railx.moddev.platform")
 	id("com.gradleup.shadow")
 	kotlin("jvm")
 }
@@ -20,21 +19,10 @@ base {
 	archivesName = modId
 }
 
-val runClientSources by sourceSets.registering {
-	configurations {
-		val optionalMod = create("runClientSourcesOptionalMod") {
-			isCanBeDeclared = true
-			isCanBeResolved = true
-			isCanBeConsumed = true
-		}
-		get(compileClasspathConfigurationName).extendsFrom(compileClasspath.get())
-		get(runtimeClasspathConfigurationName).extendsFrom(runtimeClasspath.get())
-		get(runtimeClasspathConfigurationName).extendsFrom(optionalMod)
-	}
-	tasks {
-		named(classesTaskName) { dependsOn(classes) }
-		named(processResourcesTaskName) { dependsOn(processResources) }
-	}
+
+modDevPlatform {
+	writeProjectDependencies()
+	configureShadow(tasks.shadowJar)
 }
 
 neoForge {
@@ -52,7 +40,7 @@ neoForge {
 			systemProperty("neoforge.enabledGameTestNamespaces", modId)
 			systemProperty("mixin.debug", "true")
 			
-			sourceSet = runClientSources
+			sourceSet = modDevPlatform.modDevRuntime
 		}
 		
 		register("server") {
@@ -90,8 +78,12 @@ neoForge {
 			// "SCAN": For mods scan.
 			// "REGISTRIES": For firing of registry events.
 			// "REGISTRYDUMP": For getting the contents of all registries.
-			systemProperty("forge.logging.markers", "REGISTRIES")
+			systemProperty("forge.logging.markers", "SCAN")
 			systemProperty("railx_mixin_bypass", "true")
+			systemProperties.put(
+				"railx.project_dependencies_file",
+				modDevPlatform.projectDependenciesFile.map { it.asFile.absolutePath }
+			)
 			
 			logLevel = org.slf4j.event.Level.DEBUG
 		}
@@ -110,13 +102,11 @@ sourceSets.main.configure {
 
 dependencies {
 	val v = libs.versions
-	
-	fun runClientOnly(dependencyNotation: Any) =
-		add("runClientSourcesOptionalMod", dependencyNotation)
+	val modDevRuntimeMods = modDevPlatform.modDevRuntimeMods
 	
 	fun optionalModDependency(dependencyNotation: Any): Dependency? {
 		val dependency = modCompileOnly(dependencyNotation) ?: return null
-		return add("runClientSourcesOptionalMod", dependency)
+		return modDevRuntimeMods(dependency)
 	}
 	
 	implementation(projects.minecraft)
@@ -152,7 +142,6 @@ dependencies {
 tasks.jar { isEnabled = false }
 tasks.shadowJar {
 	archiveClassifier = null
-	dependencyFilter = ProjectOnlyDependencyFilter(project)
 	
 	from(tasks.jarJar)
 	from(layout.buildDirectory.dir("mixin").map { it.file("railx.refmap.json") })
@@ -181,7 +170,7 @@ file("build/mod_output_path.txt").let { output ->
 
 // limitation: only optionalMod is supported
 tasks.register<Copy>("modJars") {
-	from(configurations["runClientSourcesOptionalMod"])
+	from(modDevPlatform.modDevRuntimeMods)
 	into(layout.buildDirectory.file("modJars"))
 }
 

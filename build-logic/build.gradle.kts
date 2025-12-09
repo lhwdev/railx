@@ -31,6 +31,13 @@ gradlePlugin {
 			description =
 				"Assumes using :minecraft module; does not provide extra artifacts. Automatically add dependency to :minecraft project."
 		}
+		
+		register("moddevPlatform") {
+			id = "railx.moddev.platform"
+			implementationClass = "com.lhwdev.build.minecraft.ModDevPlatformPlugin"
+			displayName = "Mod Development Platform Plugin"
+			description = "Provides useful utility for testing and publishing platform mod file."
+		}
 	}
 }
 

@@ -50,6 +50,13 @@ dependencyResolutionManagement {
 			}
 		}
 		
+		maven(url = "https://maven.ithundxr.dev/releases") {
+			name = "IThundxrs Maven for Steam 'n' Rails"
+			content {
+				includeGroup("com.railwayteam.railways")
+			}
+		}
+		
 		maven(url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/") {
 			name = "Fuzss Maven for ForgeConfigApiPort"
 			content { includeGroup("fuzs.forgeconfigapiport") }

@@ -35,7 +35,7 @@ object ManualStation {
 			maxDistance, forward, null,
 		) { distance, _, _, currentEntry, globalStation ->
 			if(distance < minDistance) return@search false
-			val edge = currentEntry.getSecond()
+			val edge = currentEntry.second
 			val distanceToStation = distance - edge.length + globalStation.getLocationOn(edge)
 			if(distanceToStation < minDistance) return@search false
 			

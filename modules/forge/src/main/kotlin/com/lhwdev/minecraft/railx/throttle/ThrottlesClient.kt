@@ -17,10 +17,6 @@ object ThrottlesClient {
 	var throttle: Throttles.Throttle? = null
 	var packetCooldown = 0
 	
-	init {
-		ControlsHandler.currentlyPressed = mutableListOf()
-	}
-	
 	
 	fun levelUnloaded(level: LevelAccessor) {
 		packetCooldown = 0
@@ -32,7 +28,16 @@ object ThrottlesClient {
 	}
 	
 	fun stopControlling() {
+		if(throttle != null) {
+			// as ControlsHandler.currentlyPressed is always empty when throttle feature is on
+			val entity = ControlsHandler.getContraption()
+			val controlsPos = ControlsHandler.getControlsPos()
+			if(entity != null && controlsPos != null)
+				CreatePackets.getChannel().sendToServer(ControlsInputPacket(emptyList(), false, entity.id, controlsPos, false))
+		}
+		
 		throttle = null
+		packetCooldown = 0
 	}
 	
 	fun tick() {
@@ -42,8 +47,14 @@ object ThrottlesClient {
 		if(packetCooldown > 0) packetCooldown--
 		if(entity.isRemoved || InputConstants.isKeyDown(mc.window.window, GLFW.GLFW_KEY_ESCAPE)) {
 			ControlsHandler.stopControlling()
-			CreatePackets.getChannel().sendToServer(
-				ControlsInputPacket(ControlsHandler.currentlyPressed, false, entity.id, controlsPos, true)
+			AllPackets.sendToServer(
+				ThrottlePacket(
+					contraptionEntityId = entity.id,
+					controlsPos = controlsPos,
+					throttle = Throttles.Throttle.Neutral,
+					otherKeys = ControlsHandler.currentlyPressed.toList(),
+					stopControlling = true,
+				)
 			)
 			return
 		}
@@ -55,8 +66,12 @@ object ThrottlesClient {
 			.mapIndexedNotNull { index, control -> index.takeIf { ControlsUtil.isActuallyPressed(control) } }
 		
 		var reverser = previous?.reverser ?: Throttles.Reverser.Neutral
-		if(AllKeys.ThrottleReverserForward.isKeyDown) reverser = reverser.forward()
-		if(AllKeys.ThrottleReverserBackward.isKeyDown) reverser = reverser.backward()
+		var gear = previous?.gear ?: 0
+		
+		if(gear <= 0) {
+			if(AllKeys.ThrottleReverserForward.isKeyDown) reverser = reverser.forward()
+			if(AllKeys.ThrottleReverserBackward.isKeyDown) reverser = reverser.backward()
+		}
 		
 		val steering = when {
 			2 in pressedKeys -> Throttles.Steering.Left
@@ -65,10 +80,10 @@ object ThrottlesClient {
 		}
 		
 		// TODO: hold long to move more
-		var gear = previous?.gear ?: 0
-		if(AllKeys.ThrottleAccelerate.isKeyDown) gear = (gear + 1).coerceAtMost(7)
+		if(AllKeys.ThrottleAccelerate.isKeyDown) gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)
 		if(AllKeys.ThrottleNeutral.isKeyDown) gear += -sign(gear)
-		if(AllKeys.ThrottleBrake.isKeyDown) gear = (gear - 1).coerceAtLeast(-4)
+		if(AllKeys.ThrottleBrake.isKeyDown) gear = (gear - 1).coerceAtLeast(-Throttles.maxBreak)
+		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
 		
 		val throttle = Throttles.Throttle(reverser, steering, gear)
 		if(pressedKeys != ControlsHandler.currentlyPressed || throttle != previous || packetCooldown == 0) {
@@ -81,6 +96,7 @@ object ThrottlesClient {
 				otherKeys = pressedKeys,
 			)
 			AllPackets.sendToServer(packet)
+			packetCooldown = ControlsHandler.PACKET_RATE
 		}
 		
 		controls.forEach { it.isDown = false }

@@ -57,7 +57,7 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 		super.onLoad()
 		if(!loaded) return
 		if(connections.isEmpty() || RailXConfig.Server.middleTrack.removePrevious.get()) {
-			level!!.destroyBlock(blockPos, false)
+			level!!.removeBlock(blockPos, false)
 			return
 		}
 		

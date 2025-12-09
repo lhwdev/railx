@@ -1,13 +1,14 @@
 package com.lhwdev.minecraft.railx.mixin.realisticSpeed;
 
 import com.lhwdev.minecraft.railx.RailXConfig;
+import com.lhwdev.minecraft.railx.realisticSpeed.ITrainWithRealisticTrainSpeed;
 import com.lhwdev.minecraft.railx.realisticSpeed.RealisticTrainSpeed;
 import com.simibubi.create.content.trains.entity.Train;
 import com.simibubi.create.content.trains.graph.DimensionPalette;
 import com.simibubi.create.content.trains.graph.TrackGraph;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,9 +21,16 @@ import java.util.UUID;
 
 
 @Mixin(Train.class)
-public class TrainMixin {
+public class TrainMixin implements ITrainWithRealisticTrainSpeed {
 	@Unique
 	private RealisticTrainSpeed railx$realisticSpeed;
+	
+	
+	@Override
+	public @Nullable RealisticTrainSpeed getRailx$realisticSpeed() {
+		return railx$realisticSpeed;
+	}
+	
 	
 	@Inject(method = "<init>*", at = @At("RETURN"), remap = false)
 	private void onConstructed(CallbackInfo ci) {

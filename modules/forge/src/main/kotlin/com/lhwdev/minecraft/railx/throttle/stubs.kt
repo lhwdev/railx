@@ -8,16 +8,17 @@ object ThrottleStubs {
 		Collection<Int> by throttleList(throttle, controls)
 	
 	private fun throttleList(throttle: Throttles.Throttle, controls: Collection<Int>) = buildList {
-		when(throttle.reverser) {
+		if(throttle.gear >= 0) when(throttle.reverser) {
 			Throttles.Reverser.Forward -> add(0)
 			Throttles.Reverser.Neutral -> {}
 			Throttles.Reverser.Backward -> add(1)
 		}
 		when(throttle.steering) {
-			Throttles.Steering.Left -> add(3)
+			Throttles.Steering.Left -> add(2)
 			Throttles.Steering.Neutral -> {}
-			Throttles.Steering.Right -> add(2)
+			Throttles.Steering.Right -> add(3)
 		}
-		addAll(controls)
+		if(4 in controls) add(4)
+		if(5 in controls) add(5)
 	}
 }

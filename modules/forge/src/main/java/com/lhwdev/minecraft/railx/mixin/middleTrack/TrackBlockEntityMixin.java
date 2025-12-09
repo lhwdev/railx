@@ -1,6 +1,5 @@
 package com.lhwdev.minecraft.railx.mixin.middleTrack;
 
-import com.lhwdev.minecraft.railx.common.FakeTracks;
 import com.lhwdev.minecraft.railx.middleTrack.ConnectionMiddlesKt;
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackLikeBlockEntity;
 import com.simibubi.create.content.trains.track.BezierConnection;
@@ -14,7 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,6 +27,12 @@ import java.util.Objects;
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(TrackBlockEntity.class)
 public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements MiddleTrackLikeBlockEntity {
+	@Shadow(remap = false) Map<BlockPos, BezierConnection> connections;
+	
+	@Shadow(remap = false)
+	private void removeFromCurveInteraction() {}
+	
+	
 	@Unique
 	private List<BezierConnection> railx$previousConnections;
 	
@@ -87,20 +91,5 @@ public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements 
 		if(level.isClientSide) ConnectionMiddlesKt.getGlobalConnections().get(level)
 			.removeTrack((TrackBlockEntity) (Object) this, railx$previousConnections);
 		railx$previousConnections = List.of();
-	}
-	
-	@Shadow(remap = false)
-	private void removeFromCurveInteraction() {}
-	
-	@Shadow(remap = false)
-	Map<BlockPos, BezierConnection> connections;
-	
-	/**
-	 * @author lhwdev
-	 * @reason too lazy to inject
-	 */
-	@Overwrite(remap = false)
-	public void manageFakeTracksAlong(BezierConnection bc, boolean remove) {
-		FakeTracks.manageFakeTracksAlong((TrackBlockEntity) (Object) this, bc, remove);
 	}
 }

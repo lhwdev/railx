@@ -52,6 +52,7 @@ class ServerSideContraptionBlockEntities(private val contraption: Contraption, p
 	override val blockEntities = HashMap<BlockPos, BlockEntity>()
 	
 	override fun load() {
+		if(blockEntities.isNotEmpty()) return
 		for(info in contraption.blocks.values) {
 			val be = readBlockEntity(info, contraption.isLegacy.getBoolean(info.pos)) ?: continue
 			
