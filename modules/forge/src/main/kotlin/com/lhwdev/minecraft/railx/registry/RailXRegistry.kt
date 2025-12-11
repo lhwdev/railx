@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.registry
 import com.lhwdev.minecraft.railx.RailX
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.tterrag.registrate.builders.BlockBuilder
+import com.tterrag.registrate.builders.ItemBuilder
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.entry.RegistryEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
@@ -13,6 +14,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
+import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockBehaviour
 
@@ -54,4 +56,13 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	): RegistryEntry<DataComponentType<*>, DataComponentType<T>> =
 		generic(name, Registries.DATA_COMPONENT_TYPE) { DataComponentType.builder<T>().apply(block).build() }
 			.register()
+}
+
+
+inline fun <B : Block, I : Item, P> BlockBuilder<B, P>.item(
+	crossinline factory: (B, Item.Properties) -> I,
+	builder: ItemBuilder<I, BlockBuilder<B, P>>.() -> Unit,
+) {
+	item { block, properties -> factory(block, properties) }
+		.apply(builder).build()
 }

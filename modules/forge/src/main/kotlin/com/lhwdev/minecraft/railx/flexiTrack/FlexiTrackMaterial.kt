@@ -32,7 +32,7 @@ class FlexiTrackMaterial(
 	id: ResourceLocation,
 	langName: String,
 	val flexiBlockSupplier: NonNullSupplier<out FlexiTrackBlock>,
-	val normalBlockSupplier: NonNullSupplier<out TrackBlock>,
+	val normalTrackBlockSupplier: NonNullSupplier<out TrackBlock>,
 	particle: ResourceLocation,
 	sleeperIngredient: Ingredient,
 	railsIngredient: Ingredient,
@@ -53,8 +53,8 @@ class FlexiTrackMaterial(
 	val flexiBlock: FlexiTrackBlock
 		get() = flexiBlockSupplier.get()
 	
-	val normalBlock: TrackBlock
-		get() = normalBlockSupplier.get()
+	val normalTrackBlock: TrackBlock
+		get() = normalTrackBlockSupplier.get()
 	
 	override fun asStack(count: Int): ItemStack =
 		ItemStack(flexiBlock, count)
@@ -63,8 +63,8 @@ class FlexiTrackMaterial(
 	companion object {
 		val Andesite: FlexiTrackMaterial = FlexiTrackMaterial(RailX.asResource("flexi_andesite")) {
 			langName = "Andesite"
-			trackBlock = AllBlocks.FlexiTrack
-			normalBlock = com.simibubi.create.AllBlocks.TRACK
+			trackBlock { AllBlocks.FlexiTrack }
+			normalTrackBlock { com.simibubi.create.AllBlocks.TRACK }
 			particle = Create.asResource("block/palettes/stone_types/polished/andesite_cut_polished")
 			defaultModels()
 		}
@@ -88,8 +88,20 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 	var langName: String? = null
 	
 	var trackBlock: NonNullSupplier<out FlexiTrackBlock>? = null
+		@Deprecated("use trackBlock {}") set
 	
-	var normalBlock: NonNullSupplier<out TrackBlock>? = null
+	inline fun trackBlock(crossinline getter: () -> NonNullSupplier<out FlexiTrackBlock>) {
+		@Suppress("DEPRECATION")
+		trackBlock = { getter().get() }
+	}
+	
+	var normalTrackBlock: NonNullSupplier<out TrackBlock>? = null
+		@Deprecated("use normalTrackBlock {}") set
+	
+	inline fun normalTrackBlock(crossinline getter: () -> NonNullSupplier<out TrackBlock>) {
+		@Suppress("DEPRECATION")
+		normalTrackBlock = { getter().get() }
+	}
 	
 	var sleeperIngredient: Ingredient = Ingredient.EMPTY
 	
@@ -177,7 +189,7 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 			id,
 			langName!!,
 			trackBlock!!,
-			normalBlock!!,
+			normalTrackBlock!!,
 			particle!!,
 			sleeperIngredient,
 			railsIngredient,
