@@ -93,7 +93,7 @@ object FlexiTrackPlacement {
 		val track = toState.block as? ITrackBlock
 			?: return PlaceError("internal error: block at 'to' is not ITrackBlock")
 		
-		val toPoint = if(previousToState.block is ITrackBlock || toState.block is TrackBlock) {
+		val toPoint = if(previousToState.block is ITrackBlock || toState.block !is FlexiTrackBlock) {
 			FlexiPlacementInfo.TrackPoint(
 				pos = toPos,
 				tangent = track.getNearestTrackAxis(level, toPos, toState, player.lookAngle).first,
@@ -344,7 +344,7 @@ object FlexiTrackPlacement {
 	}
 	
 	private fun FlexiPlacementInfo.placeTracks(level: Level, simulate: Boolean) {
-		val target = (flexiMaterial?.flexiBlock ?: material.block).defaultBlockState()
+		val target = material.defaultBlockState()
 		// val targetFrom = BlockPos.containing(fromOffset)
 		// val targetTo = BlockPos.containing(toOffset)
 		

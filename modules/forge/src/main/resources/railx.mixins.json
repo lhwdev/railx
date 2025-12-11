@@ -18,8 +18,6 @@
     "common.manualStation.TrainMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
-    "flexiTrack.BezierConnectionMixin",
-    "flexiTrack.BlueprintOverlayRendererMixin",
     "flexiTrack.GameDataMixin",
     "flexiTrack.PlacementInfoAccessor",
     "flexiTrack.TrackBlockEntityTiltMixin",

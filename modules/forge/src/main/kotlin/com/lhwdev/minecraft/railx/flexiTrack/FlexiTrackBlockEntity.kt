@@ -4,10 +4,12 @@ import com.lhwdev.minecraft.railx.flexiTrack.rotate.FlexiTrackRotateScrollBehavi
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
+import com.simibubi.create.foundation.blockEntity.RemoveBlockEntityPacket
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.ResourceKey
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -148,6 +150,8 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 			if(!willCancelDrop) bezierConnection.spawnItems(level)
 			bezierConnection.spawnDestroyParticles(level)
 		}
+		if(dropAndDiscard && level is ServerLevel)
+			com.simibubi.create.AllPackets.getChannel().send(packetTarget(), RemoveBlockEntityPacket(blockPos))
 	}
 	
 	override fun write(tag: CompoundTag, clientPacket: Boolean) {
