@@ -92,6 +92,9 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 				extendsFrom(modDevRuntimeMods.get())
 				
 				dependencies.add(project.dependencyFactory.create(main.output))
+				val standalone = modDevRuntimeStandaloneJar.map { it.outputs.files }
+					.let { project.files(it) }
+				dependencies.add(project.dependencyFactory.create(standalone))
 			}
 		}
 		

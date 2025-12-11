@@ -1,5 +1,3 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.RailX
@@ -23,6 +21,7 @@ import net.minecraftforge.eventbus.api.IEventBus
 val RailXRegistry = RailXRegistrate(RailX.Id)
 
 
+@Suppress("UNCHECKED_CAST")
 class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	init {
 		@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
@@ -32,11 +31,13 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	fun location(name: String): ResourceLocation =
 		ResourceLocation(modid, name)
 	
+	@Suppress("UNCHECKED_CAST")
 	fun <T> registryOf(key: ResourceKey<Registry<T>>): Registry<T> =
 		BuiltInRegistries.REGISTRY[key.location()] as Registry<T>
 	
 	
 	val allBlocks: List<BlockEntry<*>>
+		@Suppress("UNCHECKED_CAST")
 		get() = getAll(Registries.BLOCK) as List<BlockEntry<*>>
 	
 	

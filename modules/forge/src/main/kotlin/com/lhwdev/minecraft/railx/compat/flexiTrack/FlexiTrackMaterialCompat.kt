@@ -12,7 +12,7 @@ object FlexiTrackMaterialCompat {
 	val WideAndesite = FlexiTrackMaterial(id = RailX.asResource("flexi_wide_andesite")) {
 		langName = "Andesite"
 		trackBlock { AllBlocks.WideAndesiteFlexiTrack }
-		normalTrackBlock = CRBlocks.WIDE_GAUGE_TRACKS[CRTrackMaterials.WIDE_GAUGE_ANDESITE]!!
+		normalTrackBlock { CRBlocks.WIDE_GAUGE_TRACKS[CRTrackMaterials.WIDE_GAUGE_ANDESITE]!! }
 		trackType = CRTrackMaterials.CRTrackType.WIDE_GAUGE
 		particle = Create.asResource("block/palettes/stone_types/polished/andesite_cut_polished")
 		noRecipeGen()

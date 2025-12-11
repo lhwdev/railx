@@ -103,7 +103,7 @@ open class FlexiTrackBlock(properties: Properties, material: FlexiTrackMaterial)
 	
 	
 	val normalBlock: TrackBlock
-		get() = (material as FlexiTrackMaterial).normalBlock
+		get() = (material as FlexiTrackMaterial).normalTrackBlock
 	
 	override fun getRenderShape(state: BlockState): RenderShape =
 		RenderShape.INVISIBLE
@@ -111,23 +111,6 @@ open class FlexiTrackBlock(properties: Properties, material: FlexiTrackMaterial)
 	/** Note that track rotation is taken care by FlexiTrackBlockItem. */
 	override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
 		withWater(defaultBlockState(), context)
-	
-	override fun getPistonPushReaction(pState: BlockState): PushReaction =
-		PushReaction.BLOCK
-	
-	override fun onPlace(
-		pState: BlockState,
-		pLevel: Level,
-		pPos: BlockPos,
-		pOldState: BlockState,
-		pIsMoving: Boolean,
-	) {
-		if(pState === pOldState) return
-		if(pLevel.isClientSide) return
-		val blockTicks = pLevel.blockTicks
-		if(!blockTicks.hasScheduledTick(pPos, this)) pLevel.scheduleTick(pPos, this, 1)
-		updateGirders(pState, pLevel, pPos, blockTicks)
-	}
 	
 	override fun playerWillDestroy(level: Level, pos: BlockPos, state: BlockState, player: Player) {
 		if(!level.isClientSide && player.isCreative)
