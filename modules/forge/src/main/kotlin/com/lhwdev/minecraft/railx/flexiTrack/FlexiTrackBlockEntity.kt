@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.shapes.VoxelShape
 
 
-class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
+open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
 	TrackBlockEntity(type, pos, state), TransformableBlockEntity, IMergeableBE {
 	
 	init {

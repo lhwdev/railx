@@ -102,7 +102,7 @@ sourceSets.main.configure {
 
 dependencies {
 	val v = libs.versions
-	val modDevRuntimeMods = modDevPlatform.modDevRuntimeMods
+	val modDevRuntimeMods = obfuscation.createRemappingConfiguration(modDevPlatform.modDevRuntimeMods.get())
 	
 	fun optionalModDependency(dependencyNotation: Any): Dependency? {
 		val dependency = modCompileOnly(dependencyNotation) ?: return null
@@ -126,12 +126,13 @@ dependencies {
 	modImplementation(jarJar("com.tterrag.registrate:Registrate:MC1.20-1.3.11")!!)
 	
 	// for mod compatibility
-	modCompileOnly("maven.modrinth:framedblocks:9.4.2")
-	modCompileOnly("maven.modrinth:xaeros-world-map:1.39.12_Forge_1.20")
-	modCompileOnly("maven.modrinth:copycats:3.0.4+mc.1.20.1-forge")
+	optionalModDependency("com.railwayteam.railways:Steam_Rails-forge-1.20.1:1.6.14-beta+forge-mc1.20.1")
+	optionalModDependency("maven.modrinth:framedblocks:9.4.2")
+	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_Forge_1.20")
+	optionalModDependency("maven.modrinth:copycats:3.0.4+mc.1.20.1-forge")
 	
 	// optional mod dependencies
-	modCompileOnly(":worldedit:7.2.15") // from flatDir
+	optionalModDependency(":worldedit:7.2.15") // from flatDir
 	
 	implementation(jarJar("io.github.llamalad7:mixinextras-forge:${v.mixinExtras.get()}")!!)
 	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${v.mixinExtras.get()}")!!)

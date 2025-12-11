@@ -121,7 +121,7 @@ open class FlexiTrackBlock(
 	
 	
 	val normalBlock: TrackBlock
-		get() = CreateBlocks.TRACK.get()
+		get() = material.block
 	
 	override fun getRenderShape(state: BlockState): RenderShape =
 		RenderShape.INVISIBLE

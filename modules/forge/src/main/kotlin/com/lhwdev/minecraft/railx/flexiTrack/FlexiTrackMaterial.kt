@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.registry.AllBlocks
 import com.simibubi.create.Create
 import com.simibubi.create.content.trains.track.ITrackBlock
+import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.content.trains.track.TrackMaterial.TrackModelHolder
 import com.simibubi.create.content.trains.track.TrackMaterial.TrackType
@@ -22,6 +23,7 @@ import net.minecraftforge.common.Tags
 import thedarkcolour.kotlinforforge.forge.runWhenOn
 import java.util.function.Supplier
 import java.util.stream.Stream
+import com.simibubi.create.AllBlocks as CreateBlocks
 import com.simibubi.create.AllPartialModels as CreatePartialModels
 
 
@@ -39,6 +41,7 @@ class FlexiTrackMaterial(
 	id: ResourceLocation,
 	langName: String,
 	val flexiBlockSupplier: NonNullSupplier<out FlexiTrackBlock>,
+	normalBlockSupplier: NonNullSupplier<out TrackBlock>,
 	particle: ResourceLocation,
 	sleeperIngredient: Ingredient,
 	railsIngredient: Ingredient,
@@ -48,7 +51,7 @@ class FlexiTrackMaterial(
 ) : TrackMaterial(
 	id,
 	langName,
-	{ NonNullSupplier { flexiBlockSupplier.get().normalBlock } },
+	{ normalBlockSupplier },
 	particle,
 	sleeperIngredient,
 	railsIngredient,
@@ -66,7 +69,7 @@ class FlexiTrackMaterial(
 	companion object {
 		val Andesite: FlexiTrackMaterial = FlexiTrackMaterial(RailX.asResource("flexi_andesite")) {
 			langName = "Andesite"
-			trackBlock = AllBlocks.FlexiTrack
+			trackBlock { AllBlocks.FlexiTrack }
 			particle = Create.asResource("block/palettes/stone_types/polished/andesite_cut_polished")
 			defaultModels()
 		}
@@ -89,7 +92,15 @@ inline fun FlexiTrackMaterial(id: ResourceLocation, block: FlexiTrackMaterialFac
 class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 	var langName: String? = null
 	
+	@Deprecated(message = "use trackBlock()")
 	var trackBlock: NonNullSupplier<out FlexiTrackBlock>? = null
+	
+	inline fun trackBlock(crossinline block: () -> NonNullSupplier<out FlexiTrackBlock>) {
+		@Suppress("DEPRECATION")
+		trackBlock = { block().get() }
+	}
+	
+	var normalTrackBlock: NonNullSupplier<out TrackBlock> = CreateBlocks.TRACK
 	
 	var sleeperIngredient: Ingredient = Ingredient.EMPTY
 	
@@ -177,6 +188,7 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 			id,
 			langName!!,
 			trackBlock!!,
+			normalTrackBlock,
 			particle!!,
 			sleeperIngredient,
 			railsIngredient,

@@ -23,7 +23,7 @@ import com.simibubi.create.AllSoundEvents as CreateSoundEvents
 import com.simibubi.create.AllTags as CreateTags
 
 
-class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem(block, properties) {
+open class FlexiTrackBlockItem(block: Block, properties: Properties) : TrackBlockItem(block, properties) {
 	override fun useOn(pContext: UseOnContext): InteractionResult {
 		var stack = pContext.itemInHand
 		var pos = pContext.clickedPos

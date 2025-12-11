@@ -72,10 +72,6 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 			from(modDevRuntimeStandalone.get().output)
 			destinationDirectory.set(project.layout.buildDirectory.dir("moddevStandalone"))
 			archiveBaseName.set("railx-standalone")
-			
-			manifest.attributes(
-				"FMLModType" to "LIBRARY",
-			)
 		}
 		
 		tasks.named("classes") { dependsOn(modDevRuntimeStandaloneJar) }
@@ -96,6 +92,9 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 				extendsFrom(modDevRuntimeMods.get())
 				
 				dependencies.add(project.dependencyFactory.create(main.output))
+				val standalone = modDevRuntimeStandaloneJar.map { it.outputs.files }
+					.let { project.files(it) }
+				dependencies.add(project.dependencyFactory.create(standalone))
 			}
 		}
 		
