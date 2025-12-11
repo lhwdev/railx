@@ -58,7 +58,7 @@ class FlexiTrackVisual(context: VisualizationContext, track: FlexiTrackBlockEnti
 		private val blocks: List<TransformedInstance>
 		
 		init {
-			val trackBlock = be.block.material.block
+			val trackBlock = be.block.material.normalBlock
 			val trackState = trackBlock.defaultBlockState()
 				.setValue(TrackBlock.SHAPE, TrackShape.XO)
 			

@@ -2,6 +2,8 @@ package com.lhwdev.build.minecraft
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.DependencyFilter
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.neoforged.moddevgradle.dsl.InternalModelHelper
+import net.neoforged.moddevgradle.dsl.NeoForgeExtension
 import net.neoforged.moddevgradle.internal.utils.ExtensionUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectProvider
@@ -18,7 +20,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.*
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.attributes
 import org.gradle.kotlin.dsl.getByName
 import java.io.Serializable
 import java.util.*
@@ -72,10 +73,6 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 			from(modDevRuntimeStandalone.get().output)
 			destinationDirectory.set(project.layout.buildDirectory.dir("moddevStandalone"))
 			archiveBaseName.set("railx-standalone")
-			
-			manifest.attributes(
-				"FMLModType" to "LIBRARY",
-			)
 		}
 		
 		tasks.named("classes") { dependsOn(modDevRuntimeStandaloneJar) }
@@ -96,6 +93,25 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 				extendsFrom(modDevRuntimeMods.get())
 				
 				dependencies.add(project.dependencyFactory.create(main.output))
+				val standalone = modDevRuntimeStandaloneJar.map { it.outputs.files }
+					.let { project.files(it) }
+				dependencies.add(project.dependencyFactory.create(standalone))
+			}
+		}
+		
+		// add to legacyClasspath
+		project.afterEvaluate {
+			configurations.named("additionalRuntimeClasspath") {
+				val standaloneJar = modDevRuntimeStandaloneJar.map { it.outputs.files }
+				dependencies.add(project.dependencyFactory.create(project.files(standaloneJar)))
+			}
+			
+			// IDK why task dependency is not added from configuration
+			val neoForge = project.extensions.getByName<NeoForgeExtension>("neoForge")
+			neoForge.runs.configureEach {
+				tasks.named(InternalModelHelper.nameOfRun(this, "write", "legacyClasspath")) {
+					dependsOn(modDevRuntimeStandaloneJar)
+				}
 			}
 		}
 		

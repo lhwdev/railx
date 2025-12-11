@@ -27,6 +27,7 @@ object AllTrackMaterials {
 		val Andesite: FlexiTrackMaterial = FlexiTrackMaterial(RailX.asResource("flexi_split_graph/andesite")) {
 			langName = "Flexible Split Graph Andesite"
 			trackBlock = AllBlocks.FlexiSplitGraphTrack
+			normalBlock = AllBlocks.SplitGraphTrack
 			particle = Create.asResource("block/palettes/stone_types/polished/andesite_cut_polished")
 			defaultModels()
 		}

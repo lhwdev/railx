@@ -4,16 +4,20 @@ import com.lhwdev.minecraft.railx.flexiTrack.rotate.FlexiTrackRotateScrollBehavi
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
+import com.simibubi.create.foundation.blockEntity.RemoveBlockEntityPacket
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.ResourceKey
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.shapes.VoxelShape
+import net.neoforged.neoforge.network.PacketDistributor
 
 
 class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
@@ -147,6 +151,8 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 			if(!willCancelDrop) bezierConnection.spawnItems(level)
 			bezierConnection.spawnDestroyParticles(level)
 		}
+		if(dropAndDiscard && level is ServerLevel)
+			PacketDistributor.sendToPlayersTrackingChunk(level, ChunkPos(blockPos), RemoveBlockEntityPacket(blockPos))
 	}
 	
 	override fun write(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {

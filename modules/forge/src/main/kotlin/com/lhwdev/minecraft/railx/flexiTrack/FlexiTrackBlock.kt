@@ -5,21 +5,14 @@ import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
-import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement
+import com.simibubi.create.Create
 import com.simibubi.create.content.decoration.girder.GirderBlock
-import com.simibubi.create.content.equipment.wrench.IWrenchable
-import com.simibubi.create.content.schematics.requirement.ItemRequirement
-import com.simibubi.create.content.schematics.requirement.ItemRequirement.ItemUseType
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
 import com.simibubi.create.content.trains.track.*
-import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.block.IHaveBigOutline
-import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import com.simibubi.create.foundation.block.render.MultiPosDestructionHandler
 import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import dev.engine_room.flywheel.lib.transform.Affine
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap
 import net.createmod.catnip.data.Iterate
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.particle.ParticleEngine
@@ -29,9 +22,9 @@ import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.Mob
+import net.minecraft.world.ItemInteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
@@ -39,19 +32,15 @@ import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
-import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.Rotation
-import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
-import net.minecraft.world.level.material.FluidState
-import net.minecraft.world.level.material.PushReaction
-import net.minecraft.world.level.pathfinder.PathType
+import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
@@ -60,31 +49,24 @@ import net.minecraft.world.ticks.LevelTickAccess
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions
+import net.neoforged.neoforge.common.NeoForge
+import net.neoforged.neoforge.event.level.BlockEvent
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
-import com.simibubi.create.AllBlocks as CreateBlocks
+import com.simibubi.create.AllSoundEvents as CreateSoundEvents
 
 
-open class FlexiTrackBlock(
-	properties: Properties,
-	@get:JvmName("getMaterialKt")
-	val material: FlexiTrackMaterial,
-) : Block(
-	properties
-		.dynamicShape()
-),
-	IBE<FlexiTrackBlockEntity>,
-	IWrenchable,
-	ITrackBlock,
-	SpecialBlockItemRequirement,
-	ProperWaterloggedBlock,
-	IHaveBigOutline {
+open class FlexiTrackBlock(properties: Properties, material: FlexiTrackMaterial) :
+	TrackBlock(properties.dynamicShape(), material) {
 	companion object {
-		// val BaseDirection = FlexiDirectionProperty.create("direction")
-		val Waterlogged: BooleanProperty = ProperWaterloggedBlock.WATERLOGGED
+		val Waterlogged: BooleanProperty = WATERLOGGED
 	}
 	
+	private var initializingFlexiState = false
+	
 	init {
+		initializingFlexiState = true
 		val stateDefinition = StateDefinition.Builder<Block, BlockState>(this).let { builder ->
 			createBlockStateDefinition(builder)
 			builder.create(Block::defaultBlockState) { block, values, propertiesCodec ->
@@ -95,7 +77,6 @@ open class FlexiTrackBlock(
 		
 		registerDefaultState(
 			stateDefinition.possibleStates[0]
-				// .setValue(BaseDirection, FlexiDirection.Known.Divisions[0])
 				.setValue(Waterlogged, false)
 		)
 	}
@@ -115,73 +96,33 @@ open class FlexiTrackBlock(
 		get() = this as FlexiBlockState
 	
 	override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-		super.createBlockStateDefinition(builder.add(/* BaseDirection,  */Waterlogged))
+		if(!initializingFlexiState) return super.createBlockStateDefinition(builder)
+		builder.add(Waterlogged)
 	}
 	
 	
 	val normalBlock: TrackBlock
-		get() = CreateBlocks.TRACK.get()
+		get() = (material as FlexiTrackMaterial).normalBlock
 	
 	override fun getRenderShape(state: BlockState): RenderShape =
 		RenderShape.INVISIBLE
 	
-	override fun getBlockPathType(state: BlockState, level: BlockGetter, pos: BlockPos, mob: Mob?): PathType =
-		PathType.RAIL
-	
-	override fun getFluidState(state: BlockState): FluidState =
-		fluidState(state)
-	
 	/** Note that track rotation is taken care by FlexiTrackBlockItem. */
 	override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
-		withWater(super.getStateForPlacement(context), context)
+		withWater(defaultBlockState(), context)
 	
-	override fun getPistonPushReaction(pState: BlockState): PushReaction =
-		PushReaction.BLOCK
-	
-	override fun playerWillDestroy(pLevel: Level, pPos: BlockPos, pState: BlockState, pPlayer: Player): BlockState {
-		super.playerWillDestroy(pLevel, pPos, pState, pPlayer)
-		
-		if(pLevel.isClientSide) return pState
-		if(!pPlayer.isCreative) return pState
-		withBlockEntityDo(pLevel, pPos) { be ->
-			(be as FlexiTrackBlockEntity).willCancelDrop = true
-			be.removeInboundConnections(true)
-		}
-		
-		return pState
+	override fun playerWillDestroy(level: Level, pos: BlockPos, state: BlockState, player: Player): BlockState {
+		if(!level.isClientSide && player.isCreative)
+			blockEntity(level, pos)?.let { it.willCancelDrop = true }
+		return super.playerWillDestroy(level, pos, state, player)
 	}
 	
-	public override fun onPlace(
-		pState: BlockState,
-		pLevel: Level,
-		pPos: BlockPos,
-		pOldState: BlockState,
-		pIsMoving: Boolean,
-	) {
-		if(pState === pOldState) return
-		if(pLevel.isClientSide) return
-		val blockTicks = pLevel.blockTicks
-		if(!blockTicks.hasScheduledTick(pPos, this)) pLevel.scheduleTick(pPos, this, 1)
-		updateGirders(pState, pLevel, pPos, blockTicks)
-	}
-	
-	override fun setPlacedBy(
-		pLevel: Level,
-		pPos: BlockPos,
-		pState: BlockState,
-		pPlacer: LivingEntity?,
-		pStack: ItemStack,
-	) {
-		super.setPlacedBy(pLevel, pPos, pState, pPlacer, pStack)
-		withBlockEntityDo(pLevel, pPos) { it.validateConnections() }
-	}
-	
-	public override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, randomSource: RandomSource) {
+	override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, randomSource: RandomSource) {
 		TrackPropagator.onRailAdded(level, pos, state)
 		withBlockEntityDo(level, pos) { it.tilt.undoSmoothing() }
 	}
 	
-	public override fun updateShape(
+	override fun updateShape(
 		state: BlockState, pDirection: Direction, pNeighborState: BlockState,
 		level: LevelAccessor, pCurrentPos: BlockPos, pNeighborPos: BlockPos,
 	): BlockState {
@@ -273,48 +214,44 @@ open class FlexiTrackBlock(
 		return list
 	}
 	
-	public override fun onRemove(
+	override fun animateTick(pState: BlockState, pLevel: Level, pPos: BlockPos, pRand: Random) {}
+	
+	override fun onRemove(
 		pState: BlockState,
 		pLevel: Level,
 		pPos: BlockPos,
 		pNewState: BlockState,
 		pIsMoving: Boolean,
 	) {
+		var removeBe = false
 		if(pState.block != pNewState.block) {
 			val blockEntity = pLevel.getBlockEntity(pPos)
 			if(blockEntity is FlexiTrackBlockEntity && !pLevel.isClientSide) {
+				blockEntity.willCancelDrop = blockEntity.willCancelDrop || pNewState.block == this
 				blockEntity.removeInboundConnections(true)
 			}
+			removeBe = true
 		}
 		
 		if(pNewState.block != this || pState != pNewState)
 			TrackPropagator.onRailRemoved(pLevel, pPos, pState)
+		if(removeBe)
+			pLevel.removeBlockEntity(pPos)
 		if(!pLevel.isClientSide)
 			updateGirders(pState, pLevel, pPos, pLevel.blockTicks)
-		
-		super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving)
 	}
 	
 	// No assembly on flexi track
-	//    override fun useItemOn(
-	//        stack: ItemStack,
-	//        state: BlockState,
-	//        level: Level,
-	//        pos: BlockPos,
-	//        player: Player,
-	//        hand: InteractionHand,
-	//        hitResult: BlockHitResult
-	//    ): ItemInteractionResult {
-	//        if (level.isClientSide) return ItemInteractionResult.SUCCESS
-	//        for (entry in StationBlockEntity.assemblyAreas.get(level).entries) {
-	//            if (!entry.value.isInside(pos)) continue
-	//            val station = level.getBlockEntity(entry.key)
-	//            if (station is StationBlockEntity && station.trackClicked(player, hand, this, state, pos))
-	//                return ItemInteractionResult.SUCCESS
-	//        }
-	//
-	//        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
-	//    }
+	override fun useItemOn(
+		stack: ItemStack,
+		state: BlockState,
+		level: Level,
+		pos: BlockPos,
+		player: Player,
+		hand: InteractionHand,
+		hitResult: BlockHitResult,
+	): ItemInteractionResult =
+		ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 	
 	private fun updateGirders(pState: BlockState, pLevel: Level, pPos: BlockPos, blockTicks: LevelTickAccess<Block?>) {
 		for(axis in getTrackAxes(pLevel, pPos, pState)) {
@@ -330,9 +267,6 @@ open class FlexiTrackBlock(
 			}
 		}
 	}
-	
-	override fun canSurvive(state: BlockState, reader: LevelReader, pos: BlockPos): Boolean =
-		reader.getBlockState(pos.below()).block !== this
 	
 	override fun getShape(
 		state: BlockState,
@@ -357,8 +291,9 @@ open class FlexiTrackBlock(
 	override fun getBlockEntityType(): BlockEntityType<out FlexiTrackBlockEntity> =
 		AllBlockEntityTypes.FlexiTrack.get()
 	
-	override fun getBlockEntityClass(): Class<FlexiTrackBlockEntity> =
-		FlexiTrackBlockEntity::class.java
+	@Suppress("UNCHECKED_CAST")
+	override fun getBlockEntityClass(): Class<TrackBlockEntity> =
+		FlexiTrackBlockEntity::class.java as Class<TrackBlockEntity>
 	
 	override fun getUpNormal(world: BlockGetter, pos: BlockPos, state: BlockState): Vec3 =
 		flexiShape(world, pos).normal
@@ -372,21 +307,34 @@ open class FlexiTrackBlock(
 	override fun getCurveStart(world: BlockGetter, pos: BlockPos, state: BlockState, axis: Vec3): Vec3 =
 		getTrackBase(world, pos, state) + axis.scale(.5)
 	
-	override fun onWrenched(state: BlockState, context: UseOnContext): InteractionResult =
-		InteractionResult.SUCCESS
-	
 	override fun onSneakWrenched(state: BlockState, context: UseOnContext): InteractionResult {
 		val player = context.player!!
 		val level = context.level
+		val pos = context.clickedPos
 		if(!level.isClientSide && !player.isCreative) {
-			val blockEntity = level.getBlockEntity(context.clickedPos)
+			val blockEntity = level.getBlockEntity(pos)
 			if(blockEntity is FlexiTrackBlockEntity) {
 				blockEntity.willCancelDrop = true
 				blockEntity.connections.values.forEach { it.addItemsToPlayer(player) }
 			}
 		}
 		
-		return super.onSneakWrenched(state, context)
+		// from IWrenchable
+		if(level !is ServerLevel) return InteractionResult.SUCCESS
+		val event = BlockEvent.BreakEvent(level, pos, level.getBlockState(pos), player)
+		NeoForge.EVENT_BUS.post(event)
+		if(event.isCanceled) return InteractionResult.SUCCESS
+		
+		if(!player.isCreative) {
+			val drops = getDrops(state, level, pos, level.getBlockEntity(pos), player, context.itemInHand)
+			for(drop in drops) player.inventory.placeItemBackInInventory(drop)
+		}
+		
+		state.spawnAfterBreak(level, pos, ItemStack.EMPTY, true)
+		level.destroyBlock(pos, false)
+		@Suppress("DEPRECATION")
+		CreateSoundEvents.WRENCH_REMOVE.playOnServer(level, pos, 1f, Create.RANDOM.nextFloat() * 0.5f + 0.5f)
+		return InteractionResult.SUCCESS
 	}
 	
 	override fun overlay(world: BlockGetter, pos: BlockPos, existing: BlockState, placed: BlockState): BlockState =
@@ -397,9 +345,6 @@ open class FlexiTrackBlock(
 	
 	override fun mirror(state: BlockState, mirror: Mirror): BlockState =
 		state.flexi.mapShape { it.mirror(mirror) }
-	
-	override fun getBogeyAnchor(world: BlockGetter, pos: BlockPos, state: BlockState): BlockState =
-		CreateBlocks.SMALL_BOGEY.defaultState
 	
 	@OnlyIn(Dist.CLIENT)
 	override fun prepareAssemblyOverlay(
@@ -484,48 +429,9 @@ open class FlexiTrackBlock(
 		}
 	}
 	
-	override fun trackEquals(state1: BlockState, state2: BlockState): Boolean =
-		state1 == state2
+	override fun getMaterial(): FlexiTrackMaterial =
+		material as FlexiTrackMaterial
 	
-	override fun getRequiredItems(state: BlockState, be: BlockEntity?): ItemRequirement {
-		var sameTypeTrackAmount = 1
-		val otherTrackAmounts = Object2IntArrayMap<TrackMaterial>()
-		var girderAmount = 0
-		
-		if(be is TrackBlockEntity) {
-			for(bezierConnection in be.connections.values) {
-				if(!bezierConnection.isPrimary) continue
-				val material = bezierConnection.material
-				if(material == this.material) {
-					sameTypeTrackAmount += bezierConnection.trackItemCost
-				} else {
-					otherTrackAmounts.put(material, otherTrackAmounts.getOrDefault(material, 0) + 1)
-				}
-				girderAmount += bezierConnection.girderItemCost
-			}
-		}
-		
-		val stacks = mutableListOf<ItemStack>()
-		while(sameTypeTrackAmount > 0) {
-			stacks += ItemStack(state.block, min(sameTypeTrackAmount, 64))
-			sameTypeTrackAmount -= 64
-		}
-		for(material in otherTrackAmounts.keys) {
-			var amt = otherTrackAmounts.getOrDefault(material, 0)
-			while(amt > 0) {
-				stacks += material.asStack(min(amt, 64))
-				amt -= 64
-			}
-		}
-		while(girderAmount > 0) {
-			stacks += CreateBlocks.METAL_GIRDER.asStack(min(girderAmount, 64))
-			girderAmount -= 64
-		}
-		
-		return ItemRequirement(ItemUseType.CONSUME, stacks)
-	}
-	
-	override fun getMaterial(): FlexiTrackMaterial = material
 	
 	class RenderProperties : IClientBlockExtensions, MultiPosDestructionHandler {
 		override fun addDestroyEffects(

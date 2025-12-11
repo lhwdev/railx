@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.registry.AllBlocks
 import com.simibubi.create.Create
-import com.simibubi.create.content.trains.track.ITrackBlock
+import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.content.trains.track.TrackMaterial.TrackModelHolder
 import com.simibubi.create.content.trains.track.TrackMaterial.TrackType
@@ -14,7 +14,6 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
-import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
@@ -25,20 +24,15 @@ import java.util.stream.Stream
 import com.simibubi.create.AllPartialModels as CreatePartialModels
 
 
-val TrackMaterial.realBlock: ITrackBlock
-	get() = when(this) {
-		is FlexiTrackMaterial -> flexiBlock
-		else -> block
-	}
-
 fun TrackMaterial.defaultBlockState(): BlockState =
-	(realBlock as Block).defaultBlockState()
+	block.defaultBlockState()
 
 
 class FlexiTrackMaterial(
 	id: ResourceLocation,
 	langName: String,
 	val flexiBlockSupplier: NonNullSupplier<out FlexiTrackBlock>,
+	val normalBlockSupplier: NonNullSupplier<out TrackBlock>,
 	particle: ResourceLocation,
 	sleeperIngredient: Ingredient,
 	railsIngredient: Ingredient,
@@ -48,7 +42,7 @@ class FlexiTrackMaterial(
 ) : TrackMaterial(
 	id,
 	langName,
-	{ NonNullSupplier { flexiBlockSupplier.get().normalBlock } },
+	{ flexiBlockSupplier },
 	particle,
 	sleeperIngredient,
 	railsIngredient,
@@ -59,6 +53,9 @@ class FlexiTrackMaterial(
 	val flexiBlock: FlexiTrackBlock
 		get() = flexiBlockSupplier.get()
 	
+	val normalBlock: TrackBlock
+		get() = normalBlockSupplier.get()
+	
 	override fun asStack(count: Int): ItemStack =
 		ItemStack(flexiBlock, count)
 	
@@ -67,6 +64,7 @@ class FlexiTrackMaterial(
 		val Andesite: FlexiTrackMaterial = FlexiTrackMaterial(RailX.asResource("flexi_andesite")) {
 			langName = "Andesite"
 			trackBlock = AllBlocks.FlexiTrack
+			normalBlock = com.simibubi.create.AllBlocks.TRACK
 			particle = Create.asResource("block/palettes/stone_types/polished/andesite_cut_polished")
 			defaultModels()
 		}
@@ -90,6 +88,8 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 	var langName: String? = null
 	
 	var trackBlock: NonNullSupplier<out FlexiTrackBlock>? = null
+	
+	var normalBlock: NonNullSupplier<out TrackBlock>? = null
 	
 	var sleeperIngredient: Ingredient = Ingredient.EMPTY
 	
@@ -177,6 +177,7 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 			id,
 			langName!!,
 			trackBlock!!,
+			normalBlock!!,
 			particle!!,
 			sleeperIngredient,
 			railsIngredient,
