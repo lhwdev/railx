@@ -132,6 +132,8 @@ private inline fun <Track, I : Item, Material : TrackMaterial> RailXRegistrate.t
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
 		itemBuilder()
 	}
+	
+	builder()
 }
 
 private inline fun <Track> RailXRegistrate.flexiTrackBlock(
