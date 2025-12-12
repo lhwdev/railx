@@ -155,6 +155,8 @@ private inline fun <Track, I : Item, Material : TrackMaterial> RailXRegistrate.t
 		) tag(CRTags.AllItemTags.PHANTOM_TRACK_REVEALING.tag)
 		itemBuilder()
 	}
+	
+	builder()
 }
 
 private inline fun <Track> RailXRegistrate.flexiTrackBlock(

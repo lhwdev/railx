@@ -51,10 +51,6 @@ sealed class FlexiBlockState(
 		values = base.values as ImmutableMap<Property<*>, Comparable<*>>,
 		propertiesCodec = base.propertiesCodec,
 	) {
-		init {
-			System.err.println("railx:state FlexiBlockState.Update constructed; ${Error().stackTraceToString()}")
-		}
-		
 		override fun mapState(previous: FlexiState): FlexiState =
 			stateFn(previous)
 		
@@ -73,7 +69,7 @@ sealed class FlexiBlockState(
 	@Suppress("UNCHECKED_CAST")
 	override fun <T : Comparable<T>> getValue(property: Property<T>): T = when(property) {
 		TrackBlock.HAS_BE -> true
-		TrackBlock.SHAPE -> TrackShape.NONE.also { Error("SHAPE access").printStackTrace() }
+		TrackBlock.SHAPE -> TrackShape.NONE
 		
 		else -> super.getValue(property)
 	} as T

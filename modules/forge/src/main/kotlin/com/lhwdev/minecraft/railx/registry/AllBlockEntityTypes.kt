@@ -17,24 +17,30 @@ object AllBlockEntityTypes {
 	
 	val Registry = RailXRegistry
 	
-	val AdvancedTrackObserver: BlockEntityEntry<AdvancedTrackObserverBlockEntity> = Registry
-		.blockEntity("advanced_track_observer", ::AdvancedTrackObserverBlockEntity)
-		.visual { SimpleBlockEntityVisualizer.Factory(::TrackObserverVisual) }
-		.renderer { NonNullFunction(::TrackObserverRenderer) }
-		.validBlocks(AllBlocks.AdvancedTrackObserver)
-		.register()
+	val AdvancedTrackObserver: RailXBlockEntityEntry<AdvancedTrackObserverBlockEntity> = Registry.blockEntity(
+		name = "advanced_track_observer",
+		factory = ::AdvancedTrackObserverBlockEntity
+	) {
+		visual { SimpleBlockEntityVisualizer.Factory(::TrackObserverVisual) }
+		renderer { NonNullFunction(::TrackObserverRenderer) }
+		validBlocks(AllBlocks.AdvancedTrackObserver)
+	}
 	
-	val MiddleTrack: BlockEntityEntry<MiddleTrackBlockEntity> = Registry
-		.blockEntity("middle_track", ::MiddleTrackBlockEntity)
-		// .visual { SimpleBlockEntityVisualizer.Factory(::MiddleTrackVisual) }
-		// .renderer { NonNullFunction(::MiddleTrackRenderer) }
-		.validBlocks(AllBlocks.MiddleTrack)
-		.register()
+	val MiddleTrack: RailXBlockEntityEntry<MiddleTrackBlockEntity> = Registry.blockEntity(
+		name = "middle_track",
+		factory = ::MiddleTrackBlockEntity
+	) {
+		// visual { SimpleBlockEntityVisualizer.Factory(::MiddleTrackVisual) }
+		// renderer { NonNullFunction(::MiddleTrackRenderer) }
+		validBlocks(AllBlocks.MiddleTrack)
+	}
 	
-	val FlexiTrack: BlockEntityEntry<FlexiTrackBlockEntity> = Registry
-		.blockEntity("flexi_track", ::FlexiTrackBlockEntity)
-		.visual { SimpleBlockEntityVisualizer.Factory(::FlexiTrackVisual) }
-		.renderer { NonNullFunction(::FlexiTrackRenderer) }
-		.validBlocks(AllBlocks.FlexiTrack, AllBlocks.FlexiSplitGraphTrack)
-		.register()
+	val FlexiTrack: RailXBlockEntityEntry<FlexiTrackBlockEntity> = Registry.blockEntity(
+		name = "flexi_track",
+		factory = ::FlexiTrackBlockEntity
+	) {
+		validBlocks(AllBlocks.FlexiTrack, AllBlocks.FlexiSplitGraphTrack)
+		visual { SimpleBlockEntityVisualizer.Factory(::FlexiTrackVisual) }
+		renderer { NonNullFunction(::FlexiTrackRenderer) }
+	}
 }

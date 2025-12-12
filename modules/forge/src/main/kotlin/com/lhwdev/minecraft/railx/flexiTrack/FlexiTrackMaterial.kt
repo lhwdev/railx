@@ -153,7 +153,7 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 		this.sleeperIngredient = Ingredient.EMPTY
 	}
 	
-	fun standardModels() {
+	fun standardModels(id: ResourceLocation = this.id) {
 		runWhenOn(Dist.CLIENT) {
 			val namespace = id.namespace
 			val prefix = "block/track/${id.path}/"
@@ -179,11 +179,11 @@ class FlexiTrackMaterialFactory(private val id: ResourceLocation) {
 	
 	fun build(): FlexiTrackMaterial {
 		runWhenOn(Dist.CLIENT) {
-			checkNotNull(modelHolder)
 			if(tieModel != null || leftSegmentModel != null || rightSegmentModel != null) {
 				assert(tieModel != null && leftSegmentModel != null && rightSegmentModel != null)
 				modelHolder = TrackModelHolder(tieModel, leftSegmentModel, rightSegmentModel)
 			}
+			checkNotNull(modelHolder)
 		}
 		return FlexiTrackMaterial(
 			id,
