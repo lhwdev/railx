@@ -51,8 +51,8 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 		var result = original.call(first, second);
 		if(!buffer.readBoolean()) return result;
 		
-		var location = (TrackNodeLocation) result.getFirst();
-		var normal = (Vec3) result.getSecond();
+		var location = result.getFirst();
+		var normal = result.getSecond();
 		return new SlotObjects.TrackGraphSyncPacketSplitNodePair(
 			SplittingTrackNode.Data.STREAM_CODEC.decode(buffer), location, normal);
 	}

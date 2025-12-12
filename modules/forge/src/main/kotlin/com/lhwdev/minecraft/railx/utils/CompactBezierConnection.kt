@@ -22,7 +22,7 @@ object CompactBezierConnection {
 	// size <= 127
 	private val MaterialCache = mutableListOf<TrackMaterial>().apply {
 		add(TrackMaterial.ANDESITE)
-		add(FlexiTrackMaterial.Companion.Andesite)
+		add(FlexiTrackMaterial.Andesite)
 	}
 	
 	
@@ -43,7 +43,7 @@ object CompactBezierConnection {
 		}
 	}
 	
-	private fun readVOld(tag: CompoundTag, localTo: BlockPos): BezierConnection? {
+	private fun readVOld(tag: CompoundTag, localTo: BlockPos): BezierConnection {
 		val bytes = tag.getByteArray("D4")
 		val input = DataInputStream(ByteArrayInputStream(bytes))
 		
@@ -102,7 +102,7 @@ object CompactBezierConnection {
 		return bc
 	}
 	
-	private fun readV1(bytes: ByteArray, localTo: BlockPos): BezierConnection? {
+	private fun readV1(bytes: ByteArray, localTo: BlockPos): BezierConnection {
 		val input = DataInputStream(ByteArrayInputStream(bytes))
 		input.skipBytes(1) // skip version
 		

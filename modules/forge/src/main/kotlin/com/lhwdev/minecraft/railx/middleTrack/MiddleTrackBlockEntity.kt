@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
-import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 
@@ -42,15 +41,6 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 		
 		GlobalConnections[level].updateMiddle(this, value)
 		connections = value
-	}
-	
-	override fun setLevel(level: Level) {
-		super.setLevel(level)
-		
-		// pendingConnections?.let {
-		// 	pendingConnections = null
-		// 	updateConnections(it)
-		// }
 	}
 	
 	override fun onLoad() {
