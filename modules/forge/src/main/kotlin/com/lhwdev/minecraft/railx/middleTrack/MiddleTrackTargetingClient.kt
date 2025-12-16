@@ -181,20 +181,12 @@ object MiddleTrackTargetingClient {
 		direction: Direction.AxisDirection,
 		type: TrackTargetingBehaviour.RenderedTrackOverlayType,
 	): PartialModel? {
-		val t: Double
-		val tPre: Double
-		val tPost: Double
-		if(curve.usingLegacySegment()) {
-			val length = Mth.floor(curve.length * 2).toDouble()
-			val seg = segmentIndex + 1
-			t = seg / length
-			tPre = (seg - 1) / length
-			tPost = (seg + 1) / length
-		} else {
-			t = curve.getSegmentT(segmentIndex + 1).toDouble()
-			tPre = curve.getSegmentT(segmentIndex).toDouble()
-			tPost = curve.getSegmentT((segmentIndex + 2).coerceAtMost(curve.segmentCount)).toDouble()
-		}
+		val length = Mth.floor(curve.length * 2).toDouble()
+		val seg = segmentIndex + 1
+		val t = seg / length
+		val tPre = (seg - 1) / length
+		val tPost = (seg + 1) / length
+		
 		val offset = curve.getPosition(t)
 		val normal = curve.getNormal(t)
 		val diff = curve.getPosition(tPost)

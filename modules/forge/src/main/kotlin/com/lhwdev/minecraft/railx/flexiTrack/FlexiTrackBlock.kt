@@ -10,9 +10,13 @@ import com.simibubi.create.content.decoration.girder.GirderBlock
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
 import com.simibubi.create.content.trains.track.*
+import com.simibubi.create.foundation.block.render.MultiPosDestructionHandler
 import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import dev.engine_room.flywheel.lib.transform.Affine
 import net.createmod.catnip.data.Iterate
+import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.client.particle.ParticleEngine
+import net.minecraft.client.particle.TerrainParticle
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -35,8 +39,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
-import net.minecraft.world.level.material.PushReaction
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
@@ -47,8 +51,10 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.extensions.common.IClientBlockExtensions
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.level.BlockEvent
+import org.joml.Math.min
 import java.util.*
 import java.util.function.Consumer
+import kotlin.math.max
 import com.simibubi.create.AllSoundEvents as CreateSoundEvents
 
 
@@ -105,6 +111,14 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 	/** Note that track rotation is taken care by FlexiTrackBlockItem. */
 	override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
 		withWater(defaultBlockState(), context)
+	
+	override fun getCloneItemStack(
+		state: BlockState,
+		target: HitResult,
+		level: BlockGetter,
+		pos: BlockPos,
+		player: Player,
+	): ItemStack = normalBlock.getCloneItemStack(state, target, level, pos, player)
 	
 	override fun playerWillDestroy(level: Level, pos: BlockPos, state: BlockState, player: Player) {
 		if(!level.isClientSide && player.isCreative)

@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.other.toTrackEdge
 import com.lhwdev.minecraft.railx.utils.getOrDefault
 import com.simibubi.create.content.trains.graph.EdgePointType
@@ -30,11 +29,7 @@ object MiddleTrackInteraction {
 	): GraphLocation {
 		var (graph, edge) = curve.toTrackEdge(level) ?: return GraphLocation(OverlapResult.NO_TRACK)
 		
-		var position = if(curve.usingLegacySegment()) {
-			(targetBezier.segment + 1) / 2.0
-		} else {
-			curve.getSegmentT(targetBezier.segment + 1) / 2.0
-		}
+		var position = (targetBezier.segment + 1) / 2.0
 		if(front) {
 			edge = graph.getConnection(Couple.create(edge.node2, edge.node1))
 			position = edge.length - position
@@ -57,6 +52,3 @@ object MiddleTrackInteraction {
 		return GraphLocation(OverlapResult.VALID, location)
 	}
 }
-
-fun BezierConnection.usingLegacySegment(): Boolean =
-	material !is FlexiTrackMaterial

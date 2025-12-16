@@ -52,9 +52,6 @@ class FlexiPlacementInfo(
 	val from: TrackEnd,
 	val to: TrackEnd,
 ) : FlexiPlaceResult {
-	val flexiMaterial: FlexiTrackMaterial?
-		get() = material as? FlexiTrackMaterial
-	
 	var addToPlan: Boolean = false
 	var girder: Boolean = false
 	var pavementBlock: Block? = null
