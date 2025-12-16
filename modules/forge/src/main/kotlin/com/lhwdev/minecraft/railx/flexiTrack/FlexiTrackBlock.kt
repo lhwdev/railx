@@ -250,8 +250,10 @@ open class FlexiTrackBlock(properties: Properties, material: FlexiTrackMaterial)
 		player: Player,
 		hand: InteractionHand,
 		hit: BlockHitResult,
-	): InteractionResult =
-		InteractionResult.SUCCESS
+	): InteractionResult {
+		if(world.isClientSide) return InteractionResult.SUCCESS
+		return InteractionResult.PASS
+	}
 	
 	private fun updateGirders(pState: BlockState, pLevel: Level, pPos: BlockPos, blockTicks: LevelTickAccess<Block?>) {
 		for(axis in getTrackAxes(pLevel, pPos, pState)) {

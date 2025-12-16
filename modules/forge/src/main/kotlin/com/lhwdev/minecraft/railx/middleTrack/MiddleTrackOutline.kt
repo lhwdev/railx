@@ -108,7 +108,7 @@ object MiddleTrackOutline {
 			if(!bounds.contains(origin) && bounds.clip(origin, target).isEmpty) continue
 			
 			val stepLUT = bc.stepLUT
-			val segments = (bc.getLength() * 2).toInt()
+			val segments = (bc.length * 2).toInt()
 			
 			var bestSegment = -1
 			var bestDistance = Double.MAX_VALUE

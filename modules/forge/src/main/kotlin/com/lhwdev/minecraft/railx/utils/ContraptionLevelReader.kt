@@ -39,7 +39,7 @@ class ContraptionLevelReader(val level: Level, val contraption: Contraption) : L
 		(((abs(a.toInt()) - 1) or 15) + 1) * Mth.sign(a)
 	
 	
-	override fun getChunk(x: Int, z: Int, chunkStatus: ChunkStatus, requireChunk: Boolean): ChunkAccess? = TODO()
+	override fun getChunk(x: Int, z: Int, chunkStatus: ChunkStatus, requireChunk: Boolean): ChunkAccess = TODO()
 	
 	@Deprecated("Deprecated in Java")
 	override fun hasChunk(chunkX: Int, chunkZ: Int): Boolean = TODO()

@@ -77,5 +77,3 @@ inline fun <B : Block, I : Item, P> BlockBuilder<B, P>.item(
 
 fun <T : Block, P> BlockBuilder<T, P>.validFor(blockEntity: RailXBlockEntityEntry<*>): BlockBuilder<T, P> =
 	onRegister { block -> blockEntity.validBlock { block } }
-
-private class MutatedValidBlocks(from: Set<Block>) : HashSet<Block>(from)

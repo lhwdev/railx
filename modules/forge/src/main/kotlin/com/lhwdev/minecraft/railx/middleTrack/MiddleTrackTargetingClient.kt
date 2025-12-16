@@ -185,7 +185,7 @@ object MiddleTrackTargetingClient {
 		val tPre: Double
 		val tPost: Double
 		if(curve.usingLegacySegment()) {
-			val length = Mth.floor(curve.getLength() * 2).toDouble()
+			val length = Mth.floor(curve.length * 2).toDouble()
 			val seg = segmentIndex + 1
 			t = seg / length
 			tPre = (seg - 1) / length

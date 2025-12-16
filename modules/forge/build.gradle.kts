@@ -61,7 +61,7 @@ neoForge {
 			gameDirectory = project.file("run-data")
 			
 			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-			val existingMods = listOf("create")
+			val existingMods = listOf("create", "railways")
 			
 			programArguments.addAll(
 				"--mod", modId,
@@ -70,6 +70,8 @@ neoForge {
 				"--existing", file("src/main/resources/").absolutePath,
 				*existingMods.flatMap { listOf("--existing-mod", it) }.toTypedArray(),
 			)
+			
+			sourceSet = modDevPlatform.modDevRuntime
 		}
 		
 		configureEach {
@@ -132,7 +134,7 @@ dependencies {
 	optionalModDependency("maven.modrinth:copycats:3.0.4+mc.1.20.1-forge")
 	
 	// optional mod dependencies
-	optionalModDependency(":worldedit:7.2.15") // from flatDir
+	modCompileOnly(":worldedit:7.2.15") // from flatDir
 	
 	implementation(jarJar("io.github.llamalad7:mixinextras-forge:${v.mixinExtras.get()}")!!)
 	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${v.mixinExtras.get()}")!!)

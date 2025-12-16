@@ -86,7 +86,7 @@ object FlexiTrackPlacementClient {
 		}
 		defaultHandle.cancel()
 		
-		val maxTurns = minecraft.options.keySprint.isDown()
+		minecraft.options.keySprint.isDown()
 		val info = tryConnect(level, player, pos, hitState, stack, false)
 		if(info !is FlexiPlacementInfo) {
 			if(info is FlexiPlaceResult.PlaceError) {

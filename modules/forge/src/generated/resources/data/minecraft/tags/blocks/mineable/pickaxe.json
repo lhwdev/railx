@@ -3,6 +3,7 @@
     "railx:advanced_track_observer",
     "railx:flexi_track",
     "railx:split_graph_track",
-    "railx:flexi_split_graph_track"
+    "railx:flexi_split_graph_track",
+    "railx:wide_dark_oak_flexi_track"
   ]
 }

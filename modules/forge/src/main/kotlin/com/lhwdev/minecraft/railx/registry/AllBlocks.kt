@@ -3,6 +3,7 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.compat.flexiTrack.FlexiTrackMaterialCompat
 import com.lhwdev.minecraft.railx.compat.flexiTrack.railways.TestCustomTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
@@ -102,17 +103,23 @@ object AllBlocks {
 	}
 	
 	
-	val WideAndesiteFlexiTrack: BlockEntry<TestCustomTrackBlock> = Registry.flexiTrackBlock(
-		name = "wide_andesite_flexi_track",
-		material = FlexiTrackMaterialCompat.WideAndesite,
-		blockStates = { c, p ->
-			val name = "create_andesite_wide"
-			p.simpleBlock(c.entry, p.models().withExistingParent(c.name, Railways.asResource("block/track/$name/x_ortho")))
-		},
-		factory = ::TestCustomTrackBlock,
-	) {
-		lang("Wide Flexible Train Track")
-	}
+	val WideDarkOakFlexiTrack: BlockEntry<TestCustomTrackBlock>? = if(CompatMods.railways) {
+		Registry.flexiTrackBlock(
+			name = "wide_dark_oak_flexi_track",
+			material = FlexiTrackMaterialCompat.WideDarkOak,
+			blockStates = { c, p ->
+				val name = "dark_oak_wide"
+				p.simpleBlock(
+					c.entry,
+					p.models().withExistingParent(c.name, Railways.asResource("block/track/$name/x_ortho"))
+				)
+			},
+			factory = ::TestCustomTrackBlock,
+		) {
+			validFor(blockEntity = AllBlockEntityTypes.FlexiTrack)
+			lang("Wide Flexible Train Track")
+		}
+	} else null
 }
 
 
@@ -142,16 +149,18 @@ private inline fun <Track, I : Item, Material : TrackMaterial> RailXRegistrate.t
 	tag(BlockTags.MINEABLE_WITH_PICKAXE)
 	tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
-	if(material.trackType != CRTrackMaterials.CRTrackType.MONORAIL)
+	if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL)
 		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 	
 	item(factory = { block, properties -> itemFactory(block, properties) }) {
 		tag(CreateTags.AllItemTags.TRACKS.tag)
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
 		if(
-			material == CRTrackMaterials.PHANTOM ||
-			material == CRTrackMaterials.getWide(CRTrackMaterials.PHANTOM) ||
-			material == CRTrackMaterials.getNarrow(CRTrackMaterials.PHANTOM)
+			CompatMods.railways && (
+				material == CRTrackMaterials.PHANTOM ||
+					material == CRTrackMaterials.getWide(CRTrackMaterials.PHANTOM) ||
+					material == CRTrackMaterials.getNarrow(CRTrackMaterials.PHANTOM)
+				)
 		) tag(CRTags.AllItemTags.PHANTOM_TRACK_REVEALING.tag)
 		itemBuilder()
 	}
