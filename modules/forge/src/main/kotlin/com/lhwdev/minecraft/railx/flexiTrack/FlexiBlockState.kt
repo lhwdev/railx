@@ -18,7 +18,11 @@ inline fun FlexiBlockState.mapShape(crossinline fn: (FlexiShape) -> FlexiShape):
 
 
 /**
- * **Only exists for `Block.rotate()` and `Block.mirror()`...**
+ * Some simple compatibility layer for Create and other third party addons. This would be better than patching every
+ * codes that uses `TrackBlock.SHAPE` and `TrackBlock.HAS_BE`.
+ *
+ * [FlexiBlockState.Update] is rarely used; only used for `rotate` and `mirror`. This is evil of code that should be
+ * not used, but cannot find better ways to do this.
  */
 sealed class FlexiBlockState(
 	block: FlexiTrackBlock,
@@ -65,6 +69,13 @@ sealed class FlexiBlockState(
 	}
 	
 	override fun getBlock(): FlexiTrackBlock = super.getBlock() as FlexiTrackBlock
+	
+	
+	override fun <T : Comparable<T>> hasProperty(property: Property<T>): Boolean = when(property) {
+		TrackBlock.HAS_BE -> true
+		TrackBlock.SHAPE -> true
+		else -> super.hasProperty(property)
+	}
 	
 	@Suppress("UNCHECKED_CAST")
 	override fun <T : Comparable<T>> getValue(property: Property<T>): T = when(property) {

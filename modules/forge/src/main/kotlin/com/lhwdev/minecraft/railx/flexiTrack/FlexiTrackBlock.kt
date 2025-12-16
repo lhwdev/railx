@@ -10,13 +10,9 @@ import com.simibubi.create.content.decoration.girder.GirderBlock
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
 import com.simibubi.create.content.trains.track.*
-import com.simibubi.create.foundation.block.render.MultiPosDestructionHandler
 import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import dev.engine_room.flywheel.lib.transform.Affine
 import net.createmod.catnip.data.Iterate
-import net.minecraft.client.multiplayer.ClientLevel
-import net.minecraft.client.particle.ParticleEngine
-import net.minecraft.client.particle.TerrainParticle
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -53,12 +49,10 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.level.BlockEvent
 import java.util.*
 import java.util.function.Consumer
-import kotlin.math.max
-import kotlin.math.min
 import com.simibubi.create.AllSoundEvents as CreateSoundEvents
 
 
-open class FlexiTrackBlock(properties: Properties, material: FlexiTrackMaterial) :
+open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 	TrackBlock(properties.dynamicShape(), material) {
 	companion object {
 		val Waterlogged: BooleanProperty = WATERLOGGED
@@ -103,7 +97,7 @@ open class FlexiTrackBlock(properties: Properties, material: FlexiTrackMaterial)
 	
 	
 	val normalBlock: TrackBlock
-		get() = (material as FlexiTrackMaterial).normalTrackBlock
+		get() = material.block
 	
 	override fun getRenderShape(state: BlockState): RenderShape =
 		RenderShape.INVISIBLE
@@ -430,9 +424,6 @@ open class FlexiTrackBlock(properties: Properties, material: FlexiTrackMaterial)
 			TrackTargetingBehaviour.RenderedTrackOverlayType.STATION -> AllPartialModels.TRACK_STATION_OVERLAY
 		}
 	}
-	
-	override fun getMaterial(): FlexiTrackMaterial =
-		material as FlexiTrackMaterial
 	
 	
 	@OnlyIn(Dist.CLIENT)

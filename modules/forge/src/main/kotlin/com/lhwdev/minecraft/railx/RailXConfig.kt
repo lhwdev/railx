@@ -8,11 +8,19 @@ object RailXConfig {
 	sealed class Client(private val builder: Builder) {
 		val common = Common()
 		
+		val flexiTrak = FlexiTrak()
+		
 		
 		inner class Common {
 			val preciseOverlay: BooleanValue = builder
 				.comment("Displays precise information about track blocks, curves, and track placement.")
 				.define("common.precise_overlay", true)
+		}
+		
+		inner class FlexiTrak {
+			val overlayWidth: IntValue = builder
+				.comment("Specify how wide placement overlays are shown.")
+				.defineInRange("flexi_trak.overlay_width", 3, 0, 4)
 		}
 		
 		
@@ -229,14 +237,6 @@ object RailXConfig {
 			val enabled: BooleanValue = builder
 				.comment("You can create train track block with any angle you want.")
 				.define("flexi_trak.enabled", true)
-			
-			// val blend: BooleanValue = builder
-			// 	.comment(
-			// 		"flexi tracks are treated as same as normal create train tracks. Cannot get flexi_track " +
-			// 			"item, but all features of flexi track is available to normal train tracks. If disabled, new " +
-			// 			"recipe for flexi_track is added."
-			// 	)
-			// 	.define("flexi_trak.blend", false)
 			
 			val placementLength: IntValue = builder
 				.comment("How long track can placed.")

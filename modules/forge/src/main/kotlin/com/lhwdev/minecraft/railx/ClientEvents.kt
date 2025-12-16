@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx
 
 import com.lhwdev.minecraft.railx.common.PreciseTrackPlacementOverlay
 import com.lhwdev.minecraft.railx.flexiTrack.CurvedFlexiTrackInteraction
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackInteraction
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackOutline
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackTargetingClient
@@ -11,24 +12,20 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.world.phys.Vec3
-import net.minecraftforge.api.distmarker.Dist
-import net.minecraftforge.api.distmarker.OnlyIn
-import net.minecraftforge.client.event.InputEvent
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent
-import net.minecraftforge.client.event.RenderGuiEvent
-import net.minecraftforge.client.event.RenderLevelStageEvent
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay
-import net.minecraftforge.event.TickEvent
-import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.api.distmarker.OnlyIn
+import net.neoforged.bus.api.SubscribeEvent
+import net.neoforged.fml.common.EventBusSubscriber
+import net.neoforged.neoforge.client.event.*
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent
 
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(Dist.CLIENT)
 object ClientEvents {
 	@SubscribeEvent
-	fun onTickPost(event: TickEvent.ClientTickEvent) {
-		if(event.phase != TickEvent.Phase.END) return
+	fun onTickPost(event: ClientTickEvent.Post) {
 		MiddleTrackTargetingClient.clientTick()
 	}
 	
@@ -44,6 +41,26 @@ object ClientEvents {
 		if(result) event.isCanceled = true
 	}
 	
+	@SubscribeEvent
+	fun onRightClickBlock(event: PlayerInteractEvent.RightClickBlock) {
+		if(RailXConfig.Server.flexiTrak.enabled.isTrue)
+			FlexiTrackBlockItem.sendFlexiblePlacementPacket(event)
+	}
+	
+	
+	@SubscribeEvent
+	fun registerGuiOverlays(event: RegisterGuiLayersEvent) {
+		event.registerAbove(
+			VanillaGuiLayers.EXPERIENCE_BAR,
+			RailX.asResource("throttle_hud"),
+			ThrottleHUD
+		)
+		event.registerAbove(
+			VanillaGuiLayers.HOTBAR,
+			RailX.asResource("precise_track_placement"),
+			PreciseTrackPlacementOverlay
+		)
+	}
 	
 	@SubscribeEvent
 	fun onPreRenderGui(event: RenderGuiEvent.Pre) {
@@ -69,25 +86,6 @@ object ClientEvents {
 			MiddleTracksRenderer.renderAll(ms, buffer, camera)
 		},
 	)
-}
-
-
-@OnlyIn(Dist.CLIENT)
-@EventBusSubscriber(Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
-object ClientModBusEvents {
-	@SubscribeEvent
-	fun registerGuiOverlays(event: RegisterGuiOverlaysEvent) {
-		event.registerAbove(
-			VanillaGuiOverlay.EXPERIENCE_BAR.id(),
-			"throttle_hud",
-			ThrottleHUD
-		)
-		event.registerAbove(
-			VanillaGuiOverlay.HOTBAR.id(),
-			"precise_track_placement",
-			PreciseTrackPlacementOverlay
-		)
-	}
 }
 
 typealias Renderer = (ms: PoseStack, buffer: MultiBufferSource, camera: Vec3) -> Unit

@@ -3,12 +3,12 @@ package com.lhwdev.minecraft.railx.splitGraph.flexiBlock
 import com.lhwdev.minecraft.railx.common.addIfConnected
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphPoint
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphPointBase
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrack
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
+import com.simibubi.create.content.trains.track.TrackMaterial
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.level.ServerLevel
@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 
 
-class FlexiSplitGraphTrackBlock(properties: Properties, material: FlexiTrackMaterial) :
+class FlexiSplitGraphTrackBlock(properties: Properties, material: TrackMaterial) :
 	FlexiTrackBlock(properties, material), SplitGraphTrack {
 	override fun getPoint(world: BlockGetter, pos: BlockPos, state: BlockState): SplitGraphPoint =
 		FlexiSplitGraphTrackBlockPoint(world, pos, state)

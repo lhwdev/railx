@@ -1,8 +1,8 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.common.minRadius
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement.tryConnect
 import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
+import com.lhwdev.minecraft.railx.utils.ColorsArgb
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer
@@ -19,14 +19,14 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
-import net.minecraftforge.api.distmarker.Dist
-import net.minecraftforge.api.distmarker.OnlyIn
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
 import kotlin.math.max
 import kotlin.math.min
@@ -48,7 +48,14 @@ object FlexiTrackPlacementClient {
 	
 	var lastOverlay: FlexiPlacementInfo? = null
 	
+	private val placementCache = PlacementCache()
+	
 	fun clientTick(defaultHandle: Cancellable) {
+		if(!FlexiTrackPlacement.isFlexibleClient) {
+			placementCache.caches.clear()
+			return
+		}
+		
 		lastOverlay = null
 		
 		val minecraft = Minecraft.getInstance()
@@ -77,17 +84,20 @@ object FlexiTrackPlacementClient {
 			if(hitState == null) return
 		}
 		
-		if(hitState.block !is ITrackBlock) return
+		val track = hitState.block
+		if(track !is ITrackBlock) return
+		if(FlexiTrackMaterial.toFlexible(track.material) == null) return
 		
-		// Handled by create TrackPlacement.clientTick
-		if(blockItem !is FlexiTrackBlockItem) {
-			val tag = stack.tag?.get("ConnectingFrom") as? CompoundTag ?: return
-			if(level.getBlockState(NbtUtils.readBlockPos(tag.getCompound("Pos"))).block !is FlexiTrackBlock) return
-		}
 		defaultHandle.cancel()
 		
-		minecraft.options.keySprint.isDown()
-		val info = tryConnect(level, player, pos, hitState, stack, false)
+		val info = FlexiTrackPlacement.resolveConnection(
+			level = level,
+			player = player,
+			toPos = pos,
+			toState = hitState,
+			item = stack,
+			cacheStorage = placementCache,
+		)
 		if(info !is FlexiPlacementInfo) {
 			if(info is FlexiPlaceResult.PlaceError) {
 				if(info is FlexiPlaceResult.PlaceError.SecondPoint) {
@@ -134,11 +144,24 @@ object FlexiTrackPlacementClient {
 				for(xOffset in -2..2) {
 					for(zOffset in -2..2) {
 						val offset = pos.offset(xOffset, 0, zOffset)
-						val adjInfo = tryConnect(level, player, offset, hitState, stack, false)
-						val curvature = if(adjInfo !is FlexiPlacementInfo || !adjInfo.valid) {
+						val adjInfo = FlexiTrackPlacement.resolveConnection(
+							level = level,
+							player = player,
+							toPos = offset,
+							toState = FlexiTrackBlockItem.getFlexiblePlacementState(
+								blockItem,
+								BlockPlaceContext(player, hand, stack, hitResult)
+							) ?: continue,
+							item = stack,
+							cacheStorage = placementCache,
+						)
+						val curvature = if(adjInfo !is FlexiPlacementInfo) {
 							0.0
 						} else {
-							-1 / (0.004 * adjInfo.curve.minRadius() + 1) + 1 // some random function...
+							val error = adjInfo.error
+							if(error != null && error.noOverlay) 0.0 else {
+								-1 / (0.004 * adjInfo.curve.minRadius() + 1) + 1 // some random function...
+							}
 						}
 						hints += Hint(pos = offset.below(), valid = adjInfo.valid, curvature = curvature)
 					}
@@ -149,47 +172,55 @@ object FlexiTrackPlacementClient {
 			if(hints != null) {
 				var minCurvature = Double.POSITIVE_INFINITY
 				var maxCurvature = Double.NEGATIVE_INFINITY
+				var minErrorCurvature = Double.POSITIVE_INFINITY
+				var maxErrorCurvature = Double.NEGATIVE_INFINITY
 				for(hint in hints) {
-					if(!hint.valid) continue
-					minCurvature = min(minCurvature, hint.curvature)
-					maxCurvature = max(maxCurvature, hint.curvature)
-				}
-				val curvatures = maxCurvature - minCurvature
-				for((index, hint) in hints.withIndex()) {
+					val curvature = hint.curvature
 					if(hint.valid) {
-						val w = (hint.curvature - minCurvature) / curvatures
-						val threshold = 0.9
-						if(w >= threshold) {
-							Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
-								.withFaceTexture(AllSpecialTextures.BOLD_THIN_CHECKERED)
-								.colored(
-									Color(
-										Color.mixColors(
-											0x5095CD41u.toInt(),
-											0x789AC953u.toInt(),
-											((w - threshold) / (1 - threshold)).toFloat().coerceIn(0f, 1f)
-										)
-									)
-								)
-								.lineWidth(0f)
-						} else {
-							Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
-								.withFaceTexture(CreateSpecialTextures.THIN_CHECKERED)
-								.colored(
-									Color(
-										Color.mixColors(
-											0xc095CD41u.toInt(),
-											0xff95CD41u.toInt(),
-											w.toFloat().coerceIn(0f, 1f)
-										)
-									)
-								)
-								.lineWidth(0f)
-						}
+						minCurvature = min(minCurvature, curvature)
+						maxCurvature = max(maxCurvature, curvature)
 					} else {
+						if(curvature == 0.0) continue
+						minErrorCurvature = min(minErrorCurvature, curvature)
+						maxErrorCurvature = max(maxErrorCurvature, curvature)
+					}
+				}
+				if(!minErrorCurvature.isFinite()) minErrorCurvature = 1.0
+				if(!maxErrorCurvature.isFinite()) maxErrorCurvature = 1.0
+				val curvatures = max(maxCurvature - minCurvature, 0.0001)
+				val errorCurvatures = max(maxErrorCurvature - minErrorCurvature, 0.0001)
+				for((index, hint) in hints.withIndex()) {
+					val curvature = hint.curvature
+					val w = (curvature - minCurvature) / curvatures
+					val greatThreshold = 0.9
+					if(hint.valid && w >= greatThreshold) {
+						val color = ColorsArgb.lerp(
+							0xC095CD41u.toInt(),
+							0xFF95CD41u.toInt(),
+							((w - greatThreshold) * (1 - greatThreshold)).toFloat().coerceIn(0f, 1f)
+						)
 						Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
 							.withFaceTexture(CreateSpecialTextures.THIN_CHECKERED)
-							.colored(0xEA5C2B)
+							.colored(Color(color))
+							.lineWidth(0f)
+					} else {
+						val color = if(hint.valid) {
+							ColorsArgb.lerp(
+								0x5095CD41u.toInt(),
+								0x789AC953u.toInt(),
+								w.toFloat().coerceIn(0f, 1f)
+							)
+						} else {
+							val e = (curvature - minErrorCurvature) / errorCurvatures
+							if(curvature == 0.0) 0xA0FF4100u.toInt() else ColorsArgb.lerp(
+								0x30FF4100u.toInt(),
+								0x80FF4100u.toInt(),
+								(1 - e).toFloat().coerceIn(0f, 1f),
+							)
+						}
+						Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
+							.withFaceTexture(AllSpecialTextures.BOLD_THIN_CHECKERED)
+							.colored(Color(color))
 							.lineWidth(0f)
 					}
 				}
@@ -199,12 +230,7 @@ object FlexiTrackPlacementClient {
 		animation.chase((if(info.valid) 1 else 0).toDouble(), 0.25, LerpedFloat.Chaser.EXP)
 		animation.tickChaser()
 		
-		// if(!info.valid) {
-		// 	info.fromExtent = 0.0
-		// 	info.toExtent = 0.0
-		// }
-		
-		val railColor = Color.mixColors(0xEA5C2B, 0x95CD41, animation.getValue())
+		val railColor = ColorsArgb.lerp(0xEA5C2B, 0x95CD41, animation.getValue())
 		val up = Vec3(0.0, (4 / 16f).toDouble(), 0.0)
 		
 		run {
@@ -285,10 +311,43 @@ object FlexiTrackPlacementClient {
 	}
 	
 	private fun line(id: Int, v1: Vec3, o1: Vec3, ex: Vec3) {
-		val color = Color.mixColors(0xEA5C2B, 0x95CD41, animation.getValue())
+		val color = ColorsArgb.lerp(0xEA5C2B, 0x95CD41, animation.getValue())
 		Outliner.getInstance().showLine(Pair.of("start", id), v1.subtract(o1), v1.add(ex))
 			.lineWidth(1 / 8f)
 			.disableLineNormals()
 			.colored(color)
+	}
+}
+
+
+private class PlacementCache : FlexiTrackPlacement.CacheStorage {
+	class Cache(cached: FlexiPlaceResult, pos: BlockPos, angle: FlexiDirection.Known, lastItem: ItemStack) :
+		FlexiTrackPlacement.Cache(cached, pos, angle, lastItem) {
+		var state = true
+	}
+	
+	val caches = mutableListOf<Cache>()
+	
+	fun refresh() {
+		val cacheIt = caches.iterator()
+		while(cacheIt.hasNext()) {
+			val cache = cacheIt.next()
+			if(!cache.state) cacheIt.remove()
+		}
+		for(cache in caches) cache.state = false
+	}
+	
+	override fun pull(pos: BlockPos, angle: FlexiDirection.Known, item: ItemStack): Cache? {
+		for(cache in caches) {
+			if(cache.pos == pos && cache.angle == angle && cache.lastItem == item) {
+				cache.state = true
+				return cache
+			}
+		}
+		return null
+	}
+	
+	override fun store(cached: FlexiPlaceResult, pos: BlockPos, angle: FlexiDirection.Known, lastItem: ItemStack) {
+		caches += Cache(cached, pos, angle, lastItem)
 	}
 }

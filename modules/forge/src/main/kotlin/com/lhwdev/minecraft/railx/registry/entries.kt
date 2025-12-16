@@ -9,7 +9,7 @@ import com.tterrag.registrate.util.nullness.NonNullSupplier
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
-import net.minecraftforge.registries.RegistryObject
+import net.neoforged.neoforge.registries.DeferredHolder
 
 
 class RailXBlockEntityBuilder<T : BlockEntity, P>(
@@ -26,14 +26,16 @@ class RailXBlockEntityBuilder<T : BlockEntity, P>(
 		return super.createEntry()
 	}
 	
-	override fun createEntryWrapper(delegate: RegistryObject<BlockEntityType<T>>): RegistryEntry<BlockEntityType<T>> =
+	override fun createEntryWrapper(
+		delegate: DeferredHolder<BlockEntityType<*>, BlockEntityType<T>>,
+	): RegistryEntry<BlockEntityType<*>, BlockEntityType<T>> =
 		RailXBlockEntityEntry(owner, delegate, additionalValidBlocks)
 }
 
 
 class RailXBlockEntityEntry<T : BlockEntity>(
 	owner: AbstractRegistrate<*>,
-	delegate: RegistryObject<BlockEntityType<T>>,
+	delegate: DeferredHolder<BlockEntityType<*>, BlockEntityType<T>>,
 	private val additionalValidBlocks: MutableList<NonNullSupplier<Block>>,
 ) : BlockEntityEntry<T>(owner, delegate) {
 	fun validBlock(block: NonNullSupplier<Block>) {

@@ -4,13 +4,13 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.buildTrack.BuildTrak
 import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult.PlaceError
+import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock
-import com.simibubi.create.foundation.utility.BlockHelper
 import com.simibubi.create.foundation.utility.CreateLang
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
@@ -26,6 +26,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.EntityBlock
 import net.minecraft.world.level.block.state.BlockState
@@ -38,18 +39,39 @@ import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
 
 
 object FlexiTrackPlacement {
+	val isFlexibleClient: Boolean
+		get() = RailXConfig.Server.flexiTrak.enabled.isTrue && AllKeys.FlexiblePlacement.isPressed
+	
+	fun isFlexible(level: LevelReader, stack: ItemStack): Boolean = if(level.isClientSide) {
+		isFlexibleClient
+	} else {
+		RailXConfig.Server.flexiTrak.enabled.isTrue && stack.getOrDefault(AllDataComponents.FlexiblePlacement, false)
+	}
+	
+	
 	fun PlaceError(message: String): PlaceError = PlaceError(Component.literal(message))
 	fun PlaceErrorCreate(key: String): PlaceError = PlaceError(CreateLang.translateDirect("track.$key"))
 	
-	private class Cached(
+	
+	abstract class Cache(
 		val cached: FlexiPlaceResult,
 		val pos: BlockPos,
 		val angle: FlexiDirection.Known,
 		val lastItem: ItemStack,
 	)
 	
-	private var cached: Cached? = null
+	interface CacheStorage {
+		fun pull(pos: BlockPos, angle: FlexiDirection.Known, item: ItemStack): Cache?
+		
+		fun store(cached: FlexiPlaceResult, pos: BlockPos, angle: FlexiDirection.Known, lastItem: ItemStack)
+	}
 	
+	
+	/**
+	 * @param toState the state block is willing to become. If track block existed at [toPos], this should be equal to
+	 * `level.getBlockState(toPos)`. If `toState.block` is [FlexiTrackBlock], `to` is placed flexibly. Otherwise, it is
+	 * placed in vanilla Create manner.
+	 */
 	fun tryConnect(
 		level: Level,
 		player: Player,
@@ -59,8 +81,6 @@ object FlexiTrackPlacement {
 		girder: Boolean,
 	): FlexiPlaceResult {
 		val info = resolveConnection(level, player, toPos, toState, item, girder)
-		val lookDirection = FlexiDirection.Known.roundFrom(vector = player.lookAngle)
-		cached = Cached(info, pos = toPos, angle = lookDirection, lastItem = item)
 		if(info !is FlexiPlacementInfo || !info.valid) return info
 		
 		if(info.addToPlan) {
@@ -70,102 +90,6 @@ object FlexiTrackPlacement {
 		}
 		
 		return connect(info, level, player)
-	}
-	
-	fun resolveConnection(
-		level: Level,
-		player: Player,
-		toPos: BlockPos,
-		toState: BlockState,
-		item: ItemStack,
-		girder: Boolean,
-	): FlexiPlaceResult {
-		tryMatchCache(player = player, item = item, toPos = toPos)?.let { return it }
-		
-		val tag = item.tag ?: return PlaceError("no tag in item")
-		val fromPoint = tag.get("railx:ConnectingFrom")?.let { FlexiPlacementInfo.TrackPoint.read(it as CompoundTag) }
-			?: (tag.get("ConnectingFrom") as? CompoundTag)?.convertPlacementToFlexi()
-			?: return PlaceError("internal error: no track_connecting_from found")
-		if(fromPoint.pos == toPos)
-			return PlaceError.SecondPoint()
-		
-		val previousToState = level.getBlockState(toPos)
-		val track = toState.block as? ITrackBlock
-			?: return PlaceError("internal error: block at 'to' is not ITrackBlock")
-		
-		val toPoint = if(previousToState.block is ITrackBlock || toState.block !is FlexiTrackBlock) {
-			FlexiPlacementInfo.TrackPoint(
-				pos = toPos,
-				tangent = track.getNearestTrackAxis(level, toPos, toState, player.lookAngle).first,
-				normal = track.getUpNormal(level, toPos, toState).normalize()
-			)
-		} else {
-			val lookDirection = FlexiDirection.Known.roundFrom(vector = player.lookAngle)
-			FlexiPlacementInfo.TrackPoint(
-				pos = toPos,
-				tangent = lookDirection.tangent,
-				normal = lookDirection.normal,
-			)
-		}
-		
-		var info = resolveTrackEnd(level, fromPoint, toPoint, toState, item)
-		if(info !is FlexiPlacementInfo || !info.valid) return info
-		
-		info.girder = girder
-		
-		val offhandItem = player.offhandItem.item
-		val shouldPave = offhandItem is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
-		if(shouldPave) info.pavementBlock = offhandItem.block
-		
-		info.curve = info.createCurve()
-		
-		info = prepareConnect(info, level, player)
-		return info
-	}
-	
-	private fun FlexiPlacementInfo.validateConnect(level: Level): FlexiPlacementInfo {
-		val distSqr = from.pos.distSqr(to.pos)
-		if(distSqr > RailXConfig.Server.flexiTrak.placementLength.get().pow2()) {
-			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.get().pow2()) {
-				addToPlan = true
-			} else {
-				return placeError(PlaceError.TooFar())
-			}
-		} else {
-			if(BuildTrak.enabled && BuildTrak.currentPlan.addPlacedTracks) addToPlan = true
-		}
-		
-		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)
-			return placeErrorCreate("turn_start")
-		
-		val gradient = 1000 * abs(from.end.y - to.end.y) / (from.end - to.end).horizontalDistance() // in per mille
-		if(gradient > RailXConfig.Server.flexiTrak.maxGradient.get()) return placeErrorCreate("too_steep")
-		
-		val intersect = VecHelper.intersect(from.end, to.end, from.tangent, to.tangent, Direction.Axis.Y)
-		if(intersect != null) {
-			if(from.tangent.dot(to.tangent) > 0) // illegal curve
-				return placeError(PlaceError.TooSharp().noOverlay())
-			
-			if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.get())
-				return placeError(PlaceError.TooSharp())
-		} else {
-			val fromCross = from.tangent.cross(Vec3(0.0, 1.0, 0.0))
-			val sCurve = VecHelper.intersect(from.end, to.end, fromCross, to.tangent, Direction.Axis.Y)
-				?: return this
-			val (u, v) = sCurve
-			val t = round(abs(u) * 100) * 0.01
-			if(t similarTo 0.0) {
-				// straight line
-			} else {
-				// s curve
-				// val maxT = max(v, 1.0) / (RailXConfig.Server.flexiTrak.minRadius.asInt / 4) // IDK about this
-				// if(t > maxT) return placeError(PlaceError.TooSharp())
-				
-				if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.get())
-					return placeError(PlaceError.TooSharp())
-			}
-		}
-		return this
 	}
 	
 	private fun prepareConnect(info: FlexiPlacementInfo, level: Level, player: Player): FlexiPlaceResult {
@@ -189,71 +113,76 @@ object FlexiTrackPlacement {
 			info.useTrackItem(level, player, simulate = false)
 		}
 		if(!level.isClientSide) {
-			info.pavementBlock?.let { block -> info.paveTracks(level, block, simulate = false) }
+			info.pavementBlock?.let { info.paveTracks(level, it, simulate = false) }
 			info.placeTracks(level, simulate = false)
 		}
 		return info
 	}
 	
-	private fun FlexiPlacementInfo.useTrackItem(level: Level, player: Player, simulate: Boolean): Boolean {
-		if(level.isClientSide && !simulate) return true
-		var tracks = 0
-		var pavements = 0
-		val inv = player.inventory
-		val size = inv.items.size
-		for(j in 0..size + 1) {
-			var i = j
-			val offhand = j == size + 1
-			if(j == size) i = inv.selected
-			else if(offhand) i = 0
-			else if(j == inv.selected) continue
-			
-			val stackInSlot = (if(offhand) inv.offhand else inv.items)[i]
-			val isTrack = CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
-			if(!isTrack) {
-				val item = stackInSlot.item as? BlockItem
-				if(item != null && pavementBlock != item.block) continue
-			}
-			if(if(isTrack) tracks >= requiredTracks else pavements >= requiredPavement) continue
-			
-			val count = stackInSlot.count
-			
-			if(!simulate) {
-				val remainingItems = count -
-					(if(isTrack) requiredTracks - tracks else requiredPavement - pavements).coerceAtMost(count)
-				if(i == inv.selected) {
-					stackInSlot.tag = null
-				}
-				val newItem = stackInSlot.copyWithCount(remainingItems)
-				if(offhand)
-					player.setItemInHand(InteractionHand.OFF_HAND, newItem)
-				else
-					inv.setItem(i, newItem)
-			}
-			
-			if(isTrack)
-				tracks += count
-			else
-				pavements += count
-		}
-		hasRequiredTracks = tracks >= requiredTracks
-		hasRequiredPavement = pavements >= requiredPavement
-		return hasRequiredTracks && hasRequiredPavement
-	}
 	
-	
-	private fun tryMatchCache(player: Player, item: ItemStack, toPos: BlockPos): FlexiPlaceResult? {
+	fun resolveConnection(
+		level: Level,
+		player: Player,
+		toPos: BlockPos,
+		toState: BlockState,
+		item: ItemStack,
+		girder: Boolean = false,
+		cacheStorage: CacheStorage? = null,
+	): FlexiPlaceResult {
+		if(toState.block !is ITrackBlock) return PlaceError("internal error: toState is not ITrackBlock")
+		
 		val lookVec = player.lookAngle.multiply(1.0, 0.0, 1.0)
-		val lookAngle = if(Mth.equal(lookVec.lengthSqr(), 0.0)) {
+		val lookAngle = if(lookVec.lengthSqr() similarTo 0.0) {
 			player.yRot.toDouble()
 		} else {
 			Mth.atan2(-lookVec.z, lookVec.x)
-		}.let { FlexiDirection.Known.roundFrom(radian = it) }
-		
-		if(player.level().isClientSide) cached?.let { cache ->
-			if(cache.angle == lookAngle && cache.lastItem == item && cache.pos == toPos) return cache.cached
+		}.let {
+			if(toState.block is FlexiTrackBlock) FlexiDirection.Known.roundFrom(radian = it)
+			else FlexiDirection.KnownCreate.roundFrom(radian = it)
 		}
-		return null
+		
+		if(cacheStorage != null) {
+			val cache = cacheStorage.pull(pos = toPos, angle = lookAngle, item = item)
+			if(cache != null) return cache.cached
+		}
+		
+		val tag = item.tag ?: return PlaceError("no tag in item")
+		val fromPoint = (tag.get("ConnectingFrom") as? CompoundTag)?.convertPlacementToFlexi()
+			?: return PlaceError("internal error: no track_connecting_from found")
+		if(fromPoint.pos == toPos)
+			return PlaceError.SecondPoint()
+		
+		val previousToState = level.getBlockState(toPos)
+		val previousToBlock = previousToState.block
+		val toPoint = if(previousToBlock is ITrackBlock) {
+			if(previousToState != toState) return PlaceError("wat?")
+			FlexiPlacementInfo.TrackPoint(
+				pos = toPos,
+				tangent = previousToBlock.getNearestTrackAxis(level, toPos, previousToState, player.lookAngle).first,
+				normal = previousToBlock.getUpNormal(level, toPos, previousToState).normalize()
+			)
+		} else {
+			FlexiPlacementInfo.TrackPoint(
+				pos = toPos,
+				tangent = lookAngle.tangent,
+				normal = lookAngle.normal,
+			)
+		}
+		
+		var info = resolveTrackEnd(level, fromPoint, toPoint, toState, item)
+		if(info !is FlexiPlacementInfo || !info.valid) return info
+		
+		info.girder = girder
+		
+		val offhandItem = player.offhandItem.item
+		val shouldPave = offhandItem is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
+		if(shouldPave) info.pavementBlock = offhandItem.block
+		
+		info.curve = info.createCurve()
+		
+		info = prepareConnect(info, level, player)
+		cacheStorage?.store(info, pos = toPos, angle = lookAngle, lastItem = item)
+		return info
 	}
 	
 	private fun resolveTrackEnd(
@@ -266,7 +195,8 @@ object FlexiTrackPlacement {
 		val fromState = level.getBlockState(from.pos)
 		val fromBlock = fromState.block as? ITrackBlock ?: return PlaceErrorCreate("original_missing")
 		
-		val toBlock = toState.block as ITrackBlock
+		val toBlock = toState.block as? ITrackBlock
+			?: return PlaceError("item is not TrackBlockItem")
 		
 		// 1. Tangent should look inside curve; A -> (curve) <- B
 		// 2. Angle difference should be smallest, curve should be shortest
@@ -296,7 +226,7 @@ object FlexiTrackPlacement {
 					fromSign = sign(crossIntersect[0])
 					if(fromSign <= 0.0) return null
 					toSign = -sign(fromTangent.dot(toTangent))
-				} else { // generally mostly impossible for Known; why use flexi for straight line
+				} else {
 					fromSign = sign(fromTangent.dot(toVec - fromVec))
 					toSign = -fromSign
 				}
@@ -306,21 +236,19 @@ object FlexiTrackPlacement {
 			val fromTangent = fromTangent.scale(fromSign)
 			val toTangent = toTangent.scale(toSign)
 			val fromEnd = FlexiPlacementInfo.TrackEnd(
-				block = fromBlock,
+				state = fromState,
 				pos = from.pos,
 				end = fromBlock.getCurveStart(level, from.pos, fromState, fromTangent),
 				tangent = fromTangent,
 				normal = from.normal,
 			)
-			fromEnd.state = fromState
 			val toEnd = FlexiPlacementInfo.TrackEnd(
-				block = toBlock,
+				state = toState,
 				pos = to.pos,
 				end = toBlock.getCurveStart(level, to.pos, toState, toTangent),
 				tangent = toTangent,
 				normal = to.normal,
 			)
-			toEnd.state = toState
 			
 			return FlexiPlacementInfo(
 				material = TrackMaterial.fromItem(item.item),
@@ -330,47 +258,132 @@ object FlexiTrackPlacement {
 			)
 		}
 		
-		
 		val fromVec1 = fromBlock.getCurveStart(level, from.pos, fromState, from.tangent)
-		val fromVec2 = fromBlock.getCurveStart(level, from.pos, fromState, -from.tangent)
 		val toVec1 = toBlock.getCurveStart(level, to.pos, toState, to.tangent)
-		val toVec2 = toBlock.getCurveStart(level, to.pos, toState, -to.tangent)
-		
 		tryResolve(fromVec1, toVec1, from.tangent, to.tangent)?.let { return it }
+		
+		val toVec2 = toBlock.getCurveStart(level, to.pos, toState, -to.tangent)
 		tryResolve(fromVec1, toVec2, from.tangent, -to.tangent)?.let { return it }
+		
+		val fromVec2 = fromBlock.getCurveStart(level, from.pos, fromState, -from.tangent)
 		tryResolve(fromVec2, toVec1, -from.tangent, to.tangent)?.let { return it }
 		tryResolve(fromVec2, toVec2, -from.tangent, -to.tangent)?.let { return it }
+		
 		return PlaceError.TooSharp().noOverlay()
 	}
 	
-	private fun FlexiPlacementInfo.placeTracks(level: Level, simulate: Boolean) {
-		val target = material.defaultBlockState()
-		// val targetFrom = BlockPos.containing(fromOffset)
-		// val targetTo = BlockPos.containing(toOffset)
+	
+	private fun FlexiPlacementInfo.validateConnect(level: Level): FlexiPlacementInfo {
+		val distSqr = from.pos.distSqr(to.pos)
+		if(distSqr > RailXConfig.Server.flexiTrak.placementLength.asInt.pow2()) {
+			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()) {
+				addToPlan = true
+			} else {
+				return placeError(PlaceError.TooFar())
+			}
+		} else {
+			if(BuildTrak.enabled && BuildTrak.currentPlan.addPlacedTracks) addToPlan = true
+		}
 		
+		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)
+			return placeErrorCreate("turn_start")
+		
+		val gradient = 1000 * abs(from.end.y - to.end.y) / (from.end - to.end).horizontalDistance() // in per mille
+		if(gradient > RailXConfig.Server.flexiTrak.maxGradient.asDouble) return placeErrorCreate("too_steep")
+		
+		val intersect = VecHelper.intersect(from.end, to.end, from.tangent, to.tangent, Direction.Axis.Y)
+		if(intersect != null) {
+			if(from.tangent.dot(to.tangent) > 0) // illegal curve
+				return placeError(PlaceError.TooSharp().noOverlay())
+			
+			if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.asInt)
+				return placeError(PlaceError.TooSharp())
+		} else {
+			val fromCross = from.tangent.cross(Vec3(0.0, 1.0, 0.0))
+			val sCurve = VecHelper.intersect(from.end, to.end, fromCross, to.tangent, Direction.Axis.Y)
+				?: return this
+			val (u, _) = sCurve
+			val t = round(abs(u) * 100) * 0.01
+			if(t similarTo 0.0) {
+				// straight line
+			} else {
+				// s curve
+				if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.get())
+					return placeError(PlaceError.TooSharp())
+			}
+		}
+		return this
+	}
+	
+	
+	private fun FlexiPlacementInfo.useTrackItem(level: Level, player: Player, simulate: Boolean): Boolean {
+		if(level.isClientSide && !simulate) return true
+		var tracks = 0
+		var pavements = 0
+		val inv = player.inventory
+		val size = inv.items.size
+		for(j in 0..size + 1) {
+			var i = j
+			val offhand = j == size + 1
+			if(j == size) i = inv.selected
+			else if(offhand) i = 0
+			else if(j == inv.selected) continue
+			
+			val stackInSlot = (if(offhand) inv.offhand else inv.items)[i]
+			val isTrack = CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
+			if(!isTrack) {
+				val item = stackInSlot.item as? BlockItem
+				if(item != null && pavementBlock != item.block) continue
+			}
+			if(if(isTrack) tracks >= requiredTracks else pavements >= requiredPavement) continue
+			
+			val count = stackInSlot.count
+			
+			if(!simulate) {
+				val remainingItems = count -
+					(if(isTrack) requiredTracks - tracks else requiredPavement - pavements).coerceAtMost(count)
+				if(i == inv.selected) {
+					stackInSlot.remove(CreateDataComponents.TRACK_CONNECTING_FROM)
+					stackInSlot.tag = null
+				}
+				val newItem = stackInSlot.copyWithCount(remainingItems)
+				if(offhand)
+					player.setItemInHand(InteractionHand.OFF_HAND, newItem)
+				else
+					inv.setItem(i, newItem)
+			}
+			
+			if(isTrack)
+				tracks += count
+			else
+				pavements += count
+		}
+		hasRequiredTracks = tracks >= requiredTracks
+		hasRequiredPavement = pavements >= requiredPavement
+		return hasRequiredTracks && hasRequiredPavement
+	}
+	
+	private fun FlexiPlacementInfo.placeTracks(level: Level, simulate: Boolean) {
 		requiredTracks = 0
 		
-		fun placeTrack(pos: BlockPos, state: BlockState, direction: FlexiDirection) {
+		fun placeTrack(pos: BlockPos, targetState: BlockState, direction: FlexiDirection) {
 			val stateAtPos = level.getBlockState(pos)
 			when {
 				stateAtPos.block is FlexiTrackBlock -> {
-					val be = level.getBlockEntity(pos) as FlexiTrackBlockEntity
+					val be = level.getBlockEntity(pos) as? FlexiTrackBlockEntity ?: return
 					val newState = be.overlayShape(direction)
 					be.updateState(newState)
 				}
 				
 				stateAtPos.block is ITrackBlock -> {
-					level.setBlock(
-						pos, ProperWaterloggedBlock.withWater(
-							level,
-							stateAtPos.trySetValue(TrackBlock.HAS_BE, true), pos
-						), 3
-					)
+					var state = stateAtPos.trySetValue(TrackBlock.HAS_BE, true)
+					state = ProperWaterloggedBlock.withWater(level, state, pos)
+					level.setBlock(pos, state, Block.UPDATE_ALL)
 				}
 				
 				stateAtPos.canBeReplaced() || stateAtPos.`is`(BlockTags.FLOWERS) -> {
-					val newState = BlockHelper.copyProperties(state, target)
-					level.setBlock(pos, ProperWaterloggedBlock.withWater(level, newState, pos), 3)
+					val state = ProperWaterloggedBlock.withWater(level, targetState, pos)
+					level.setBlock(pos, state, Block.UPDATE_ALL)
 					val be = level.getBlockEntity(pos)
 					if(be is FlexiTrackBlockEntity) {
 						be.updateState(be.state.copy(baseShape = FlexiShape.Single(direction)))
@@ -409,8 +422,6 @@ object FlexiTrackPlacement {
 			return
 		
 		val visited = hashSetOf<BlockPos>()
-		
-		// TODO: pave extended
 		requiredPavement += TrackPaver.paveCurve(level, curve, block, simulate, visited)
 	}
 }

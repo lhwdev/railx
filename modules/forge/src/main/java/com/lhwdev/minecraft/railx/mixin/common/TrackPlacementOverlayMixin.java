@@ -1,6 +1,8 @@
 package com.lhwdev.minecraft.railx.mixin.common;
 
+import com.lhwdev.minecraft.railx.RailXConfig;
 import com.lhwdev.minecraft.railx.common.PreciseTrackPlacementOverlay;
+import com.lhwdev.minecraft.railx.registry.AllKeys;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.simibubi.create.content.trains.track.TrackPlacementOverlay;
@@ -31,17 +33,27 @@ public class TrackPlacementOverlayMixin {
 		Minecraft mc = Minecraft.getInstance();
 		boolean active = mc.options.keySprint.isDown();
 		int lineCount = PreciseTrackPlacementOverlay.INSTANCE.getInfoLineCount();
-		return original.call(
-			instance,
-			font,
-			CreateLang.translateDirect(
+		
+		Component message;
+		if(
+			RailXConfig.Server.Value.getFlexiTrak().getEnabled().isTrue() &&
+				AllKeys.FlexiblePlacement.getKey() == mc.options.keySprint.getKey().getValue()
+		) {
+			var flexible = AllKeys.FlexiblePlacement.isPressed();
+			message = Component.literal("Hold ")
+				.append(
+					Component.keybind(AllKeys.FlexiblePlacement.getDescription())
+						.withStyle(flexible ? ChatFormatting.GREEN : ChatFormatting.GRAY)
+				)
+				.append(" for flexible placement")
+				.withStyle(ChatFormatting.WHITE);
+		} else {
+			message = CreateLang.translateDirect(
 				"track.hold_for_smooth_curve", Component.keybind("key.sprint")
 					.withStyle(active ? ChatFormatting.GREEN : ChatFormatting.GRAY)
-			).withStyle(ChatFormatting.WHITE),
-			x,
-			y + 9 * lineCount,
-			color,
-			dropShadow
-		);
+			).withStyle(ChatFormatting.WHITE);
+		}
+		
+		return original.call(instance, font, message, x, y + 9 * lineCount, color, dropShadow);
 	}
 }

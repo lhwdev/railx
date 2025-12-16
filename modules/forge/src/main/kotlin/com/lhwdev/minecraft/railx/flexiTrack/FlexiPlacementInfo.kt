@@ -2,8 +2,6 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.similarTo
-import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
@@ -106,26 +104,11 @@ class FlexiPlacementInfo(
 	}
 	
 	
-	data class TrackPoint(val pos: BlockPos, val tangent: Vec3, val normal: Vec3) {
-		fun write(): CompoundTag =
-			CODEC.encodeStart(NbtOps.INSTANCE, this).get().orThrow() as CompoundTag
-		
-		companion object {
-			val CODEC: Codec<TrackPoint> = RecordCodecBuilder.create {
-				it.group(
-					BlockPos.CODEC.fieldOf("pos").forGetter(TrackPoint::pos),
-					Vec3.CODEC.fieldOf("tangent").forGetter(TrackPoint::tangent),
-					Vec3.CODEC.fieldOf("normal").forGetter(TrackPoint::normal),
-				).apply(it, ::TrackPoint)
-			}
-			
-			fun read(tag: CompoundTag): TrackPoint =
-				CODEC.decode(NbtOps.INSTANCE, tag).get().orThrow().first
-		}
-	}
+	data class TrackPoint(val pos: BlockPos, val tangent: Vec3, val normal: Vec3)
 	
-	data class TrackEnd(val block: ITrackBlock, val pos: BlockPos, val end: Vec3, val tangent: Vec3, val normal: Vec3) {
-		var state: BlockState = (block as Block).defaultBlockState()
+	data class TrackEnd(val state: BlockState, val pos: BlockPos, val end: Vec3, val tangent: Vec3, val normal: Vec3) {
+		val block: ITrackBlock
+			get() = state.block as ITrackBlock
 		
 		fun toPoint(): TrackPoint = TrackPoint(pos, tangent, normal)
 		
@@ -144,18 +127,13 @@ class FlexiPlacementInfo(
 		}
 		
 		companion object {
-			fun read(tag: CompoundTag): TrackEnd {
-				val state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("State"))
-				val result = TrackEnd(
-					block = state.block as ITrackBlock,
-					pos = NbtUtils.readBlockPos(tag.getCompound("Pos")),
-					end = VecHelper.readNBT(tag.get("End") as ListTag),
-					tangent = VecHelper.readNBT(tag.get("Tangent") as ListTag),
-					normal = VecHelper.readNBT(tag.get("Normal") as ListTag),
-				)
-				result.state = state
-				return result
-			}
+			fun read(tag: CompoundTag): TrackEnd = TrackEnd(
+				state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("State")),
+				pos = NbtUtils.readBlockPos(tag.getCompound("Pos")),
+				end = VecHelper.readNBT(tag.get("End") as ListTag),
+				tangent = VecHelper.readNBT(tag.get("Tangent") as ListTag),
+				normal = VecHelper.readNBT(tag.get("Normal") as ListTag),
+			)
 		}
 	}
 	
