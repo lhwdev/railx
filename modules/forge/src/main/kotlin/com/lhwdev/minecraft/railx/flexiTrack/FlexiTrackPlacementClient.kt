@@ -85,7 +85,7 @@ object FlexiTrackPlacementClient {
 		
 		val track = hitState.block
 		if(track !is ITrackBlock) return
-		if(FlexiTrackMaterial.toFlexible(track.material) == null) return
+		if(FlexiTrackMaterial.toFlexible(track) == null) return
 		
 		defaultHandle.cancel()
 		

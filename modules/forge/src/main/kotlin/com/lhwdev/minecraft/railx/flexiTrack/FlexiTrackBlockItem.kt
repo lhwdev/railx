@@ -2,7 +2,6 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.registry.AllKeys
-import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.content.trains.track.TrackPlacement
@@ -21,7 +20,7 @@ object FlexiTrackBlockItem {
 		}
 	
 	fun getFlexiblePlacementState(item: TrackBlockItem, context: BlockPlaceContext): BlockState? =
-		FlexiTrackMaterial.maybeFlexible((item.block as ITrackBlock).material).get().getStateForPlacement(context)
+		FlexiTrackMaterial.maybeFlexible(item.block).getStateForPlacement(context)
 	
 	fun sendFlexiblePlacementPacket(event: PlayerInteractEvent.RightClickBlock) {
 		val stack = event.itemStack

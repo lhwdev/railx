@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.common
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.registry.AllKeys
-import com.simibubi.create.content.trains.track.ITrackBlock
+import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.foundation.utility.CreateLang
 import net.minecraft.ChatFormatting
@@ -47,7 +47,7 @@ object TrackPlacementOverlay {
 		val mc = Minecraft.getInstance()
 		val player = mc.player ?: return false
 		val item = player.mainHandItem.item as? TrackBlockItem ?: return false
-		val block = item.block as? ITrackBlock ?: return false
-		return FlexiTrackMaterial.toFlexible(block.material) == null
+		val block = item.block as? TrackBlock ?: return false
+		return FlexiTrackMaterial.toFlexible(block) == null
 	}
 }

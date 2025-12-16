@@ -35,7 +35,7 @@ public class TrackPlacementOverlayMixin {
 			instance,
 			font,
 			message,
-			mc.getWindow().getGuiScaledWidth() / 2 - mc.font.width(message),
+			(mc.getWindow().getGuiScaledWidth() - mc.font.width(message)) / 2,
 			y + 9 * lineCount,
 			color,
 			dropShadow

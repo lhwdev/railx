@@ -16,7 +16,6 @@ import com.simibubi.create.foundation.data.AssetLookup
 import com.simibubi.create.foundation.data.BlockStateGen
 import com.simibubi.create.foundation.data.SharedProperties
 import com.tterrag.registrate.builders.BlockBuilder
-import com.tterrag.registrate.builders.ItemBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
@@ -27,8 +26,10 @@ import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.material.MapColor
 import net.neoforged.neoforge.common.Tags
+import net.neoforged.neoforge.registries.DeferredHolder
 import java.util.function.Supplier
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
+import com.simibubi.create.AllBlocks as CreateBlocks
 import com.simibubi.create.AllTags as CreateTags
 
 
@@ -68,6 +69,7 @@ object AllBlocks {
 	val FlexiTrack = Registry.flexiTrackBlock(
 		name = "flexi_track",
 		material = TrackMaterial.ANDESITE,
+		normalBlock = CreateBlocks.TRACK,
 		factory = ::FlexiTrackBlock,
 	) {
 		tag(AllTags.Features.FlexiTrack.block)
@@ -88,6 +90,7 @@ object AllBlocks {
 	val FlexiSplitGraphTrack: BlockEntry<FlexiSplitGraphTrackBlock> = Registry.flexiTrackBlock(
 		name = "flexi_split_graph_track",
 		material = TrackMaterial.ANDESITE,
+		normalBlock = SplitGraphTrack,
 		factory = ::FlexiSplitGraphTrackBlock,
 	) {
 		tag(AllTags.Features.SplitGraph.block)
@@ -132,12 +135,10 @@ private inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 	name: String,
 	material: TrackMaterial,
+	normalBlock: DeferredHolder<Block, out TrackBlock>,
 	crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
 	crossinline blockStates: (DataGenContext<Block, Track>, RegistrateBlockstateProvider) -> Unit = { c, p ->
-		p.simpleBlock(c.entry, p.models().withExistingParent(c.name, Create.asResource("block/track/x_ortho")))
-	},
-	itemBuilder: ItemBuilder<TrackBlockItem, BlockBuilder<Track, RailXRegistrate>>.() -> Unit = {
-		model { c, p -> p.generated(c, Create.asResource("item/track")) }
+		p.getVariantBuilder(c.entry).forAllStates(BlockStateGen.mapToAir(p))
 	},
 	builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit,
 ): BlockEntry<Track> = trackBlock(name, material, factory, blockStates, createItem = false) {
@@ -145,5 +146,5 @@ private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 	
 	builder()
 }.also { entry ->
-	FlexiTrackMaterial.addMaterial(entry, material)
+	FlexiTrackMaterial.addMaterial(original = normalBlock, flexiTrack = entry)
 }

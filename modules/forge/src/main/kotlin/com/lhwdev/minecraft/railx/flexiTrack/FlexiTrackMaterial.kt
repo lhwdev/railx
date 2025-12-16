@@ -1,12 +1,13 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.registry.AllBlocks
+import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap
+import com.tterrag.registrate.util.entry.RegistryEntry
+import net.minecraft.core.Holder
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraftforge.registries.DeferredHolder
 import java.util.function.Supplier
 
 
@@ -14,26 +15,25 @@ fun TrackMaterial.defaultBlockState(): BlockState =
 	block.defaultBlockState()
 
 
-private typealias FlexiTrackReference = DeferredHolder<Block, out FlexiTrackBlock>
+private typealias TrackReference = RegistryEntry<out TrackBlock>
+private typealias FlexiTrackReference = RegistryEntry<out FlexiTrackBlock>
 
 object FlexiTrackMaterial {
-	val ToFlexible = Reference2ObjectOpenHashMap<TrackMaterial, FlexiTrackReference>()
-	
-	init {
-		ToFlexible[TrackMaterial.ANDESITE] = AllBlocks.FlexiTrack
-	}
+	val ToFlexible = HashMap<ResourceLocation, FlexiTrackReference>()
+	val ToNormal = HashMap<ResourceLocation, TrackReference>()
 	
 	
-	fun addMaterial(block: FlexiTrackReference, material: TrackMaterial) {
-		ToFlexible[material] = block
+	fun addMaterial(original: TrackReference, flexiTrack: FlexiTrackReference) {
+		ToFlexible[original.key.location()] = flexiTrack
+		ToNormal[flexiTrack.key.location()] = original
 	}
 	
 	fun allFlexiBlocks(): Collection<FlexiTrackReference> =
 		ToFlexible.values
 	
-	fun toFlexible(material: TrackMaterial): Supplier<out FlexiTrackBlock>? =
-		ToFlexible[material]
+	fun <T> toFlexible(block: T): FlexiTrackBlock? where T : ITrackBlock, T : Block = block as? FlexiTrackBlock
+		?: @Suppress("DEPRECATION") ToFlexible[block.builtInRegistryHolder().unwrapKey().get().location()]?.get()
 	
-	fun maybeFlexible(material: TrackMaterial): Supplier<out TrackBlock> =
-		toFlexible(material) ?: material.blockSupplier
+	fun maybeFlexible(block: Block): Block =
+		if(block is ITrackBlock) toFlexible(block) ?: block else block
 }
