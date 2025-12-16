@@ -4,11 +4,9 @@ import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.tterrag.registrate.util.entry.RegistryEntry
-import net.minecraft.core.Holder
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
-import java.util.function.Supplier
 
 
 fun TrackMaterial.defaultBlockState(): BlockState =

@@ -119,21 +119,21 @@ interface FlexiDirection {
 		companion object {
 			fun fromIndex(index: Int): UnsignedKnown {
 				check(index >= 0) { "index < 0" }
-				if(index >= Known.DivisionCount * 2) {
+				if(index >= DivisionCount * 2) {
 					TODO("index -> ordinal then approach to nearest ordinal: $index")
 				}
-				return if(index < Known.DivisionCount) {
+				return if(index < DivisionCount) {
 					Known.DivisionsByIndex[index]
 				} else {
-					-Known.DivisionsByIndex[index - Known.DivisionCount]
+					-Known.DivisionsByIndex[index - DivisionCount]
 				}
 			}
 			
 			fun roundFrom(radian: Double): UnsignedKnown {
 				val PI2 = PI * 2
-				val index = (Known.DivisionCount * (radian floorMod PI2) / PI2).roundToInt()
-				val result = Known.DivisionsByOrdinal[index % Known.DivisionCount]
-				return if(index < Known.DivisionCount) result else -result
+				val index = (DivisionCount * (radian floorMod PI2) / PI2).roundToInt()
+				val result = Known.DivisionsByOrdinal[index % DivisionCount]
+				return if(index < DivisionCount) result else -result
 			}
 			
 			fun roundFrom(vector: Vec3): UnsignedKnown =
@@ -332,7 +332,7 @@ interface FlexiDirection {
 		}
 		
 		override val index: Int
-			get() = from.index + Known.DivisionCount
+			get() = from.index + DivisionCount
 		
 		override val tangent: UnsignedKnownVec3 =
 			if(sign == Direction.AxisDirection.POSITIVE) from.tangent else OppositeKnownVec3(this, from.tangent)
@@ -371,7 +371,7 @@ interface FlexiDirection {
 		override fun mirror(by: Mirror): FlatImpl = FlatImpl(by.mirror(tangent))
 		override fun rotate(by: Rotation): FlatImpl = FlatImpl(by.rotate(tangent))
 		override fun rotateKnown(by: Int): Flat =
-			FlatImpl(tangent.yRot(by.toFloat() / Known.DivisionCount * PI.toFloat())).optimize()
+			FlatImpl(tangent.yRot(by.toFloat() / DivisionCount * PI.toFloat())).optimize()
 		
 		override fun optimize(): Flat {
 			tangent.asKnown()?.let { return it }
@@ -450,7 +450,7 @@ interface FlexiDirection {
 		} else this
 		
 		override fun rotateKnown(by: Int): Normalized {
-			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
+			val angle = by.toFloat() / DivisionCount * PI.toFloat()
 			return NormalizedImpl(base.rotateKnown(by), normal.yRot(angle), tangent.yRot(angle))
 				.optimize()
 		}
@@ -528,7 +528,7 @@ interface FlexiDirection {
 		override fun mirror(by: Mirror): FlexiDirection = Two(by.mirror(tangent), by.mirror(normal))
 		override fun rotate(by: Rotation): FlexiDirection = Two(by.rotate(tangent), by.rotate(normal))
 		override fun rotateKnown(by: Int): FlexiDirection {
-			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
+			val angle = by.toFloat() / DivisionCount * PI.toFloat()
 			return Two(tangent.yRot(angle), normal.yRot(angle))
 		}
 		

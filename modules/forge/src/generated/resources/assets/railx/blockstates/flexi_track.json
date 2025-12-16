@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "railx:block/flexi_track"
+    "waterlogged=false": {
+      "model": "minecraft:block/air"
+    },
+    "waterlogged=true": {
+      "model": "minecraft:block/air"
     }
   }
 }

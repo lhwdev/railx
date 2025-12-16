@@ -40,12 +40,12 @@ import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
 
 object FlexiTrackPlacement {
 	val isFlexibleClient: Boolean
-		get() = RailXConfig.Server.flexiTrak.enabled.isTrue && AllKeys.FlexiblePlacement.isPressed
+		get() = RailXConfig.Server.flexiTrak.enabled.get() && AllKeys.FlexiblePlacement.isPressed
 	
 	fun isFlexible(level: LevelReader, stack: ItemStack): Boolean = if(level.isClientSide) {
 		isFlexibleClient
 	} else {
-		RailXConfig.Server.flexiTrak.enabled.isTrue && stack.getOrDefault(AllDataComponents.FlexiblePlacement, false)
+		RailXConfig.Server.flexiTrak.enabled.get() && stack.tag?.getBoolean("railx:FlexiblePlacement") ?: false
 	}
 	
 	
@@ -275,8 +275,8 @@ object FlexiTrackPlacement {
 	
 	private fun FlexiPlacementInfo.validateConnect(level: Level): FlexiPlacementInfo {
 		val distSqr = from.pos.distSqr(to.pos)
-		if(distSqr > RailXConfig.Server.flexiTrak.placementLength.asInt.pow2()) {
-			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()) {
+		if(distSqr > RailXConfig.Server.flexiTrak.placementLength.get().pow2()) {
+			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.get().pow2()) {
 				addToPlan = true
 			} else {
 				return placeError(PlaceError.TooFar())
@@ -289,14 +289,14 @@ object FlexiTrackPlacement {
 			return placeErrorCreate("turn_start")
 		
 		val gradient = 1000 * abs(from.end.y - to.end.y) / (from.end - to.end).horizontalDistance() // in per mille
-		if(gradient > RailXConfig.Server.flexiTrak.maxGradient.asDouble) return placeErrorCreate("too_steep")
+		if(gradient > RailXConfig.Server.flexiTrak.maxGradient.get()) return placeErrorCreate("too_steep")
 		
 		val intersect = VecHelper.intersect(from.end, to.end, from.tangent, to.tangent, Direction.Axis.Y)
 		if(intersect != null) {
 			if(from.tangent.dot(to.tangent) > 0) // illegal curve
 				return placeError(PlaceError.TooSharp().noOverlay())
 			
-			if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.asInt)
+			if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.get())
 				return placeError(PlaceError.TooSharp())
 		} else {
 			val fromCross = from.tangent.cross(Vec3(0.0, 1.0, 0.0))
@@ -343,7 +343,6 @@ object FlexiTrackPlacement {
 				val remainingItems = count -
 					(if(isTrack) requiredTracks - tracks else requiredPavement - pavements).coerceAtMost(count)
 				if(i == inv.selected) {
-					stackInSlot.remove(CreateDataComponents.TRACK_CONNECTING_FROM)
 					stackInSlot.tag = null
 				}
 				val newItem = stackInSlot.copyWithCount(remainingItems)
@@ -431,5 +430,5 @@ private fun CompoundTag.convertPlacementToFlexi(): FlexiPlacementInfo.TrackPoint
 	FlexiPlacementInfo.TrackPoint(
 		pos = NbtUtils.readBlockPos(getCompound("Pos")),
 		tangent = VecHelper.readNBT(getList("Axis", Tag.TAG_DOUBLE.toInt())),
-		normal = VecHelper.readNBT(getList("Axis", Tag.TAG_DOUBLE.toInt())),
+		normal = VecHelper.readNBT(getList("Normal", Tag.TAG_DOUBLE.toInt())),
 	)

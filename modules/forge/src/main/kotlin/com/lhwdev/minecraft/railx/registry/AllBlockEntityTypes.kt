@@ -7,7 +7,6 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVisual
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlockEntity
 import com.simibubi.create.content.trains.observer.TrackObserverRenderer
 import com.simibubi.create.content.trains.observer.TrackObserverVisual
-import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer
 

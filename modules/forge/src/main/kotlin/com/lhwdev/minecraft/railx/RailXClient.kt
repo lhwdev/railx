@@ -4,7 +4,6 @@ package com.lhwdev.minecraft.railx
 
 import com.lhwdev.minecraft.railx.registry.RailXPonderPlugin
 import net.createmod.ponder.foundation.PonderIndex
-import net.minecraftforge.eventbus.api.IEventBus
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent
 import thedarkcolour.kotlinforforge.forge.MOD_BUS
 

@@ -9,15 +9,15 @@ import com.simibubi.create.foundation.utility.CreateLang
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-import net.neoforged.api.distmarker.Dist
-import net.neoforged.api.distmarker.OnlyIn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 
 @OnlyIn(Dist.CLIENT)
 object TrackPlacementOverlay {
 	fun getOverlayMessage(): Component {
 		val mc = Minecraft.getInstance()
-		return if(RailXConfig.Server.flexiTrak.enabled.isTrue &&
+		return if(RailXConfig.Server.flexiTrak.enabled.get() &&
 			AllKeys.FlexiblePlacement.key == mc.options.keySprint.key.value
 		) {
 			val flexible = AllKeys.FlexiblePlacement.isPressed

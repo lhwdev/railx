@@ -4,7 +4,6 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult;
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem;
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial;
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement;
-import com.lhwdev.minecraft.railx.registry.AllDataComponents;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Cancellable;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
@@ -68,7 +66,7 @@ public class TrackBlockItemMixin extends BlockItem {
 		FlexiPlaceResult result = FlexiTrackPlacement.INSTANCE
 			.tryConnect(level, player, pos, flexiState, stack, hasGirder);
 		
-		stack.remove(AllDataComponents.INSTANCE.getFlexiblePlacement());
+		if(stack.getTag() != null) stack.getTag().remove("railx:FlexiblePlacement");
 		
 		var error = result.getError();
 		if(error != null && !level.isClientSide)
@@ -78,13 +76,6 @@ public class TrackBlockItemMixin extends BlockItem {
 			cir.setReturnValue(InteractionResult.FAIL);
 		}
 		return FlexiTrackBlockItem.INSTANCE.getStubPlacementInfo();
-	}
-	
-	@ModifyArg(method = "useOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;" +
-		"setItemInHand(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/ItemStack;)V"), index = 1)
-	ItemStack modifyItemInHand(ItemStack stack) {
-		stack.remove(AllDataComponents.INSTANCE.getFlexiblePlacement());
-		return stack;
 	}
 	
 	@Override

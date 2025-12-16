@@ -16,6 +16,8 @@
     "common.manualStation.CarriageContraptionEntityMixin",
     "common.manualStation.TrainMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
+    "compat.railways.flexiTrack.CustomTrackOverlayRenderingMixin",
+    "compat.railways.flexiTrack.TrackTargetingBlockItemMixin",
     "flexiTrack.GameDataMixin",
     "flexiTrack.PlacementInfoAccessor",
     "flexiTrack.TrackBlockEntityTiltMixin",
@@ -66,8 +68,7 @@
     "middleTrack.TrackTargetingClientMixin",
     "other.ScrollValueRendererMixin",
     "splitGraph.TrackGraphVisualizerMixin",
-    "throttle.TrainHUDMixin",
-    "trainMap.GuiMapMixin"
+    "throttle.TrainHUDMixin"
   ],
   "mixinextras": {
     "minVersion": "0.5.0"

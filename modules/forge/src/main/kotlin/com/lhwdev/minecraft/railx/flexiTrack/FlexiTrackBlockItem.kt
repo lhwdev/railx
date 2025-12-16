@@ -2,14 +2,14 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.registry.AllKeys
+import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.content.trains.track.TrackPlacement
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.block.state.BlockState
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent
-import net.neoforged.neoforge.network.PacketDistributor
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 
 
 object FlexiTrackBlockItem {
@@ -30,7 +30,7 @@ object FlexiTrackBlockItem {
 			mainHand = event.hand == InteractionHand.MAIN_HAND,
 			flexible = AllKeys.FlexiblePlacement.isPressed
 		)
-		PacketDistributor.sendToServer(packet)
+		AllPackets.sendToServer(packet)
 	}
 	
 	fun placeBlock(context: BlockPlaceContext, state: BlockState) {

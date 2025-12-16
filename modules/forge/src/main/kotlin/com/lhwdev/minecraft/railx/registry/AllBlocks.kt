@@ -3,11 +3,14 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.flexiBlock.FlexiSplitGraphTrackBlock
+import com.railwayteam.railways.registry.CRTags
+import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.AllDisplaySources
 import com.simibubi.create.Create
 import com.simibubi.create.api.behaviour.display.DisplaySource
@@ -19,14 +22,13 @@ import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
+import com.tterrag.registrate.util.entry.RegistryEntry
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.material.MapColor
-import net.neoforged.neoforge.common.Tags
-import net.neoforged.neoforge.registries.DeferredHolder
 import java.util.function.Supplier
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
 import com.simibubi.create.AllBlocks as CreateBlocks
@@ -100,7 +102,7 @@ object AllBlocks {
 
 
 @Suppress("DEPRECATION", "removal")
-private inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
+inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	name: String,
 	material: Material,
 	crossinline factory: (BlockBehaviour.Properties, Material) -> Track,
@@ -120,22 +122,30 @@ private inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	addLayer { Supplier { RenderType.cutoutMipped() } }
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
 	tag(BlockTags.MINEABLE_WITH_PICKAXE)
-	tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED)
+	tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
-	tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
+	if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL)
+		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 	
 	if(createItem) item(factory = ::TrackBlockItem) {
 		tag(CreateTags.AllItemTags.TRACKS.tag)
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
+		if(
+			CompatMods.railways && (
+				material == CRTrackMaterials.PHANTOM ||
+					material == CRTrackMaterials.getWide(CRTrackMaterials.PHANTOM) ||
+					material == CRTrackMaterials.getNarrow(CRTrackMaterials.PHANTOM)
+				)
+		) tag(CRTags.AllItemTags.PHANTOM_TRACK_REVEALING.tag)
 	}
 	
 	builder()
 }
 
-private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
+inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 	name: String,
 	material: TrackMaterial,
-	normalBlock: DeferredHolder<Block, out TrackBlock>,
+	normalBlock: RegistryEntry<out TrackBlock>,
 	crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
 	crossinline blockStates: (DataGenContext<Block, Track>, RegistrateBlockstateProvider) -> Unit = { c, p ->
 		p.getVariantBuilder(c.entry).forAllStates(BlockStateGen.mapToAir(p))

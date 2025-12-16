@@ -6,10 +6,8 @@ import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.builders.BlockEntityBuilder
 import com.tterrag.registrate.builders.ItemBuilder
 import com.tterrag.registrate.util.entry.BlockEntry
-import com.tterrag.registrate.util.entry.RegistryEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.core.Registry
-import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
@@ -19,6 +17,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraftforge.eventbus.api.IEventBus
 
 
 val RailXRegistry = RailXRegistrate(RailX.Id)
@@ -32,7 +31,7 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	}
 	
 	fun location(name: String): ResourceLocation =
-		ResourceLocation.fromNamespaceAndPath(modid, name)
+		ResourceLocation(modid, name)
 	
 	@Suppress("UNCHECKED_CAST")
 	fun <T> registryOf(key: ResourceKey<Registry<T>>): Registry<T> =
@@ -52,13 +51,6 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 		.apply(block)
 		.register()
 	
-	fun <T> dataComponentType(
-		name: String,
-		block: DataComponentType.Builder<T>.() -> Unit,
-	): RegistryEntry<DataComponentType<*>, DataComponentType<T>> =
-		generic(name, Registries.DATA_COMPONENT_TYPE) { DataComponentType.builder<T>().apply(block).build() }
-			.register()
-	
 	fun <T : BlockEntity> blockEntity(
 		name: String,
 		factory: BlockEntityBuilder.BlockEntityFactory<T>,
@@ -68,6 +60,10 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 			as RailXBlockEntityBuilder<T, RailXRegistrate>)
 			.apply(block)
 			.register() as RailXBlockEntityEntry<T>
+	
+	
+	override fun getModEventBus(): IEventBus =
+		RailX.bus
 }
 
 
