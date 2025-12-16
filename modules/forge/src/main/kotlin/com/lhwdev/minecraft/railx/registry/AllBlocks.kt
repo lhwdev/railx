@@ -4,6 +4,7 @@ package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.flexiBlock.FlexiSplitGraphTrackBlock
@@ -144,4 +145,6 @@ private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 		loot { table, block -> table.dropOther(block, block.normalBlock) }
 		
 		builder()
+	}.also { entry ->
+		FlexiTrackMaterial.addMaterial(entry, material)
 	}
