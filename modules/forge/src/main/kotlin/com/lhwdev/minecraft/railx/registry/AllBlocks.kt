@@ -140,11 +140,10 @@ private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
 	},
 	builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit,
-): BlockEntry<Track> =
-	trackBlock(name, material, factory, blockStates, createItem = false) {
-		loot { table, block -> table.dropOther(block, block.normalBlock) }
-		
-		builder()
-	}.also { entry ->
-		FlexiTrackMaterial.addMaterial(entry, material)
-	}
+): BlockEntry<Track> = trackBlock(name, material, factory, blockStates, createItem = false) {
+	loot { table, block -> table.dropOther(block, block.normalBlock) }
+	
+	builder()
+}.also { entry ->
+	FlexiTrackMaterial.addMaterial(entry, material)
+}

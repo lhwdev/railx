@@ -28,6 +28,7 @@ import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
+import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.RenderShape
@@ -37,6 +38,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
@@ -103,6 +105,14 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 	/** Note that track rotation is taken care by FlexiTrackBlockItem. */
 	override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
 		withWater(defaultBlockState(), context)
+	
+	override fun getCloneItemStack(
+		state: BlockState,
+		target: HitResult,
+		level: LevelReader,
+		pos: BlockPos,
+		player: Player,
+	): ItemStack = normalBlock.getCloneItemStack(state, target, level, pos, player)
 	
 	override fun playerWillDestroy(level: Level, pos: BlockPos, state: BlockState, player: Player): BlockState {
 		if(!level.isClientSide && player.isCreative)

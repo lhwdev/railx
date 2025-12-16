@@ -30,7 +30,6 @@ import net.neoforged.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
 import kotlin.math.max
 import kotlin.math.min
-import com.simibubi.create.AllSpecialTextures as CreateSpecialTextures
 import com.simibubi.create.AllTags as CreateTags
 
 
@@ -192,37 +191,28 @@ object FlexiTrackPlacementClient {
 				for((index, hint) in hints.withIndex()) {
 					val curvature = hint.curvature
 					val w = (curvature - minCurvature) / curvatures
-					val greatThreshold = 0.9
-					if(hint.valid && w >= greatThreshold) {
-						val color = ColorsArgb.lerp(
-							0xC095CD41u.toInt(),
-							0xFF95CD41u.toInt(),
-							((w - greatThreshold) * (1 - greatThreshold)).toFloat().coerceIn(0f, 1f)
+					val color = if(hint.valid) {
+						if(w >= 0.9) ColorsArgb.lerp(
+							0xA095CD41u.toInt(),
+							0xC09AC960u.toInt(),
+							w.toFloat().coerceIn(0f, 1f)
+						) else ColorsArgb.lerp(
+							0x4070BD3Au.toInt(),
+							0xA095CD41u.toInt(),
+							w.toFloat().coerceIn(0f, 1f)
 						)
-						Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
-							.withFaceTexture(CreateSpecialTextures.THIN_CHECKERED)
-							.colored(Color(color))
-							.lineWidth(0f)
 					} else {
-						val color = if(hint.valid) {
-							ColorsArgb.lerp(
-								0x5095CD41u.toInt(),
-								0x789AC953u.toInt(),
-								w.toFloat().coerceIn(0f, 1f)
-							)
-						} else {
-							val e = (curvature - minErrorCurvature) / errorCurvatures
-							if(curvature == 0.0) 0xA0FF4100u.toInt() else ColorsArgb.lerp(
-								0x30FF4100u.toInt(),
-								0x80FF4100u.toInt(),
-								(1 - e).toFloat().coerceIn(0f, 1f),
-							)
-						}
-						Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
-							.withFaceTexture(AllSpecialTextures.BOLD_THIN_CHECKERED)
-							.colored(Color(color))
-							.lineWidth(0f)
+						val e = (curvature - minErrorCurvature) / errorCurvatures
+						if(curvature == 0.0) 0xA0FF4100u.toInt() else ColorsArgb.lerp(
+							0x30FF4100u.toInt(),
+							0x80FF4100u.toInt(),
+							(1 - e).toFloat().coerceIn(0f, 1f),
+						)
 					}
+					Outliner.getInstance().showCluster("track_$index", listOf(hint.pos))
+						.withFaceTexture(AllSpecialTextures.BOLD_THIN_CHECKERED)
+						.colored(Color(color))
+						.lineWidth(0f)
 				}
 			}
 		}

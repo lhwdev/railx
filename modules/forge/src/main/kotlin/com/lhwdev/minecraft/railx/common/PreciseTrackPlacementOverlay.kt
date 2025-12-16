@@ -73,7 +73,6 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			}
 		
 		fun createTrackPlacementInfo(handItem: HandItem<TrackBlockItem>): PrecisePlacementInfo? {
-			if(handItem.item is FlexiTrackBlockItem) return null
 			if(!handItem.stack.has(AllDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS)) return null
 			
 			val info = TrackPlacement_cached.invokeExact() as TrackPlacement.PlacementInfo? as? PlacementInfoAccessor
@@ -331,15 +330,15 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		
 		val knownLength = log10(FlexiDirection.Known.DivisionCount.toDouble()).toInt() + 1
 		val known = tangent.asKnown()
-			?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
+			?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}" }
 			?: (-tangent).asKnown()
-				?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
+				?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}" }
 		
 		if(abs(normal.x) > 1e-5 || abs(normal.z) > 1e-5) { // lesser than similarTo
 			val info = "Grad=${tangent.gradient()}, Tilt=${round(rot.tilt * radToDeg, 100)}"
-			return if(known != null) "$known ($angle, $info)" else "$angle ($info)"
+			return if(known != null) "$known($angle, $info)" else "$angle($info)"
 		} else {
-			return known ?: angle
+			return if(known != null) "$known($angle)" else angle
 		}
 	}
 	
