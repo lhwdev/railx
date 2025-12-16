@@ -2,7 +2,6 @@ package com.lhwdev.minecraft.railx.utils
 
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.flexiTrack.asKnown
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
@@ -22,7 +21,7 @@ object CompactBezierConnection {
 	// size <= 127
 	private val MaterialCache = mutableListOf<TrackMaterial>().apply {
 		add(TrackMaterial.ANDESITE)
-		add(FlexiTrackMaterial.Andesite)
+		add(TrackMaterial.ANDESITE) // for backward compatibility
 	}
 	
 	

@@ -2,14 +2,10 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.similarTo
-import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.foundation.utility.CreateLang
-import io.netty.buffer.ByteBuf
-import net.createmod.catnip.codecs.stream.CatnipStreamCodecs
 import net.createmod.catnip.data.Couple
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
@@ -20,7 +16,6 @@ import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtUtils
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.network.codec.StreamCodec
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Block
@@ -109,26 +104,11 @@ class FlexiPlacementInfo(
 	}
 	
 	
-	data class TrackPoint(val pos: BlockPos, val tangent: Vec3, val normal: Vec3) {
-		companion object {
-			val CODEC: Codec<TrackPoint> = RecordCodecBuilder.create {
-				it.group(
-					BlockPos.CODEC.fieldOf("pos").forGetter(TrackPoint::pos),
-					Vec3.CODEC.fieldOf("tangent").forGetter(TrackPoint::tangent),
-					Vec3.CODEC.fieldOf("normal").forGetter(TrackPoint::normal),
-				).apply(it, ::TrackPoint)
-			}
-			val STREAM_CODEC: StreamCodec<ByteBuf, TrackPoint> = StreamCodec.composite(
-				BlockPos.STREAM_CODEC, TrackPoint::pos,
-				CatnipStreamCodecs.VEC3, TrackPoint::tangent,
-				CatnipStreamCodecs.VEC3, TrackPoint::normal,
-				::TrackPoint
-			)
-		}
-	}
+	data class TrackPoint(val pos: BlockPos, val tangent: Vec3, val normal: Vec3)
 	
-	data class TrackEnd(val block: ITrackBlock, val pos: BlockPos, val end: Vec3, val tangent: Vec3, val normal: Vec3) {
-		var state: BlockState = (block as Block).defaultBlockState()
+	data class TrackEnd(val state: BlockState, val pos: BlockPos, val end: Vec3, val tangent: Vec3, val normal: Vec3) {
+		val block: ITrackBlock
+			get() = state.block as ITrackBlock
 		
 		fun toPoint(): TrackPoint = TrackPoint(pos, tangent, normal)
 		
@@ -147,18 +127,13 @@ class FlexiPlacementInfo(
 		}
 		
 		companion object {
-			fun read(tag: CompoundTag): TrackEnd {
-				val state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("State"))
-				val result = TrackEnd(
-					block = state.block as ITrackBlock,
-					pos = NbtUtils.readBlockPos(tag, "Pos").orElseThrow(),
-					end = VecHelper.readNBT(tag.get("End") as ListTag),
-					tangent = VecHelper.readNBT(tag.get("Tangent") as ListTag),
-					normal = VecHelper.readNBT(tag.get("Normal") as ListTag),
-				)
-				result.state = state
-				return result
-			}
+			fun read(tag: CompoundTag): TrackEnd = TrackEnd(
+				state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("State")),
+				pos = NbtUtils.readBlockPos(tag, "Pos").orElseThrow(),
+				end = VecHelper.readNBT(tag.get("End") as ListTag),
+				tangent = VecHelper.readNBT(tag.get("Tangent") as ListTag),
+				normal = VecHelper.readNBT(tag.get("Normal") as ListTag),
+			)
 		}
 	}
 	

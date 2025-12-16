@@ -4,8 +4,6 @@ package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.flexiBlock.FlexiSplitGraphTrackBlock
@@ -23,7 +21,6 @@ import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.tags.BlockTags
-import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
@@ -69,7 +66,7 @@ object AllBlocks {
 	
 	val FlexiTrack = Registry.flexiTrackBlock(
 		name = "flexi_track",
-		material = FlexiTrackMaterial.Andesite,
+		material = TrackMaterial.ANDESITE,
 		factory = ::FlexiTrackBlock,
 	) {
 		tag(AllTags.Features.FlexiTrack.block)
@@ -82,7 +79,6 @@ object AllBlocks {
 		material = TrackMaterial.ANDESITE,
 		factory = ::SplitGraphTrackBlock,
 		blockStates = TrackBlockStateGenerator()::generate,
-		itemFactory = ::TrackBlockItem,
 	) {
 		tag(AllTags.Features.SplitGraph.block)
 		lang("Split Graph Train Track")
@@ -90,7 +86,7 @@ object AllBlocks {
 	
 	val FlexiSplitGraphTrack: BlockEntry<FlexiSplitGraphTrackBlock> = Registry.flexiTrackBlock(
 		name = "flexi_split_graph_track",
-		material = FlexiTrackMaterial.Andesite,
+		material = TrackMaterial.ANDESITE,
 		factory = ::FlexiSplitGraphTrackBlock,
 	) {
 		tag(AllTags.Features.SplitGraph.block)
@@ -100,15 +96,12 @@ object AllBlocks {
 
 
 @Suppress("DEPRECATION", "removal")
-private inline fun <Track, I : Item, Material : TrackMaterial> RailXRegistrate.trackBlock(
+private inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	name: String,
 	material: Material,
 	crossinline factory: (BlockBehaviour.Properties, Material) -> Track,
 	crossinline blockStates: (DataGenContext<Block, Track>, RegistrateBlockstateProvider) -> Unit,
-	crossinline itemFactory: (Track, Item.Properties) -> I,
-	itemBuilder: ItemBuilder<I, BlockBuilder<Track, RailXRegistrate>>.() -> Unit = {
-		model { c, p -> p.generated(c, Create.asResource("item/track")) }
-	},
+	createItem: Boolean = true,
 	builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit,
 ): BlockEntry<Track> where Track : Block, Track : ITrackBlock = block(name, { factory(it, material) }) {
 	initialProperties(SharedProperties::stone)
@@ -127,25 +120,28 @@ private inline fun <Track, I : Item, Material : TrackMaterial> RailXRegistrate.t
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
 	tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 	
-	item(factory = { block, properties -> itemFactory(block, properties) }) {
+	if(createItem) item(factory = ::TrackBlockItem) {
 		tag(CreateTags.AllItemTags.TRACKS.tag)
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
-		itemBuilder()
 	}
 	
 	builder()
 }
 
-private inline fun <Track> RailXRegistrate.flexiTrackBlock(
+private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 	name: String,
-	material: FlexiTrackMaterial,
-	crossinline factory: (BlockBehaviour.Properties, FlexiTrackMaterial) -> Track,
+	material: TrackMaterial,
+	crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
 	crossinline blockStates: (DataGenContext<Block, Track>, RegistrateBlockstateProvider) -> Unit = { c, p ->
 		p.simpleBlock(c.entry, p.models().withExistingParent(c.name, Create.asResource("block/track/x_ortho")))
 	},
-	itemBuilder: ItemBuilder<FlexiTrackBlockItem, BlockBuilder<Track, RailXRegistrate>>.() -> Unit = {
+	itemBuilder: ItemBuilder<TrackBlockItem, BlockBuilder<Track, RailXRegistrate>>.() -> Unit = {
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
 	},
 	builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit,
-): BlockEntry<Track> where Track : Block, Track : ITrackBlock =
-	trackBlock(name, material, factory, blockStates, itemFactory = ::FlexiTrackBlockItem, itemBuilder, builder)
+): BlockEntry<Track> =
+	trackBlock(name, material, factory, blockStates, createItem = false) {
+		loot { table, block -> table.dropOther(block, block.normalBlock) }
+		
+		builder()
+	}

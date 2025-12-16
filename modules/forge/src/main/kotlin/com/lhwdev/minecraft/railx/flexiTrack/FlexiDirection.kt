@@ -1,7 +1,9 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
 import com.lhwdev.minecraft.railx.utils.*
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
+import com.simibubi.create.content.trains.track.TrackShape
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.Direction
 import net.minecraft.nbt.*
@@ -229,6 +231,19 @@ interface FlexiDirection {
 				null
 			}
 		
+		val createShape: TrackShape?
+			get() = if(ordinal % (DivisionCount / 4) == 0) {
+				when(ordinal / (DivisionCount / 4)) {
+					0 -> TrackShape.XO
+					1 -> TrackShape.PD
+					2 -> TrackShape.ZO
+					3 -> TrackShape.ND
+					else -> error("unreachable")
+				}
+			} else {
+				null
+			}
+		
 		override val tangentAngle: Double
 			get() = angle
 		
@@ -268,6 +283,32 @@ interface FlexiDirection {
 		fun writeInt(): Tag = IntTag.valueOf(index)
 		
 		override fun toString(): String = "FlexiDirection.Known(index=$index, ordinal=$ordinal)"
+	}
+	
+	object KnownCreate {
+		val Values: Array<Known> = arrayOf(
+			Known.DivisionsByOrdinal[0],
+			Known.DivisionsByOrdinal[DivisionCount / 4],
+			Known.DivisionsByOrdinal[DivisionCount / 2],
+			Known.DivisionsByOrdinal[3 * DivisionCount / 4],
+		)
+		
+		fun roundFrom(radian: Double): Known {
+			val value = radian floorMod PI
+			var max = Double.POSITIVE_INFINITY
+			var result = Values[0]
+			for(known in Values) {
+				val difference = abs(known.angle - value)
+				if(difference < max) {
+					max = difference
+					result = known
+				}
+			}
+			return result
+		}
+		
+		fun roundFrom(vector: Vec3): Known =
+			roundFrom(radian = Mth.atan2(-vector.z, vector.x))
 	}
 	
 	class KnownVec3(override val known: Known) : UnsignedKnownVec3(

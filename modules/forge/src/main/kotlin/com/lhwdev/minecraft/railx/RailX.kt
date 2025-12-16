@@ -1,6 +1,5 @@
 package com.lhwdev.minecraft.railx
 
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrak
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrack
 import com.lhwdev.minecraft.railx.registry.*
 import com.lhwdev.minecraft.railx.splitGraph.SplitGraph
@@ -64,11 +63,9 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		AllPackets.register()
 		AllDataComponents.register()
 		AllEntityDataSerializers.register()
-		AllTrackMaterials.register()
 		AllCustoms.register()
 		
 		MiddleTrack.register()
-		FlexiTrak.register()
 		SplitGraph.register()
 	}
 }

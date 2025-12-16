@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx
 
 import com.lhwdev.minecraft.railx.common.PreciseTrackPlacementOverlay
 import com.lhwdev.minecraft.railx.flexiTrack.CurvedFlexiTrackInteraction
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockItem
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackInteraction
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackOutline
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackTargetingClient
@@ -17,6 +18,7 @@ import net.neoforged.bus.api.SubscribeEvent
 import net.neoforged.fml.common.EventBusSubscriber
 import net.neoforged.neoforge.client.event.*
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent
 
 
 @OnlyIn(Dist.CLIENT)
@@ -37,6 +39,12 @@ object ClientEvents {
 		if(!result) result = CurvedFlexiTrackInteraction.onClickInput(event)
 		
 		if(result) event.isCanceled = true
+	}
+	
+	@SubscribeEvent
+	fun onRightClickBlock(event: PlayerInteractEvent.RightClickBlock) {
+		if(RailXConfig.Server.flexiTrak.enabled.isTrue)
+			FlexiTrackBlockItem.sendFlexiblePlacementPacket(event)
 	}
 	
 	

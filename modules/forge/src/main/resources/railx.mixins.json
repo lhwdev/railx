@@ -8,7 +8,6 @@
   "mixins": [
     "ccAdvanced.CarriageMixin",
     "common.BezierConnectionMixin",
-    "common.TrackPlacementOverlayMixin",
     "common.VirtualRenderWorldMixin",
     "common.fakeTracks.BezierConnectionMixin",
     "common.fakeTracks.FakeTrackBlockEntityMixin",
@@ -16,7 +15,6 @@
     "common.longPlacement.CTrainsMixin",
     "common.manualStation.CarriageContraptionEntityMixin",
     "common.manualStation.TrainMixin",
-    "common.reservedSignal.NixieTubeRendererMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
     "flexiTrack.GameDataMixin",
     "flexiTrack.PlacementInfoAccessor",
@@ -28,9 +26,6 @@
     "flywheel.VisualizationManagerImpl$LateInitMixin",
     "flywheel.VisualizationManagerImplMixin",
     "middleTrack.TrackBlockEntityMixin",
-    "middleTrack.TrackBlockOutlineMixin",
-    "middleTrack.TrackTargetingClientMixin",
-    "other.ScrollValueRendererMixin",
     "other.VecHelperFixMixin",
     "realisticSpeed.BlockBuilderMixin",
     "realisticSpeed.CarriageContraptionEntityMixin",
@@ -51,7 +46,6 @@
     "splitGraph.TrackGraphMixin",
     "splitGraph.TrackGraphSyncMixin",
     "splitGraph.TrackGraphSyncPacketMixin",
-    "splitGraph.TrackGraphVisualizerMixin",
     "splitGraph.TrackPropagatorMixin",
     "splitGraph.TrainMigrationMixin",
     "splitGraph.TrainMixin",
@@ -59,14 +53,20 @@
     "splitGraph.TravellingPointMixin",
     "throttle.CarriageContraptionEntityMixin",
     "throttle.ControlsHandlerMixin",
-    "throttle.ControlsInputPacketMixin",
-    "throttle.TrainHUDMixin"
+    "throttle.ControlsInputPacketMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
+    "common.TrackPlacementOverlayMixin",
+    "common.reservedSignal.NixieTubeRendererMixin",
     "middleTrack.LevelRendererMixin",
+    "middleTrack.TrackBlockOutlineMixin",
+    "middleTrack.TrackTargetingClientMixin",
+    "other.ScrollValueRendererMixin",
+    "splitGraph.TrackGraphVisualizerMixin",
+    "throttle.TrainHUDMixin",
     "trainMap.GuiMapMixin"
   ],
   "mixinextras": {

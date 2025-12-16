@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.ObserverEditPacket
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiblePlacementPacket
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
 import com.lhwdev.minecraft.railx.splitGraph.SplittingTrackNodeUpdatedPacket
 import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdPacket
@@ -15,6 +16,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
 enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTypeProvider {
 	/// client -> server
+	FlexiblePlacement(FlexiblePlacementPacket),
+	
 	Throttle(ThrottlePacket),
 	
 	ObserverEdit(ObserverEditPacket),

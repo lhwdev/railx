@@ -322,24 +322,24 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		else -> FlexiDirection.Two(tangent.normalize(), normal.normalize())
 	}
 	
-	private fun displayPoint(point: FlexiPlacementInfo.TrackPoint): String =
-		displayPoint(direction(point.tangent, point.normal))
-	
 	private fun displayPoint(direction: FlexiDirection): String {
 		val tangent = direction.tangent
 		val normal = direction.normal
 		val rot = direction.toRotation()
 		val radToDeg = 180 / PI
-		val angle = "${((rot.direction * radToDeg + 360) % 360).roundToInt()}°"
+		val angle = "${((rot.direction * radToDeg + 360) % 180).roundToInt()}°"
+		
+		val knownLength = log10(FlexiDirection.Known.DivisionCount.toDouble()).toInt() + 1
+		val known = tangent.asKnown()
+			?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
+			?: (-tangent).asKnown()
+				?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
+		
 		if(abs(normal.x) > 1e-5 || abs(normal.z) > 1e-5) { // lesser than similarTo
-			return "$angle (Grad=${tangent.gradient()}, Tilt=${round(rot.tilt * radToDeg, 100)})"
+			val info = "Grad=${tangent.gradient()}, Tilt=${round(rot.tilt * radToDeg, 100)}"
+			return if(known != null) "$known ($angle, $info)" else "$angle ($info)"
 		} else {
-			val knownLength = log10(FlexiDirection.Known.DivisionCount.toDouble()).toInt() + 1
-			tangent.asKnown()
-				?.let { return "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
-			(-tangent).asKnown()
-				?.let { return "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}($angle)" }
-			return angle
+			return known ?: angle
 		}
 	}
 	
