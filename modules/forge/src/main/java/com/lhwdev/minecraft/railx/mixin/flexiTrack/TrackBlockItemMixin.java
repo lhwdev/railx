@@ -96,9 +96,9 @@ public class TrackBlockItemMixin extends BlockItem {
 		if(!flexible) return super.getPlacementState(context);
 		
 		if(!(getBlock() instanceof TrackBlock track)) return null;
-		var flexiTrack = FlexiTrackMaterial.INSTANCE.toFlexible(track.getMaterial());
+		var flexiTrack = FlexiTrackMaterial.INSTANCE.toFlexible(track);
 		if(flexiTrack == null) return super.getPlacementState(context);
-		return flexiTrack.get().getStateForPlacement(context);
+		return flexiTrack.getStateForPlacement(context);
 	}
 	
 	@Override
