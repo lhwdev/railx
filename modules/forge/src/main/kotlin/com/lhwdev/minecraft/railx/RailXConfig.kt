@@ -104,6 +104,10 @@ object RailXConfig {
 						"will not need it in most cases."
 				)
 				.define("common.fake_tracks.no_fake_tracks", false)
+			
+			val fixTrackBezierAsymmetry: BooleanValue = builder
+				.comment("Fixes vanilla Create behavior when, if track is placed strange enough, curve, train, signal overlay goes brurr")
+				.define("common.fix_track_bezier_asymmetry", false)
 		}
 		
 		
