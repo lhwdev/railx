@@ -24,7 +24,7 @@ object CurvedFlexiTrackInteraction {
 				val track = result.blockEntity as? FlexiTrackBlockEntity ?: return false
 				
 				// TODO: WIP
-				return true
+				return false
 			}
 		}
 		
