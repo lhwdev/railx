@@ -1,7 +1,10 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.RailXConfig
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.similarTo
+import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
@@ -64,6 +67,16 @@ class FlexiPlacementInfo(
 	
 	override var error: FlexiPlaceResult.PlaceError? = null
 	override val valid: Boolean get() = error?.valid ?: true
+	
+	val minimumAllowedRadius: Int
+		get() {
+			var value = RailXConfig.Server.flexiTrak.minRadius.get()
+			if(CompatMods.railways) when(material.trackType) {
+				CRTrackMaterials.CRTrackType.WIDE_GAUGE -> value *= 2
+				CRTrackMaterials.CRTrackType.NARROW_GAUGE, CRTrackMaterials.CRTrackType.UNIVERSAL -> value /= 2
+			}
+			return value
+		}
 	
 	fun copy(): FlexiPlacementInfo {
 		val info = FlexiPlacementInfo(material, trackItem, from, to)

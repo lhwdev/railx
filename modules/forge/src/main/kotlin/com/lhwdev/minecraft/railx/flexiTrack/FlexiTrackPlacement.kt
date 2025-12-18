@@ -296,7 +296,7 @@ object FlexiTrackPlacement {
 			if(from.tangent.dot(to.tangent) > 0) // illegal curve
 				return placeError(PlaceError.TooSharp().noOverlay())
 			
-			if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.get())
+			if(curve.minRadius() < minimumAllowedRadius)
 				return placeError(PlaceError.TooSharp())
 		} else {
 			val fromCross = from.tangent.cross(Vec3(0.0, 1.0, 0.0))
@@ -308,7 +308,7 @@ object FlexiTrackPlacement {
 				// straight line
 			} else {
 				// s curve
-				if(curve.minRadius() < RailXConfig.Server.flexiTrak.minRadius.get())
+				if(curve.minRadius() < minimumAllowedRadius)
 					return placeError(PlaceError.TooSharp())
 			}
 		}
