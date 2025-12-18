@@ -28,6 +28,7 @@ import net.minecraft.world.phys.Vec3
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 import com.simibubi.create.AllTags as CreateTags
@@ -89,6 +90,7 @@ object FlexiTrackPlacementClient {
 		
 		defaultHandle.cancel()
 		
+		placementCache.refresh()
 		val info = FlexiTrackPlacement.resolveConnection(
 			level = level,
 			player = player,
@@ -316,7 +318,7 @@ private class PlacementCache : FlexiTrackPlacement.CacheStorage {
 		var state = true
 	}
 	
-	val caches = mutableListOf<Cache>()
+	val caches = LinkedList<Cache>()
 	
 	fun refresh() {
 		val cacheIt = caches.iterator()
