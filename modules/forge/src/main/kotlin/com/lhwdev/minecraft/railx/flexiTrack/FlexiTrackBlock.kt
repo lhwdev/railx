@@ -1,22 +1,30 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.common.addIfConnected
+import com.lhwdev.minecraft.railx.common.from
+import com.lhwdev.minecraft.railx.common.to
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.mojang.blaze3d.vertex.PoseStack
+import com.railwayteam.railways.content.custom_tracks.phantom.PhantomSpriteManager
+import com.railwayteam.railways.mixin_interfaces.IHasTrackCasing
+import com.railwayteam.railways.registry.CRBlockPartials
+import com.railwayteam.railways.registry.CRTrackMaterials
+import com.simibubi.create.AllPartialModels
 import com.simibubi.create.Create
 import com.simibubi.create.content.decoration.girder.GirderBlock
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation.DiscoveredLocation
-import com.simibubi.create.content.trains.track.TrackBlock
-import com.simibubi.create.content.trains.track.TrackBlockEntity
-import com.simibubi.create.content.trains.track.TrackMaterial
-import com.simibubi.create.content.trains.track.TrackPropagator
+import com.simibubi.create.content.trains.track.*
 import dev.engine_room.flywheel.lib.model.baked.PartialModel
+import dev.engine_room.flywheel.lib.transform.Affine
+import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -95,10 +103,12 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 	}
 	
 	
+	private var _normalBlockSupplier: Supplier<out TrackBlock>? = null
+	
 	val normalBlockSupplier: Supplier<out TrackBlock>
-		get() =
-			@Suppress("DEPRECATION")
-			FlexiTrackMaterial.ToNormal[builtInRegistryHolder().unwrapKey().get().location()]!!
+		get() = _normalBlockSupplier ?: @Suppress("DEPRECATION")
+		FlexiTrackMaterial.ToNormal[builtInRegistryHolder().unwrapKey().get()
+			.location()]!!.also { _normalBlockSupplier = it }
 	
 	val normalBlock: TrackBlock
 		get() = normalBlockSupplier.get()
@@ -275,6 +285,9 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 			}
 		}
 	}
+	
+	open val voxelShapes: FlexiTrackVoxelShapes
+		get() = FlexiTrackVoxelShapes.StandardShapes
 	
 	override fun getShape(
 		state: BlockState,

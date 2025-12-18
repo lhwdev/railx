@@ -127,7 +127,7 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 	}
 	
 	fun voxelShape(): VoxelShape = voxelShapeCache?.let { cache -> cache.second.takeIf { cache.first == state } }
-		?: FlexiTrackVoxelShapes.of(state).also { voxelShapeCache = state to it }
+		?: block.voxelShapes.of(state).also { voxelShapeCache = state to it }
 	
 	
 	override fun removeConnection(target: BlockPos) {

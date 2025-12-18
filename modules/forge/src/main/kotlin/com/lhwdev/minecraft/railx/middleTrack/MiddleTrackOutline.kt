@@ -2,13 +2,12 @@ package com.lhwdev.minecraft.railx.middleTrack
 
 import com.lhwdev.minecraft.railx.common.TrackBezierPointSelection
 import com.lhwdev.minecraft.railx.common.primaryPositions
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVoxelShapes
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.trains.track.BezierConnection
-import com.simibubi.create.content.trains.track.BezierTrackPointLocation
-import com.simibubi.create.content.trains.track.TrackBlockOutline
-import com.simibubi.create.content.trains.track.TrackRenderer
+import com.railwayteam.railways.registry.CRShapes
+import com.railwayteam.railways.registry.CRTrackMaterials
+import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.utility.RaycastHelper
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.createmod.catnip.animation.AnimationTickHolder
@@ -26,6 +25,7 @@ import net.minecraft.world.level.GameType
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
+import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.ForgeMod
@@ -96,7 +96,7 @@ object MiddleTrackOutline {
 		val target = RaycastHelper.getTraceTarget(player, min(maxRange, range) + 1, origin)
 		val connections = GlobalConnections[level]
 		
-		val segmentBounds = CreateShapes.TRACK_ORTHO[Direction.SOUTH].bounds()
+		val standardSegmentBounds = CreateShapes.TRACK_ORTHO[Direction.SOUTH].bounds()
 			.let { it.move(-.5, it.ysize / -2, -.5) }
 		
 		for(connection in connections) {
@@ -113,6 +113,13 @@ object MiddleTrackOutline {
 			var bestSegment = -1
 			var bestDistance = Double.MAX_VALUE
 			var newMaxRange = maxRange
+			
+			val shape = getShape(bc.material, direction = Direction.SOUTH)
+			val segmentBounds = if(bc.material.trackType == TrackMaterial.TrackType.STANDARD) {
+				standardSegmentBounds
+			} else {
+				shape.bounds().let { it.move(-.5, it.ysize / -2, -.5) }
+			}
 			
 			for(i in 0..<stepLUT.size - 2) {
 				val t = stepLUT[i] * i / segments
@@ -137,8 +144,7 @@ object MiddleTrackOutline {
 				val clip = segmentBounds.clip(localOrigin, localOrigin.add(localDirection))
 				if(clip.isEmpty) continue
 				
-				if(bestSegment != -1 && bestDistance < clip.get().distanceToSqr(0.0, 0.25, 0.0)
-				) continue
+				if(bestSegment != -1 && bestDistance < clip.get().distanceToSqr(0.0, 0.25, 0.0)) continue
 				
 				val distanceToSqr = clip.get().distanceToSqr(localOrigin)
 				if(distanceToSqr > maxRange) continue
@@ -190,8 +196,19 @@ object MiddleTrackOutline {
 			.translate(-.5, -.125, -.5)
 		
 		val holdingTrack = CreateTags.AllBlockTags.TRACKS.matches(Minecraft.getInstance().player!!.mainHandItem)
-		TrackBlockOutline.renderShape(FlexiTrackVoxelShapes.base, ms, vb, if(holdingTrack) false else null)
+		val shape = getShape(result.curve.material, direction = Direction.EAST)
+		TrackBlockOutline.renderShape(shape, ms, vb, if(holdingTrack) false else null)
 		
 		ms.popPose()
+	}
+	
+	private fun getShape(material: TrackMaterial, direction: Direction): VoxelShape {
+		var shape = CreateShapes.TRACK_ORTHO[direction]
+		if(CompatMods.railways) shape = when(material.trackType) {
+			CRTrackMaterials.CRTrackType.MONORAIL -> CRShapes.MONORAIL_TRACK_ORTHO[direction]
+			CRTrackMaterials.CRTrackType.NARROW_GAUGE -> CRShapes.NARROW_TRACK_ORTHO[direction]
+			else -> shape
+		}
+		return shape
 	}
 }
