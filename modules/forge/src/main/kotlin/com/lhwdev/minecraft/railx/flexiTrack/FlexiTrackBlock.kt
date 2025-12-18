@@ -363,5 +363,124 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 		ms: PoseStack,
 	): PartialModel? = null
 	
-	
+	@OnlyIn(Dist.CLIENT)
+	override fun <Self : Affine<Self>> prepareTrackOverlay(
+		affine: Affine<Self>,
+		world: BlockGetter,
+		pos: BlockPos,
+		state: BlockState,
+		bezierPoint: BezierTrackPointLocation?,
+		direction: Direction.AxisDirection,
+		type: TrackTargetingBehaviour.RenderedTrackOverlayType,
+	): PartialModel? {
+		var axis: Vec3? = null
+		val diff: Vec3
+		val normal: Vec3
+		
+		val be = world.getBlockEntity(pos)
+		if(be !is FlexiTrackBlockEntity) return null
+		if(bezierPoint != null) {
+			val bc = be.connections[bezierPoint.curveTarget] ?: return null
+			if(CompatMods.railways && bc.material == CRTrackMaterials.PHANTOM && !PhantomSpriteManager.isVisible())
+				return null
+			
+			val t = bc.getSegmentT(bezierPoint.segment + 1).toDouble()
+			val tPre = bc.getSegmentT(bezierPoint.segment).toDouble()
+			val tPost = bc.getSegmentT((bezierPoint.segment + 2).coerceAtMost(bc.segmentCount)).toDouble()
+			
+			val offset = bc.getPosition(t)
+			normal = bc.getNormal(t)
+			diff = bc.getPosition(tPost)
+				.subtract(bc.getPosition(tPre))
+				.normalize()
+			
+			affine.translateBack(Vec3.atBottomCenterOf(pos))
+			affine.translate(offset)
+			affine.translate(0f, -4 / 16f, 0f)
+			
+			if(CompatMods.railways) {
+				if(bc.material.trackType == CRTrackMaterials.CRTrackType.MONORAIL) {
+					affine.translate(0f, 14 / 16f, 0f)
+				} else {
+					val casing = bc as IHasTrackCasing
+					if(casing.trackCasing != null) {
+						if(bc.from.y == bc.to.y) affine.translate(0f, 1 / 16f, 0f)
+						else if(!casing.isAlternate) affine.translate(0f, 4 / 16f, 0f)
+					}
+				}
+			}
+		} else {
+			axis = be.shape.axis1.tangent
+			diff = axis.scale(direction.step.toDouble()).normalize()
+			normal = getUpNormal(world, pos, state)
+			
+			val block = state.block
+			if(CompatMods.railways && block is TrackBlock) {
+				if(block.material.trackType == CRTrackMaterials.CRTrackType.MONORAIL) {
+					affine.translate(0f, 14 / 16f, 0f)
+				} else {
+					val be = world.getBlockEntity(pos)
+					if(be is TrackBlockEntity && be is IHasTrackCasing && be.trackCasing != null) {
+						val spec = CRBlockPartials.TRACK_CASINGS[TrackShape.XO]
+						val trackType = block.material.trackType
+						if(spec != null) affine.translate(
+							0f, // no x,z shift, as there is nothing like AE
+							(spec.getTopSurfacePixelHeight(trackType, be.isAlternate) - 2) / 16f,
+							0f
+						)
+					}
+				}
+			}
+		}
+		
+		val angles = TrackRenderer.getModelAngles(normal, diff)
+		
+		affine.center()
+			.rotateY(angles.y.toFloat())
+			.rotateX(angles.x.toFloat())
+			.uncenter()
+		
+		if(axis != null) {
+			affine.translate(
+				0f,
+				if(axis.y != 0.0) 7 / 16f else 0f,
+				if(axis.y != 0.0) direction.step * 2.5f / 16f else 0f,
+			)
+		} else {
+			affine.translate(0f, 4 / 16f, 0f)
+			if(direction == Direction.AxisDirection.NEGATIVE) {
+				affine.rotateCentered(Mth.PI, Direction.UP)
+			}
+		}
+		
+		if(bezierPoint == null && be.isTilted) {
+			var yOffset = 0.0
+			for(bc in be.connections.values) yOffset += bc.starts.first.y - pos.y
+			affine.center()
+				.rotateXDegrees((-direction.step * be.tilt.smoothingAngle.get()).toFloat())
+				.uncenter()
+				.translate(0.0, yOffset / 2, 0.0)
+		}
+		
+		@Suppress("REDUNDANT_ELSE_IN_WHEN")
+		return when(type) {
+			TrackTargetingBehaviour.RenderedTrackOverlayType.DUAL_SIGNAL -> AllPartialModels.TRACK_SIGNAL_DUAL_OVERLAY
+			TrackTargetingBehaviour.RenderedTrackOverlayType.OBSERVER -> AllPartialModels.TRACK_OBSERVER_OVERLAY
+			TrackTargetingBehaviour.RenderedTrackOverlayType.SIGNAL -> AllPartialModels.TRACK_SIGNAL_OVERLAY
+			TrackTargetingBehaviour.RenderedTrackOverlayType.STATION -> AllPartialModels.TRACK_STATION_OVERLAY
+			else -> { // in case other addons add other RenderedTrackOverlayTypes
+				return if(affine is TransformStack<*>) {
+					affine.pushPose()
+					try {
+						super.prepareTrackOverlay(affine, world, pos, state, bezierPoint, direction, type)
+					} finally {
+						affine.popPose()
+					}
+				} else {
+					val dummy = TransformStack.of(PoseStack())
+					super.prepareTrackOverlay(dummy, world, pos, state, bezierPoint, direction, type)
+				}
+			}
+		}
+	}
 }
