@@ -152,10 +152,11 @@ object FlexiTrackPlacement {
 		if(fromPoint.pos == toPos)
 			return PlaceError.SecondPoint()
 		
+		var toState = toState
 		val previousToState = level.getBlockState(toPos)
 		val previousToBlock = previousToState.block
 		val toPoint = if(previousToBlock is ITrackBlock) {
-			if(previousToState != toState) return PlaceError("wat?")
+			toState = previousToState
 			FlexiPlacementInfo.TrackPoint(
 				pos = toPos,
 				tangent = previousToBlock.getNearestTrackAxis(level, toPos, previousToState, player.lookAngle).first,
