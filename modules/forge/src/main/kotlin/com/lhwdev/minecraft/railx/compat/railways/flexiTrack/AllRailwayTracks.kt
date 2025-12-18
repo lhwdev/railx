@@ -4,9 +4,9 @@ package com.lhwdev.minecraft.railx.compat.railways.flexiTrack
 
 import com.lhwdev.minecraft.railx.compat.flexiTrack.CompatRailwayTracks
 import com.railwayteam.railways.Railways
+import com.railwayteam.railways.content.custom_tracks.gen_template.OutputPrefixer
 import com.railwayteam.railways.registry.CRBlocks
 import com.railwayteam.railways.registry.CRTrackMaterials
-import com.simibubi.create.AllTags
 import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.tterrag.registrate.util.entry.BlockEntry
@@ -40,33 +40,41 @@ object AllRailwayTracks : CompatRailwayTracks() {
 			tracks[name.substring(6)] = block // note: tracks also contain things like 'track_switch' 'track_coupler'
 		}
 		
+		fun blockStateModelOf(material: TrackMaterial) =
+			Railways.asResource("${OutputPrefixer.DEFAULT.getOutputPrefix(material)}x_ortho")
+		
 		val materials = TrackMaterial.allFromMod(Railways.MOD_ID)
 		Standard = materials.filter { it.trackType == TrackMaterial.TrackType.STANDARD }
 			.flexiTrackBlocks(
 				originalBlock = { tracks[it.resourceName()] as BlockEntry<TrackBlock> },
-				factory = ::StandardFlexiTrackBlock
+				factory = ::StandardFlexiTrackBlock,
+				blockStateModel = ::blockStateModelOf,
 			)
 		
 		WideGauge = CRTrackMaterials.WIDE_GAUGE.values.flexiTrackBlocks(
 			originalBlock = { CRBlocks.WIDE_GAUGE_TRACKS[it] as BlockEntry<TrackBlock> },
 			factory = ::WideGaugeFlexiTrackBlock,
+			blockStateModel = ::blockStateModelOf,
 		)
 		
 		NarrowGauge = CRTrackMaterials.NARROW_GAUGE.values.flexiTrackBlocks(
 			originalBlock = { CRBlocks.NARROW_GAUGE_TRACKS[it] as BlockEntry<TrackBlock> },
 			factory = ::NarrowGaugeFlexiTrackBlock,
+			blockStateModel = ::blockStateModelOf,
 		)
 		
 		Monorail = flexiTrackBlock(
 			original = CRTrackMaterials.MONORAIL,
 			originalBlock = CRBlocks.MONORAIL_TRACK,
 			factory = ::MonorailFlexiTrackBlock,
+			blockStateModel = Railways.asResource("block/monorail/monorail/static_blocks/x_ortho"),
 		)
 		
 		Phantom = flexiTrackBlock(
 			original = CRTrackMaterials.PHANTOM,
 			originalBlock = CRBlocks.PHANTOM_TRACK,
 			factory = ::PhantomFlexiTrackBlock,
+			blockStateModel = blockStateModelOf(CRTrackMaterials.PHANTOM),
 		)
 		Universal = listOf(Phantom)
 	}

@@ -1,10 +1,7 @@
 {
   "variants": {
-    "waterlogged=false": {
-      "model": "minecraft:block/air"
-    },
-    "waterlogged=true": {
-      "model": "minecraft:block/air"
+    "": {
+      "model": "railways:block/monorail/monorail/static_blocks/x_ortho"
     }
   }
 }

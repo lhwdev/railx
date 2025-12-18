@@ -20,12 +20,14 @@ abstract class CompatRailwayTracks {
 		originalBlock: RegistryEntry<out TrackBlock>,
 		blockEntity: RailXBlockEntityEntry<*> = AllBlockEntityTypes.FlexiTrack,
 		crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
+		blockStateModel: ResourceLocation,
 		builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit = {},
 	): BlockEntry<Track> = Registry.flexiTrackBlock(
 		name = compatNameFor(original.id),
 		material = original,
 		normalBlock = originalBlock,
 		factory = factory,
+		blockStates = { c, p -> p.simpleBlock(c.entry, p.models().getExistingFile(blockStateModel)) },
 	) {
 		validFor(blockEntity)
 		builder()
@@ -35,8 +37,11 @@ abstract class CompatRailwayTracks {
 		originalBlock: (TrackMaterial) -> RegistryEntry<out TrackBlock>,
 		blockEntity: RailXBlockEntityEntry<*> = AllBlockEntityTypes.FlexiTrack,
 		crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
+		blockStateModel: (TrackMaterial) -> ResourceLocation,
 		builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit = {},
-	): List<BlockEntry<Track>> = map { flexiTrackBlock(it, originalBlock(it), blockEntity, factory, builder) }
+	): List<BlockEntry<Track>> = map {
+		flexiTrackBlock(it, originalBlock(it), blockEntity, factory, blockStateModel(it), builder)
+	}
 }
 
 

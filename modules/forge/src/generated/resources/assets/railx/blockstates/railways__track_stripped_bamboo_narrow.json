@@ -1,10 +1,7 @@
 {
   "variants": {
-    "waterlogged=false": {
-      "model": "minecraft:block/air"
-    },
-    "waterlogged=true": {
-      "model": "minecraft:block/air"
+    "": {
+      "model": "railways:block/track/stripped_bamboo_narrow/x_ortho"
     }
   }
 }

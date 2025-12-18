@@ -64,7 +64,7 @@ object AllBlocks {
 				.noOcclusion()
 				.replaceable()
 		}
-		blockstate { c, p -> p.simpleBlock(c.get(), p.models().withExistingParent(c.name, p.mcLoc("block/stone"))) }
+		blockstate { c, p -> p.simpleBlock(c.get(), p.models().getExistingFile(p.mcLoc("block/air"))) }
 		lang("Middle Track Block")
 	}
 	
@@ -148,7 +148,7 @@ inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 	normalBlock: RegistryEntry<out TrackBlock>,
 	crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
 	crossinline blockStates: (DataGenContext<Block, Track>, RegistrateBlockstateProvider) -> Unit = { c, p ->
-		p.getVariantBuilder(c.entry).forAllStates(BlockStateGen.mapToAir(p))
+		p.simpleBlock(c.entry, p.models().getExistingFile(Create.asResource("block/track/x_ortho")))
 	},
 	builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit,
 ): BlockEntry<Track> = trackBlock(name, material, factory, blockStates, createItem = false) {
