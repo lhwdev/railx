@@ -160,7 +160,7 @@ object FlexiTrackPlacement {
 			FlexiPlacementInfo.TrackPoint(
 				pos = toPos,
 				tangent = previousToBlock.getNearestTrackAxis(level, toPos, previousToState, player.lookAngle).first,
-				normal = previousToBlock.getUpNormal(level, toPos, previousToState).normalize()
+				normal = previousToBlock.getUpNormal(level, toPos, previousToState),
 			)
 		} else {
 			FlexiPlacementInfo.TrackPoint(
@@ -186,6 +186,7 @@ object FlexiTrackPlacement {
 		return info
 	}
 	
+	// Note: TrackPoint is not normalized; TrackEnd is normalized
 	private fun resolveTrackEnd(
 		level: Level,
 		from: FlexiPlacementInfo.TrackPoint,
@@ -240,15 +241,15 @@ object FlexiTrackPlacement {
 				state = fromState,
 				pos = from.pos,
 				end = fromBlock.getCurveStart(level, from.pos, fromState, fromTangent),
-				tangent = fromTangent,
-				normal = from.normal,
+				tangent = fromTangent.normalize(),
+				normal = from.normal.normalize(),
 			)
 			val toEnd = FlexiPlacementInfo.TrackEnd(
 				state = toState,
 				pos = to.pos,
 				end = toBlock.getCurveStart(level, to.pos, toState, toTangent),
-				tangent = toTangent,
-				normal = to.normal,
+				tangent = toTangent.normalize(),
+				normal = to.normal.normalize(),
 			)
 			
 			return FlexiPlacementInfo(
