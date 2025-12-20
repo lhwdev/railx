@@ -210,7 +210,7 @@ async function run() {
       core.info(`Computed the next tag: ${tag}`);
     }
 
-    if (core.getBooleanInput("dry_run", { required: false })) {
+    if (core.getInput("dry_run") && core.getBooleanInput("dry_run")) {
       core.setOutput("current_tag", tag);
       core.exportVariable("lhwdev_create_release_previous_tag", tag);
       return;
