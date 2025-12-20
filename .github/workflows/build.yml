@@ -9,8 +9,16 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v5
+
+      - name: Update version
+        uses: ./tools/create-release
+        with:
+          prerelease: true
+          prerelease_suffix: build
+          auto_increment_type: prerelease
+          dry_run: true
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -26,8 +34,16 @@ jobs:
       - name: Build
         run: ./gradlew :forge:build
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+      - name: Create Git tag
+        run: git tag
+
+      - name: Release build artifacts
+        uses: ./tools/create-release
         with:
-          name: Forge Mod Jar 1.20.1
-          path: modules/forge/build/libs
+          release_name: RailX {{tag}} for Forge 1.20.1
+          body: |
+            Automatic build release.
+            
+            For Minecraft `1.20.1`, Forge `47.1.33+`, Create `6.0.8+`.
+          artifacts:
+            modules/forge/build/libs/*

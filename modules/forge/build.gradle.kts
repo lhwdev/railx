@@ -104,7 +104,7 @@ sourceSets.main.configure {
 
 dependencies {
 	val v = libs.versions
-	val modDevRuntimeMods = obfuscation.createRemappingConfiguration(modDevPlatform.modDevRuntimeMods.get())
+	val modDevRuntimeMods = modDevPlatform.createRuntimeModConfiguration(modDevPlatform.modDevRuntimeMods.get())
 	
 	fun optionalModDependency(dependencyNotation: Any): Dependency? {
 		val dependency = modCompileOnly(dependencyNotation) ?: return null
@@ -135,6 +135,7 @@ dependencies {
 	
 	// optional mod dependencies
 	modCompileOnly(":worldedit:7.2.15") // from flatDir
+	modDevRuntimeMods(fileTree("run/mapped-mods/*"))
 	
 	implementation(jarJar("io.github.llamalad7:mixinextras-forge:${v.mixinExtras.get()}")!!)
 	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${v.mixinExtras.get()}")!!)

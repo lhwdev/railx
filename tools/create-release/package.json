@@ -1,0 +1,34 @@
+{
+  "name": "create-release",
+  "version": "1.0.0",
+  "description": "Create a release",
+  "main": "dist/index.js",
+  "packageManager": "pnpm@9.15.3",
+  "scripts": {
+    "build": "ncc build src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/create-release"
+  },
+  "keywords": [
+    "actions",
+    "node"
+  ],
+  "author": "GitHub",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^2.0.1",
+    "@actions/exec": "^2.0.0",
+    "@actions/github": "^6.0.1",
+    "glob": "^13.0.0",
+    "kind-of": ">=6.0.3",
+    "minimist": ">=0.2.1",
+    "mustache": "^4.2.0",
+    "semver": "^7.3.2"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.4",
+    "prettier": "^3.7.4"
+  }
+}

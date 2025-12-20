@@ -3,10 +3,13 @@ package com.lhwdev.build.minecraft
 import com.github.jengelman.gradle.plugins.shadow.tasks.DependencyFilter
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.neoforged.moddevgradle.internal.utils.ExtensionUtils
+import net.neoforged.moddevgradle.legacyforge.dsl.ObfuscationExtension
+import net.neoforged.moddevgradle.legacyforge.internal.MinecraftMappings
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ConfigurableFileCollection
@@ -17,8 +20,8 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.*
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.attributes
 import org.gradle.kotlin.dsl.getByName
 import java.io.Serializable
 import java.util.*
@@ -121,6 +124,34 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 	fun configureShadow(task: TaskProvider<ShadowJar>) {
 		// mainJarTaskName = task.name
 		task.configure { dependencyFilter.set(FileDependencyFilter(project)) }
+	}
+	
+	fun createRuntimeModConfiguration(parent: Configuration): Configuration {
+		val obfuscation = project.extensions.getByName<ObfuscationExtension>("obfuscation")
+		val namedMappings = ObfuscationExtension::class.java.getDeclaredField("namedMappings")
+			.also { it.isAccessible = true }
+			.get(obfuscation) as MinecraftMappings
+		val remappingConfig = project.configurations.create("mod${parent.name.capitalized()}") {
+			description = "Configuration for runtime mod dependencies of ${parent.name} that needs to be remapped"
+			isCanBeConsumed = false
+			isCanBeResolved = false
+			isTransitive = false
+			
+			withDependencies {
+				this.forEach { dependency ->
+					when(dependency) {
+						is ExternalModuleDependency -> project.dependencies.constraints {
+							add(parent.name, "${dependency.group}:${dependency.name}:${dependency.version}") {
+								attributes { attribute(MinecraftMappings.ATTRIBUTE, namedMappings) }
+							}
+						}
+						// not implemented for others
+					}
+				}
+			}
+		}
+		parent.extendsFrom(remappingConfig)
+		return remappingConfig
 	}
 }
 
