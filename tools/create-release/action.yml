@@ -2,6 +2,9 @@ name: 'Create a Release'
 description: 'Create a release for a tag in your repository'
 author: 'lhwdev'
 inputs:
+  github_token:
+    description: 'The token for github authorization.'
+    required: true
   tag_name:
     description: 'The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag'
     required: false

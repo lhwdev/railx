@@ -9,7 +9,7 @@ const fs = require("fs");
 const Mustache = require("mustache");
 const { glob } = require("glob");
 
-const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+const octokit = github.getOctokit(core.getInput("github_token"));
 const Scheme = {
   Continuous: "continuous",
   Semantic: "semantic",

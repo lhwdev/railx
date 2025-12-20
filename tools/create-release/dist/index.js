@@ -34431,7 +34431,7 @@ const fs = __nccwpck_require__(9896);
 const Mustache = __nccwpck_require__(5827);
 const { glob } = __nccwpck_require__(122);
 
-const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+const octokit = github.getOctokit(core.getInput("github_token"));
 const Scheme = {
   Continuous: "continuous",
   Semantic: "semantic",
@@ -34622,11 +34622,24 @@ async function run() {
     }
     // Use predefined tag or calculate automatic next tag
     const tag = isNullString(tagName)
-      ? await computeNextTag(scheme)
+      ? "lhwdev_create_release_previous_tag" in process.env
+        ? process.env["lhwdev_create_release_previous_tag"]
+        : await computeNextTag(scheme)
       : tagName.replace("refs/tags/", "");
-    core.info(`Computed the next tag: ${tag}`);
+    if("lhwdev_create_release_previous_tag" in process.env) {
+      core.info(`Reused tag from previous run: ${tag}`);
+    } else {
+      core.info(`Computed the next tag: ${tag}`);
+    }
+
+    if (core.getBooleanInput("dry_run")) {
+      core.setOutput("current_tag", tag);
+      core.exportVariable("lhwdev_create_release_previous_tag", tag);
+      return;
+    }
 
     const ctx = { tag };
+
     const releaseName = core.getInput("release_name", { required: false });
     const release = isNullString(releaseName)
       ? tag
@@ -34673,7 +34686,7 @@ async function run() {
           owner,
           repo,
           release_id: releaseId,
-          name: path.slice(path.lastIndexOf('/') + 1),
+          name: path.slice(path.lastIndexOf("/") + 1),
           data: fs.readFileSync(path),
         });
     }

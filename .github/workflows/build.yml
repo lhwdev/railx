@@ -19,6 +19,7 @@ jobs:
           prerelease_suffix: build
           auto_increment_type: prerelease
           dry_run: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -47,3 +48,4 @@ jobs:
             For Minecraft `1.20.1`, Forge `47.1.33+`, Create `6.0.8+`.
           artifacts:
             modules/forge/build/libs/*
+          github_token: ${{ secrets.GITHUB_TOKEN }}
