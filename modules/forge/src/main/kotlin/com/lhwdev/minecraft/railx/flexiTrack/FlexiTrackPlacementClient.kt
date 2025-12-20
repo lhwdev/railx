@@ -1,10 +1,13 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.minRadius
+import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
 import com.lhwdev.minecraft.railx.utils.ColorsArgb
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
+import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
@@ -36,6 +39,21 @@ import com.simibubi.create.AllTags as CreateTags
 
 @OnlyIn(Dist.CLIENT)
 object FlexiTrackPlacementClient {
+	enum class FlexibleSelection { Hold, Toggle }
+	
+	
+	private var flexibleSelectionToggle = false
+	
+	val isFlexibleClient: Boolean
+		get() {
+			if(!RailXConfig.Server.flexiTrak.enabled.get()) return false
+			return when(RailXConfig.Client.flexiTrak.flexibleSelection.get()) {
+				FlexibleSelection.Hold -> AllKeys.FlexiblePlacement.isPressed
+				FlexibleSelection.Toggle -> flexibleSelectionToggle
+			}
+		}
+	
+	
 	var animation: LerpedFloat = LerpedFloat.linear()
 		.startWithValue(0.0)
 	var lastLineCount: Int = 0
@@ -51,12 +69,18 @@ object FlexiTrackPlacementClient {
 	private val placementCache = PlacementCache()
 	
 	fun clientTick(defaultHandle: Cancellable) {
-		if(!FlexiTrackPlacement.isFlexibleClient) {
+		lastOverlay = null
+		if(!RailXConfig.Server.flexiTrak.enabled.get()) return
+		
+		if(
+			RailXConfig.Client.flexiTrak.flexibleSelection.get() == FlexibleSelection.Toggle &&
+			AllKeys.FlexiblePlacement.isKeyDown
+		) flexibleSelectionToggle = !flexibleSelectionToggle
+		
+		if(!isFlexibleClient) {
 			placementCache.caches.clear()
 			return
 		}
-		
-		lastOverlay = null
 		
 		val minecraft = Minecraft.getInstance()
 		minecraft.level ?: return
@@ -225,10 +249,17 @@ object FlexiTrackPlacementClient {
 		val railColor = ColorsArgb.lerp(0xEA5C2B, 0x95CD41, animation.getValue())
 		val up = Vec3(0.0, (4 / 16f).toDouble(), 0.0)
 		
+		val railWidth = when(info.material.trackType) {
+			CRTrackMaterials.CRTrackType.WIDE_GAUGE -> 23 / 16.0
+			CRTrackMaterials.CRTrackType.NARROW_GAUGE -> 8 / 16.0
+			CRTrackMaterials.CRTrackType.MONORAIL -> 8 / 16.0
+			else -> 15 / 16.0
+		}
+		
 		run {
 			val from = info.from
 			val a1 = from.tangent
-			val n1 = from.normal.cross(a1).scale((15 / 16f).toDouble())
+			val n1 = from.normal.cross(a1).scale(railWidth)
 			val o1 = a1.scale(0.125)
 			val ex1 = a1.scale(0.0)
 			line(1, from.tangent - n1 + up, o1, ex1)
@@ -236,7 +267,7 @@ object FlexiTrackPlacementClient {
 			
 			val to = info.to
 			val a2 = to.tangent
-			val n2 = to.tangent.cross(a2).scale((15 / 16f).toDouble())
+			val n2 = to.tangent.cross(a2).scale(railWidth)
 			val o2 = a2.scale(0.125)
 			val ex2 = a2.scale(0.0/*  * a2.length() */)
 			line(3, to.tangent + n2 + up, o2, ex2)
@@ -265,7 +296,7 @@ object FlexiTrackPlacementClient {
 				.normalize()
 			val normal = bc.getNormal(t.toDouble())
 				.cross(derivative)
-				.scale(15.0 / 16.0)
+				.scale(railWidth)
 			val rail1 = result.add(normal).add(up)
 			val rail2 = result.subtract(normal).add(up)
 			

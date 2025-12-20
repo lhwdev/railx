@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
-import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.content.trains.track.TrackMaterial
@@ -9,6 +8,8 @@ import com.simibubi.create.content.trains.track.TrackPlacement
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 
 
@@ -22,13 +23,14 @@ object FlexiTrackBlockItem {
 	fun getFlexiblePlacementState(item: TrackBlockItem, context: BlockPlaceContext): BlockState? =
 		FlexiTrackMaterial.maybeFlexible(item.block).getStateForPlacement(context)
 	
+	@OnlyIn(Dist.CLIENT)
 	fun sendFlexiblePlacementPacket(event: PlayerInteractEvent.RightClickBlock) {
 		val stack = event.itemStack
 		if(!event.level.isClientSide) return
 		if(!com.simibubi.create.AllTags.AllBlockTags.TRACKS.matches(stack)) return
 		val packet = FlexiblePlacementPacket(
 			mainHand = event.hand == InteractionHand.MAIN_HAND,
-			flexible = AllKeys.FlexiblePlacement.isPressed
+			flexible = FlexiTrackPlacementClient.isFlexibleClient,
 		)
 		AllPackets.sendToServer(packet)
 	}

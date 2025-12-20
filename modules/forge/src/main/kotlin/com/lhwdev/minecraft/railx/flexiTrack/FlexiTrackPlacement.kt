@@ -4,7 +4,6 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.buildTrack.BuildTrak
 import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult.PlaceError
-import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.lhwdev.minecraft.utils.vectors.minus
@@ -39,11 +38,8 @@ import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
 
 
 object FlexiTrackPlacement {
-	val isFlexibleClient: Boolean
-		get() = RailXConfig.Server.flexiTrak.enabled.get() && AllKeys.FlexiblePlacement.isPressed
-	
 	fun isFlexible(level: LevelReader, stack: ItemStack): Boolean = if(level.isClientSide) {
-		isFlexibleClient
+		FlexiTrackPlacementClient.isFlexibleClient
 	} else {
 		RailXConfig.Server.flexiTrak.enabled.get() && stack.tag?.getBoolean("railx:FlexiblePlacement") ?: false
 	}
@@ -208,10 +204,17 @@ object FlexiTrackPlacement {
 		//    3-2. on same line: yeah just line
 		
 		fun tryResolve(fromVec: Vec3, toVec: Vec3, fromTangent: Vec3, toTangent: Vec3): FlexiPlacementInfo? {
+			val fromTangentNormalized = fromTangent.normalize()
+			val toTangentNormalized = toTangent.normalize()
+			
 			val fromSign: Double
 			val toSign: Double
 			
-			val intersect = VecHelper.intersect(fromVec, toVec, fromTangent, toTangent, Direction.Axis.Y)
+			val intersect = VecHelper.intersect(
+				fromVec, toVec,
+				fromTangentNormalized, toTangentNormalized,
+				Direction.Axis.Y
+			)
 			if(intersect != null) {
 				if(fromTangent.dot(toTangent) > 0) // illegal curve
 					return null
@@ -221,34 +224,34 @@ object FlexiTrackPlacement {
 			} else {
 				val crossIntersect = VecHelper.intersect(
 					fromVec, toVec,
-					fromTangent, toTangent.cross(Vec3(0.0, 1.0, 0.0)),
+					fromTangentNormalized, toTangentNormalized.cross(Vec3(0.0, 1.0, 0.0)),
 					Direction.Axis.Y
 				)
 				if(crossIntersect != null) {
 					fromSign = sign(crossIntersect[0])
 					if(fromSign <= 0.0) return null
-					toSign = -sign(fromTangent.dot(toTangent))
+					toSign = -sign(fromTangentNormalized.dot(toTangentNormalized))
 				} else {
-					fromSign = sign(fromTangent.dot(toVec - fromVec))
+					fromSign = sign(fromTangentNormalized.dot(toVec - fromVec))
 					toSign = -fromSign
 				}
 			}
 			
-			check(fromSign != 0.0 && toSign != 0.0) { "fromSign or toSign == 0, ($fromSign, $toSign)" }
-			val fromTangent = fromTangent.scale(fromSign)
-			val toTangent = toTangent.scale(toSign)
+			if(fromSign == 0.0 || toSign == 0.0) return null
+			val fromTangent = fromTangentNormalized.scale(fromSign)
+			val toTangent = toTangentNormalized.scale(toSign)
 			val fromEnd = FlexiPlacementInfo.TrackEnd(
 				state = fromState,
 				pos = from.pos,
 				end = fromBlock.getCurveStart(level, from.pos, fromState, fromTangent),
-				tangent = fromTangent.normalize(),
+				tangent = fromTangent,
 				normal = from.normal.normalize(),
 			)
 			val toEnd = FlexiPlacementInfo.TrackEnd(
 				state = toState,
 				pos = to.pos,
 				end = toBlock.getCurveStart(level, to.pos, toState, toTangent),
-				tangent = toTangent.normalize(),
+				tangent = toTangent,
 				normal = to.normal.normalize(),
 			)
 			

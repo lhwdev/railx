@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx
 
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacementClient
 import net.minecraftforge.common.ForgeConfigSpec
 import net.minecraftforge.common.ForgeConfigSpec.*
 
@@ -20,7 +21,11 @@ object RailXConfig {
 		inner class FlexiTrak {
 			val overlayWidth: IntValue = builder
 				.comment("Specify how wide placement overlays are shown.")
-				.defineInRange("flexi_trak.overlay_width", 3, 0, 4)
+				.defineInRange("flexi_trak.overlay_width", 3, 0, 7)
+			
+			val flexibleSelection: EnumValue<FlexiTrackPlacementClient.FlexibleSelection> = builder
+				.comment("Whether hold or toggle to enable/disable flexible placement.")
+				.defineEnum("flexi_track.flexible_selection", FlexiTrackPlacementClient.FlexibleSelection.Hold)
 		}
 		
 		

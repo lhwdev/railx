@@ -171,7 +171,7 @@ sealed interface FlexiShape {
 	class Impl(override val axes: List<FlexiDirection>) : FlexiShape {
 		companion object {
 			fun read(tag: CompoundTag): Impl =
-				Impl(axes = readDirectionList(tag.getList("Axes", Tag.TAG_COMPOUND.toInt())))
+				Impl(axes = readDirectionList(tag.get("Axes") as ListTag))
 		}
 		
 		init {
