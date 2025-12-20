@@ -13,7 +13,8 @@ plugins {
 
 val modId = "railx"
 
-version = "1.0-SNAPSHOT"
+version = System.getenv("project_version")?.ifBlank { null }
+	?: "1.0-SNAPSHOT"
 
 base {
 	archivesName = modId

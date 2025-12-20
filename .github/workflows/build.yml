@@ -6,13 +6,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Update version
+      - id: update_version
+        name: Update version
         uses: ./tools/create-release
         with:
           prerelease: true
@@ -34,6 +35,8 @@ jobs:
 
       - name: Build
         run: ./gradlew :forge:build
+        env:
+          project_version: ${{ steps.update_version.outputs.current_tag }}
 
       - name: Release build artifacts
         uses: ./tools/create-release
