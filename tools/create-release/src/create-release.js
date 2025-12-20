@@ -210,7 +210,7 @@ async function run() {
       core.info(`Computed the next tag: ${tag}`);
     }
 
-    if (core.getBooleanInput("dry_run")) {
+    if (core.getBooleanInput("dry_run", { required: false })) {
       core.setOutput("current_tag", tag);
       core.exportVariable("lhwdev_create_release_previous_tag", tag);
       return;
@@ -256,7 +256,7 @@ async function run() {
     core.setOutput("html_url", htmlUrl);
     core.setOutput("upload_url", uploadUrl);
 
-    const artifacts = core.getMultilineInput("artifacts");
+    const artifacts = core.getMultilineInput("artifacts", { required: false });
     if (artifacts.length != 0 && artifacts[0].length != 0) {
       const files = await glob(artifacts);
       for (const path of files)

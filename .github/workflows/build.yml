@@ -35,9 +35,6 @@ jobs:
       - name: Build
         run: ./gradlew :forge:build
 
-      - name: Create Git tag
-        run: git tag
-
       - name: Release build artifacts
         uses: ./tools/create-release
         with:
