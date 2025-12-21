@@ -10,6 +10,7 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ConfigurableFileCollection
@@ -145,7 +146,8 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 								attributes { attribute(MinecraftMappings.ATTRIBUTE, namedMappings) }
 							}
 						}
-						// not implemented for others
+						
+						is FileCollectionDependency -> project.dependencies
 					}
 				}
 			}

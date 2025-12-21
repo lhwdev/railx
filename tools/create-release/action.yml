@@ -5,6 +5,9 @@ inputs:
   github_token:
     description: 'The token for github authorization.'
     required: true
+  ref:
+    description: 'Target branch or ref that this tag and release should be created from. Given to `target_commitish` REST API parameter.'
+    required: false
   tag_name:
     description: 'The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag'
     required: false
@@ -16,6 +19,9 @@ inputs:
     required: false
   body:
     description: 'Text describing the contents of the tag.'
+    required: false
+  diff_template:
+    description: 'Template for diff. See code for available placeholders.'
     required: false
   draft:
     description: '`true` to create a draft (unpublished) release, `false` to create a published one. Default: `false`'

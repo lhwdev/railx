@@ -19,6 +19,7 @@ jobs:
           prerelease: true
           prerelease_suffix: build
           auto_increment_type: prerelease
+          tag_schema: semantic
           dry_run: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,17 +38,21 @@ jobs:
       - name: Build
         run: ./gradlew :forge:build
         env:
-          project_version: ${{ steps.update_version.outputs.current_tag }}
+          project_version: ${{ steps.update_version.outputs.version }}
 
       - name: Release build artifacts
         uses: ./tools/create-release
         with:
           prerelease: true
-          release_name: RailX {{tag}} for Forge 1.20.1
+          release_name: RailX {{version}} for Forge 1.20.1
           body: |
             Automatic build release.
+            This mod is **under development**, so be sure to backup before joining. Might have plenty of bugs.
             
             For Minecraft `1.20.1`, Forge `47.1.33+`, Create `6.0.8+`.
+
+            ### Updates
+            {{diff}}
           artifacts:
             modules/forge/build/libs/*
           github_token: ${{ secrets.GITHUB_TOKEN }}
