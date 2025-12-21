@@ -34421,6 +34421,7 @@ function wrappy (fn, cb) {
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(1635);
+const { getExecOutput } = __nccwpck_require__(4154);
 const github = __nccwpck_require__(4903);
 
 const context = github.context;
@@ -34578,14 +34579,13 @@ async function computeLastTag() {
   return recentTags.shift().ref.replace("refs/tags/", "");
 }
 
-async function computeNextTag(scheme) {
-  const lastTag = await computeLastTag();
+async function computeNextTag(scheme, lastTag) {
   // Handle zero-state where no tags exist for the repo
   if (!lastTag) {
     if (scheme === Scheme.Continuous) {
       return initialTag("v1");
     }
-    return initialTag("v1.0.0");
+    return initialTag("v0.1.0");
   }
   core.info(`Computing the next tag based on: ${lastTag}`);
   core.setOutput("previous_tag", lastTag);
@@ -34611,6 +34611,48 @@ function processTemplate(str, ctx) {
   return Mustache.render(str, context);
 }
 
+async function getDiff(lastTag) {
+  const result = [];
+  const raw = await getExecOutput("git", [
+    "log",
+    `${lastTag}..HEAD`,
+    "--format=%H%n%aN%n%aE%n%at%n%ct%n%P%n%D%n%B", // commit hash, author name, author email, author date, committer date, parent hash, ref name, raw body
+    "-z", // null separator
+    "--diff-merges=first-parent",
+  ]);
+  let template = core.getInput("diff_template");
+  if (isNullString(template))
+    template =
+      "{{commitHashAbbr}} {{title}} [{{commitHashAbbr}}]({{commitUrl}})";
+  for (const entry of raw.stdout.split("\0")) {
+    const [
+      commitHash,
+      authorName,
+      authorEmail,
+      authorDate,
+      committerDate,
+      parentHash,
+      refName,
+      ...body
+    ] = entry.split("\n");
+    const context = {
+      commitHash,
+      commitHashAbbr: commitHash.slice(0, 6),
+      commitUrl: `https://github.com/${owner}/${repo}/commit/${commitHash}`,
+      authorName,
+      authorEmail,
+      authorDate,
+      committerDate,
+      parentHash,
+      refName,
+      body: body.join("\n"),
+      title: body[0],
+    };
+    result.push(Mustache.render(template, context));
+  }
+  return result;
+}
+
 async function run() {
   try {
     // Get the inputs from the workflow file: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
@@ -34621,24 +34663,28 @@ async function run() {
       return;
     }
     // Use predefined tag or calculate automatic next tag
+    const releaseInfo =
+      "lhwdev_create_release_info" in process.env
+        ? JSON.parse(process.env["lhwdev_create_release_info" in process.env])
+        : null;
+    const lastTag = releaseInfo?.lastTag ?? (await computeLastTag());
     const tag = isNullString(tagName)
-      ? "lhwdev_create_release_previous_tag" in process.env
-        ? process.env["lhwdev_create_release_previous_tag"]
-        : await computeNextTag(scheme)
+      ? (releaseInfo?.tag ?? (await computeNextTag(scheme, lastTag)))
       : tagName.replace("refs/tags/", "");
-    if("lhwdev_create_release_previous_tag" in process.env) {
+    if ("lhwdev_create_release_info" in process.env) {
       core.info(`Reused tag from previous run: ${tag}`);
     } else {
       core.info(`Computed the next tag: ${tag}`);
     }
 
+    const version = tag.startsWith("v") ? tag.slice(1) : tag;
+    const ctx = { lastTag, tag, version };
     if (core.getInput("dry_run") && core.getBooleanInput("dry_run")) {
       core.setOutput("current_tag", tag);
-      core.exportVariable("lhwdev_create_release_previous_tag", tag);
+      core.setOutput("version", version);
+      core.exportVariable("lhwdev_create_release_info", ctx);
       return;
     }
-
-    const ctx = { tag };
 
     const releaseName = core.getInput("release_name", { required: false });
     const release = isNullString(releaseName)
@@ -34649,10 +34695,24 @@ async function run() {
     const draft = core.getInput("draft", { required: false }) === "true";
     ctx.draft = draft;
 
-    const body = processTemplate(
-      core.getInput("body", { required: false }),
-      ctx
-    );
+    let ref = core.getInput("ref");
+    if (isNullString(ref)) {
+      const output = await getExecOutput("git", [
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD",
+      ]);
+      ref = output.stdout.trim();
+      core.info(`Defaulting to ref ${ref}`);
+    }
+
+    const bodyInput = core.getInput("body", { required: false });
+    ctx.diff =
+      bodyInput.includes("diff") && lastTag
+        ? (await getDiff(lastTag)).map((line) => `- ${line}`).join("\n")
+        : "";
+
+    const body = processTemplate(bodyInput, ctx);
 
     // Create a release
     // API Documentation: https://developer.github.com/v3/repos/releases/#create-a-release
@@ -34660,12 +34720,17 @@ async function run() {
     const createReleaseResponse = await octokit.rest.repos.createRelease({
       owner,
       repo,
+      target_commitish: ref,
       tag_name: tag,
       name: release,
       body,
       draft,
       prerelease,
     });
+
+    core.info(
+      `Created Github release ${createReleaseResponse.data.id} in ${createReleaseResponse.data.html_url}`
+    );
 
     // Get the ID, html_url, and upload URL for the created Release from the response
     const {
@@ -34674,21 +34739,26 @@ async function run() {
 
     // Set the output variables for use by other actions: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
     core.setOutput("current_tag", tag);
+    core.setOutput("version", version);
     core.setOutput("id", releaseId);
     core.setOutput("html_url", htmlUrl);
     core.setOutput("upload_url", uploadUrl);
 
     const artifacts = core.getMultilineInput("artifacts", { required: false });
     if (artifacts.length != 0 && artifacts[0].length != 0) {
-      const files = await glob(artifacts);
-      for (const path of files)
-        await octokit.rest.repos.uploadReleaseAsset({
-          owner,
-          repo,
-          release_id: releaseId,
-          name: path.slice(path.lastIndexOf("/") + 1),
-          data: fs.readFileSync(path),
-        });
+      const files = await glob(artifacts, { absolute: false });
+      for (const path of files) {
+        const uploadReleaseResult = await octokit.rest.repos.uploadReleaseAsset(
+          {
+            owner,
+            repo,
+            release_id: releaseId,
+            name: path.slice(path.lastIndexOf("/") + 1),
+            data: fs.readFileSync(path),
+          }
+        );
+        core.info(`Uploaded file ${path}, id=${uploadReleaseResult.data.id}`);
+      }
     }
   } catch (error) {
     core.setFailed(error.message);
