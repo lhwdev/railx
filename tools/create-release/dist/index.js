@@ -34665,7 +34665,7 @@ async function run() {
     // Use predefined tag or calculate automatic next tag
     const releaseInfo =
       "lhwdev_create_release_info" in process.env
-        ? JSON.parse(process.env["lhwdev_create_release_info" in process.env])
+        ? JSON.parse(process.env["lhwdev_create_release_info"])
         : null;
     const lastTag = releaseInfo?.lastTag ?? (await computeLastTag());
     const tag = isNullString(tagName)
