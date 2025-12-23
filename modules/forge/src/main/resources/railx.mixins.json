@@ -9,6 +9,7 @@
     "ccAdvanced.CarriageMixin",
     "common.BezierConnection$RuntimeMixin",
     "common.BezierConnectionMixin",
+    "common.TrackPlacementMixin",
     "common.VirtualRenderWorldMixin",
     "common.fakeTracks.BezierConnectionMixin",
     "common.fakeTracks.FakeTrackBlockEntityMixin",
