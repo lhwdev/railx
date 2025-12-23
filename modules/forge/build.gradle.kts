@@ -136,7 +136,7 @@ dependencies {
 	
 	// optional mod dependencies
 	modCompileOnly(":worldedit:7.2.15") // from flatDir
-	modDevRuntimeMods(fileTree("run/mapped-mods/*"))
+	modDevRuntimeMods(fileTree("run/mapped-mods"))
 	
 	implementation(jarJar("io.github.llamalad7:mixinextras-forge:${v.mixinExtras.get()}")!!)
 	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${v.mixinExtras.get()}")!!)

@@ -154,7 +154,7 @@ internal abstract class RemappingTransform @Inject constructor() : TransformActi
 	override fun transform(outputs: TransformOutputs) {
 		val inputFile = this.inputArtifact.get().asFile
 		if(inputFile.exists()) {
-			val mappedFile = outputs.file(inputFile.getName())
+			val mappedFile = outputs.file(inputFile.name)
 			
 			this.parameters.remapOperation.execute(
 				this.execOperations,

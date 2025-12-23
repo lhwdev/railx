@@ -2,21 +2,18 @@ package com.lhwdev.build.minecraft
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.DependencyFilter
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.neoforged.moddevgradle.dsl.InternalModelHelper
 import net.neoforged.moddevgradle.internal.utils.ExtensionUtils
 import net.neoforged.moddevgradle.legacyforge.dsl.ObfuscationExtension
 import net.neoforged.moddevgradle.legacyforge.internal.MinecraftMappings
+import net.neoforged.moddevgradle.legacyforge.tasks.RemapOperation
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.FileCollectionDependency
-import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.*
+import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
@@ -24,6 +21,8 @@ import org.gradle.api.tasks.*
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.getByName
+import org.gradle.kotlin.dsl.register
+import org.gradle.process.ExecOperations
 import java.io.Serializable
 import java.util.*
 import javax.inject.Inject
@@ -34,6 +33,8 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 	companion object {
 		const val Name: String = "modDevPlatform"
 	}
+	
+	val prepareRunTask: TaskProvider<DefaultTask>
 	
 	val modDevRuntimeStandalone: NamedDomainObjectProvider<SourceSet>
 	val modDevRuntimeStandaloneJar: TaskProvider<Jar>
@@ -50,6 +51,16 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 		val configurations = project.configurations
 		val tasks = project.tasks
 		val sourceSets = ExtensionUtils.getSourceSets(project)
+		
+		prepareRunTask = tasks.register<DefaultTask>("prepareRun") {}
+		project.afterEvaluate {
+			val neoForge = project.extensions.getByName<OpenForgeExtension>("neoForge")
+			neoForge.runs.configureEach {
+				tasks.named(InternalModelHelper.nameOfRun(this, "prepare", "run")) {
+					dependsOn(prepareRunTask)
+				}
+			}
+		}
 		
 		modDevRuntimeMods = configurations.register("modDevRuntimeMods") {
 			isCanBeConsumed = false
@@ -78,7 +89,7 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 			archiveBaseName.set("railx-standalone")
 		}
 		
-		tasks.named("classes") { dependsOn(modDevRuntimeStandaloneJar) }
+		prepareRunTask.configure { dependsOn(modDevRuntimeStandaloneJar) }
 		
 		modDevRuntime = sourceSets.register("modDevRuntime") {
 			val main = mainTask.get()
@@ -132,28 +143,47 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 		val namedMappings = ObfuscationExtension::class.java.getDeclaredField("namedMappings")
 			.also { it.isAccessible = true }
 			.get(obfuscation) as MinecraftMappings
-		val remappingConfig = project.configurations.create("mod${parent.name.capitalized()}") {
+		
+		val remapJarFiles = project.tasks.register<RemapJars>("${parent.name}RemapJarFiles") {
+			obfuscation.configureSrgToNamedOperation(remapOperation)
+			libraries.from(modDevRuntime.get().compileClasspath)
+			into(project.layout.buildDirectory.dir("moddevRuntime/remapped"))
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
+		}
+		
+		val remappingConfig = project.configurations.dependencyScope("mod${parent.name.capitalized()}") {
 			description = "Configuration for runtime mod dependencies of ${parent.name} that needs to be remapped"
-			isCanBeConsumed = false
-			isCanBeResolved = false
 			isTransitive = false
-			
 			withDependencies {
-				this.forEach { dependency ->
-					when(dependency) {
-						is ExternalModuleDependency -> project.dependencies.constraints {
-							add(parent.name, "${dependency.group}:${dependency.name}:${dependency.version}") {
-								attributes { attribute(MinecraftMappings.ATTRIBUTE, namedMappings) }
-							}
+				val iterator = iterator()
+				while(iterator.hasNext()) when(val dependency = iterator.next()) {
+					is ExternalModuleDependency -> project.dependencies.constraints {
+						add(parent.name, "${dependency.group}:${dependency.name}:${dependency.version}") {
+							attributes { attribute(MinecraftMappings.ATTRIBUTE, namedMappings) }
 						}
-						
-						is FileCollectionDependency -> project.dependencies
+					}
+					
+					
+					is ProjectDependency -> project.dependencies.constraints {
+						add(parent.name, dependency) {
+							attributes { attribute(MinecraftMappings.ATTRIBUTE, namedMappings) }
+						}
+					}
+					
+					is FileCollectionDependency -> {
+						iterator.remove()
+						remapJarFiles.get().from(dependency.files)
 					}
 				}
 			}
 		}
-		parent.extendsFrom(remappingConfig)
-		return remappingConfig
+		
+		parent.extendsFrom(remappingConfig.get())
+		
+		project.dependencies.add(parent.name, remapJarFiles.map { it.outputs.files.asFileTree })
+		prepareRunTask.configure { dependsOn(remapJarFiles) }
+		
+		return remappingConfig.get()
 	}
 }
 
@@ -197,4 +227,30 @@ private class FileDependencyFilter(@Transient private val project: Project) : De
 	override fun exclude(spec: Spec<ResolvedDependency>) = error("no op")
 	override fun include(spec: Spec<ResolvedDependency>) = error("no op")
 	override fun project(notation: Any): Spec<ResolvedDependency> = error("no op")
+}
+
+
+private abstract class RemapJars @Inject constructor(private val execOperations: ExecOperations) : Copy() {
+	@get:Nested
+	abstract val remapOperation: RemapOperation
+	
+	@get:InputFiles
+	abstract val libraries: ConfigurableFileCollection
+	
+	
+	override fun createCopyAction(): CopyAction = CopyAction { stream ->
+		val fileResolver = fileLookup.getFileResolver(destinationDir)
+		var didWork = false
+		stream.process { details ->
+			val target = fileResolver.resolve(details.relativePath.pathString)
+			if(target.exists()) { // renameIfCaseChanged
+				val canonicalized = target.canonicalFile
+				if(target.name != canonicalized.name) canonicalized.renameTo(target)
+			}
+			
+			remapOperation.execute(execOperations, details.file, target, libraries)
+			didWork = true
+		}
+		WorkResults.didWork(didWork)
+	}
 }
