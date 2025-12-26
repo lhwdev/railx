@@ -191,40 +191,32 @@ function processTemplate(str, ctx) {
 
 async function getDiff(lastTag) {
   const result = [];
-  const raw = await getExecOutput("git", [
-    "log",
-    `${lastTag}..HEAD`,
-    "--format=%H%n%aN%n%aE%n%at%n%ct%n%P%n%D%n%B", // commit hash, author name, author email, author date, committer date, parent hash, ref name, raw body
-    "-z", // null separator
-    "--diff-merges=first-parent",
-  ]);
+  const raw = await octokit.rest.repos.compareCommitsWithBasehead({
+    owner,
+    repo,
+    basehead: lastTag,
+  });
+  const commits = raw.data.commits;
+
   let template = core.getInput("diff_template");
   if (isNullString(template))
-    template =
-      "{{commitHashAbbr}} {{title}} [{{commitHashAbbr}}]({{commitUrl}})";
-  for (const entry of raw.stdout.split("\0")) {
-    const [
-      commitHash,
-      authorName,
-      authorEmail,
-      authorDate,
-      committerDate,
-      parentHash,
-      refName,
-      ...body
-    ] = entry.split("\n");
+    template = "{{title}} [{{commitHashAbbr}}]({{commitUrl}})";
+  for (const entry of commits) {
+    const commit = entry.commit;
     const context = {
-      commitHash,
-      commitHashAbbr: commitHash.slice(0, 6),
-      commitUrl: `https://github.com/${owner}/${repo}/commit/${commitHash}`,
-      authorName,
-      authorEmail,
-      authorDate,
-      committerDate,
-      parentHash,
-      refName,
-      body: body.join("\n"),
-      title: body[0],
+      commitHash: entry.sha,
+      commitHashAbbr: entry.sha.slice(0, 6),
+      commitUrl: `https://github.com/${owner}/${repo}/commit/${entry.sha}`,
+      authorName: commit.author.name,
+      authorEmail: commit.author.email,
+      authorDate: commit.author.date,
+      committerDate: commit.committer.date,
+      parentHash: entry.parents?.[0].sha,
+      body: commit.message,
+      title: commit.message.slice(
+        0,
+        commit.message.includes("\n") ? commit.message.indexOf("\n") : undefined
+      ),
     };
     result.push(Mustache.render(template, context));
   }
