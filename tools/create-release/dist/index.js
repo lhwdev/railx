@@ -34557,6 +34557,7 @@ function computeNextSemantic(semTag) {
       case Semantic.Patch:
       case Semantic.Premajor:
       case Semantic.Prerelease:
+        core.info(`Computing semantic version, increasing ${type}; suffix=${preName}`);
         return `${semTag.options.tagPrefix}${semver.inc(semTag, type, preName)}`;
       default:
         core.setFailed(
@@ -34612,23 +34613,25 @@ function processTemplate(str, ctx) {
 }
 
 async function getDiff(lastTag, currentRef) {
-  const result = [];
+  const result = "";
   const raw = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,
     repo,
     basehead: `${lastTag}...${currentRef}`,
   });
+
   const commits = raw.data.commits;
+  commits.reverse();
 
   let template = core.getInput("diff_template");
   if (isNullString(template))
-    template = "{{title}} [{{commitHashAbbr}}]({{commitUrl}})";
+    template = "{{title}} [{{commitHashAbbr}}]({{{commitUrl}}})";
   for (const entry of commits) {
     const commit = entry.commit;
     const context = {
       commitHash: entry.sha,
       commitHashAbbr: entry.sha.slice(0, 6),
-      commitUrl: `https://github.com/${owner}/${repo}/commit/${entry.sha}`,
+      commitUrl: entry.html_url,
       authorName: commit.author.name,
       authorEmail: commit.author.email,
       authorDate: commit.author.date,
@@ -34640,7 +34643,7 @@ async function getDiff(lastTag, currentRef) {
         commit.message.includes("\n") ? commit.message.indexOf("\n") : undefined
       ),
     };
-    result.push(Mustache.render(template, context));
+    result += "\n- " + Mustache.render(template, context);
   }
   return result;
 }
@@ -34700,9 +34703,7 @@ async function run() {
 
     const bodyInput = core.getInput("body", { required: false });
     ctx.diff =
-      bodyInput.includes("diff") && lastTag
-        ? (await getDiff(lastTag, ref)).map((line) => `- ${line}`).join("\n")
-        : "";
+      bodyInput.includes("diff") && lastTag ? await getDiff(lastTag, ref) : "";
 
     const body = processTemplate(bodyInput, ctx);
 
