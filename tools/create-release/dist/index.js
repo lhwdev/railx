@@ -34611,12 +34611,12 @@ function processTemplate(str, ctx) {
   return Mustache.render(str, context);
 }
 
-async function getDiff(lastTag) {
+async function getDiff(lastTag, currentRef) {
   const result = [];
   const raw = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,
     repo,
-    basehead: lastTag,
+    basehead: `${lastTag}...${currentRef}`,
   });
   const commits = raw.data.commits;
 
@@ -34701,7 +34701,7 @@ async function run() {
     const bodyInput = core.getInput("body", { required: false });
     ctx.diff =
       bodyInput.includes("diff") && lastTag
-        ? (await getDiff(lastTag)).map((line) => `- ${line}`).join("\n")
+        ? (await getDiff(lastTag, ref)).map((line) => `- ${line}`).join("\n")
         : "";
 
     const body = processTemplate(bodyInput, ctx);
