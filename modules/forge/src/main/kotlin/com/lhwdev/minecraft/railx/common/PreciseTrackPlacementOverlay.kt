@@ -296,7 +296,7 @@ object PreciseTrackPlacementOverlay : IGuiOverlay {
 		val line = Component.empty()
 		line.append(Component.literal(title))
 		line.append(" | Axis: ")
-			.append(valueStyle(displayPoint(direction(from.tangent, from.normal))))
+			.append(valueStyle(displayPoint(direction(from.normalizedTangent, from.normalizedNormal))))
 		
 		line.append(", Δ=")
 			.append(valueStyle(with(delta) { "[$x, $y, $z]" }))

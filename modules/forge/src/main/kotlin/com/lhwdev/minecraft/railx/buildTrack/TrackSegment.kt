@@ -160,6 +160,10 @@ class CreateTrackSegmentImpl(val info: PlacementInfoAccessor) : TrackSegment() {
 }
 
 class FlexiTrackSegmentImpl(val info: FlexiPlacementInfo) : TrackSegment() {
+	init {
+		require(info.fromExtent == 0 && info.toExtent == 0) { "cannot have segment with extent" }
+	}
+	
 	companion object FlexiKind : Kind<FlexiTrackSegmentImpl> {
 		override val id: ResourceLocation = RailX.asResource("flexi_track")
 		
@@ -175,7 +179,8 @@ class FlexiTrackSegmentImpl(val info: FlexiPlacementInfo) : TrackSegment() {
 	override val kind: Kind<FlexiTrackSegmentImpl>
 		get() = FlexiKind
 	
-	private fun end(from: FlexiPlacementInfo.TrackEnd) = End(from.pos, from.end, from.tangent, from.normal)
+	private fun end(from: FlexiPlacementInfo.TrackEnd) =
+		End(from.pos, from.end, from.normalizedTangent, from.normalizedNormal)
 	
 	override val from: End = end(info.from)
 	override val to: End = end(info.to)
@@ -187,7 +192,7 @@ class FlexiTrackSegmentImpl(val info: FlexiPlacementInfo) : TrackSegment() {
 		get() = material.asStack(info.requiredTracks)
 	
 	override val curve: BezierConnection
-		get() = info.curve
+		get() = info.curve!!
 	
 	override fun write(tag: CompoundTag) {
 		tag.put("FlexiPlacement", info.write())

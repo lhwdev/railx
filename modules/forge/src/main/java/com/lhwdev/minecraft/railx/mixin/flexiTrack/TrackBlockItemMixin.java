@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Cancellable;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.AllSoundEvents;
+import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlockItem;
 import com.simibubi.create.content.trains.track.TrackPlacement;
@@ -51,20 +52,24 @@ public class TrackBlockItemMixin extends BlockItem {
 		@Cancellable CallbackInfoReturnable<InteractionResult> cir
 	) {
 		var isFlexible = FlexiTrackPlacement.INSTANCE.isFlexible(level, stack);
-		
-		if(!isFlexible)
+		var previousToState = level.getBlockState(pos);
+		if(!isFlexible && !FlexiTrackPlacement.INSTANCE.isFlexiPlacementRequired(level, previousToState, stack))
 			return original.call(level, player, pos, state, stack, hasGirder, extend);
 		
 		if(!(stack.getItem() instanceof TrackBlockItem item))
 			return original.call(level, player, pos, state, stack, hasGirder, extend);
 		
-		var placeContext = new BlockPlaceContext(context);
-		var flexiState = isFlexible ?
-			FlexiTrackBlockItem.INSTANCE.getFlexiblePlacementState(item, placeContext) :
-			getPlacementState(placeContext);
-		if(flexiState == null) return FlexiTrackBlockItem.INSTANCE.getStubPlacementInfo();
+		if(!(state.getBlock() instanceof ITrackBlock)) {
+			var placeContext = new BlockPlaceContext(context);
+			state = isFlexible ?
+				FlexiTrackBlockItem.INSTANCE.getFlexiblePlacementState(item, placeContext) :
+				getPlacementState(placeContext);
+		}
+		if(state == null) return FlexiTrackBlockItem.INSTANCE.getStubPlacementInfo();
+		
+		var parameter = new FlexiTrackPlacement.Parameter(isFlexible, isFlexible || extend, hasGirder);
 		FlexiPlaceResult result = FlexiTrackPlacement.INSTANCE
-			.tryConnect(level, player, pos, flexiState, stack, hasGirder);
+			.tryConnect(level, player, pos, state, stack, parameter);
 		
 		if(stack.getTag() != null) stack.getTag().remove("railx:FlexiblePlacement");
 		

@@ -115,7 +115,12 @@ interface FlexiDirection {
 		abstract val known: UnsignedKnown
 	}
 	
-	sealed class UnsignedKnown : Flat() {
+	
+	abstract class KnownLike : Flat() {
+		abstract val known: Known
+	}
+	
+	sealed class UnsignedKnown : KnownLike() {
 		companion object {
 			fun fromIndex(index: Int): UnsignedKnown {
 				check(index >= 0) { "index < 0" }
@@ -213,6 +218,9 @@ interface FlexiDirection {
 				fromIndex(tag.asInt)
 		}
 		
+		override val known: Known
+			get() = this
+		
 		val angle = PI * (ordinal.toDouble() / DivisionCount)
 		val angleDegree get() = 180 * (ordinal.toDouble() / DivisionCount)
 		
@@ -235,9 +243,9 @@ interface FlexiDirection {
 			get() = if(ordinal % (DivisionCount / 4) == 0) {
 				when(ordinal / (DivisionCount / 4)) {
 					0 -> TrackShape.XO
-					1 -> TrackShape.PD
+					1 -> TrackShape.ND
 					2 -> TrackShape.ZO
-					3 -> TrackShape.ND
+					3 -> TrackShape.PD
 					else -> error("unreachable")
 				}
 			} else {
@@ -285,30 +293,44 @@ interface FlexiDirection {
 		override fun toString(): String = "FlexiDirection.Known(index=$index, ordinal=$ordinal)"
 	}
 	
-	object KnownCreate {
-		val Values: Array<Known> = arrayOf(
-			Known.DivisionsByOrdinal[0],
-			Known.DivisionsByOrdinal[DivisionCount / 4],
-			Known.DivisionsByOrdinal[DivisionCount / 2],
-			Known.DivisionsByOrdinal[3 * DivisionCount / 4],
-		)
-		
-		fun roundFrom(radian: Double): Known {
-			val value = radian floorMod PI
-			var max = Double.POSITIVE_INFINITY
-			var result = Values[0]
-			for(known in Values) {
-				val difference = abs(known.angle - value)
-				if(difference < max) {
-					max = difference
-					result = known
+	class KnownCreate private constructor(override val known: Known, val createShape: TrackShape) : KnownLike() {
+		companion object {
+			val Values: Array<KnownCreate> = arrayOf(
+				KnownCreate(known = Known.DivisionsByOrdinal[0], createShape = TrackShape.XO),
+				KnownCreate(known = Known.DivisionsByOrdinal[DivisionCount / 4], createShape = TrackShape.ND),
+				KnownCreate(known = Known.DivisionsByOrdinal[DivisionCount / 2], createShape = TrackShape.ZO),
+				KnownCreate(known = Known.DivisionsByOrdinal[3 * DivisionCount / 4], createShape = TrackShape.PD),
+			)
+			
+			fun roundFrom(radian: Double): KnownCreate {
+				val value = radian floorMod PI
+				var max = Double.POSITIVE_INFINITY
+				var result = Values[0]
+				for(create in Values) {
+					val difference = abs(create.tangentAngle - value)
+					if(difference < max) {
+						max = difference
+						result = create
+					}
 				}
+				if(abs(PI - value) < max) return Values[0]
+				return result
 			}
-			return result
+			
+			fun roundFrom(vector: Vec3): KnownCreate =
+				roundFrom(radian = Mth.atan2(-vector.z, vector.x))
 		}
 		
-		fun roundFrom(vector: Vec3): Known =
-			roundFrom(radian = Mth.atan2(-vector.z, vector.x))
+		override fun mirror(by: Mirror): Nothing = error("stub")
+		override fun rotate(by: Rotation): Nothing = error("stub")
+		override fun rotateKnown(by: Int): Nothing = error("stub")
+		
+		override val tangent: Vec3
+			get() = known.tangent
+		override val tangent2: Tangent2
+			get() = known.tangent2!!
+		
+		override fun write(): CompoundTag = error("not meant to be written")
 	}
 	
 	class KnownVec3(override val known: Known) : UnsignedKnownVec3(
@@ -330,6 +352,9 @@ interface FlexiDirection {
 				sign = if(tag.getBoolean("Sign")) Direction.AxisDirection.POSITIVE else Direction.AxisDirection.NEGATIVE,
 			)
 		}
+		
+		override val known: Known
+			get() = from
 		
 		override val index: Int
 			get() = from.index + DivisionCount
