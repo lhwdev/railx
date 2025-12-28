@@ -25,7 +25,6 @@
     "flexiTrack.TrackBlockEntityTiltMixin",
     "flexiTrack.TrackBlockItemMixin",
     "flexiTrack.TrackBlockOutlineMixin",
-    "flexiTrack.TrackPlacementMixin",
     "flexiTrack.graph.TrackNodeLocationMixin",
     "flywheel.VisualizationManagerImpl$LateInitMixin",
     "flywheel.VisualizationManagerImplMixin",
@@ -70,7 +69,8 @@
     "middleTrack.TrackTargetingClientMixin",
     "other.ScrollValueRendererMixin",
     "splitGraph.TrackGraphVisualizerMixin",
-    "throttle.TrainHUDMixin"
+    "throttle.TrainHUDMixin",
+    "flexiTrack.TrackPlacementMixin"
   ],
   "mixinextras": {
     "minVersion": "0.5.0"
