@@ -77,19 +77,7 @@ async function existingTags() {
 }
 
 function semanticVersion(tag) {
-  try {
-    const [version, pre] = tag.split("-", 2);
-    const sem = semver.parse(semver.coerce(version));
-
-    if (!isNullString(pre)) {
-      sem.prerelease = semver.prerelease(`0.0.0-${pre}`);
-    }
-
-    return sem;
-  } catch (_) {
-    // semver will return null if it fails to parse, maintain this behavior in our API
-    return null;
-  }
+  return semver.parse(tag);
 }
 
 function determineContinuousBumpType(semTag) {
