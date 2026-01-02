@@ -4,7 +4,7 @@ import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
 import com.lhwdev.minecraft.railx.throttle.Throttles.Throttle
 import com.lhwdev.minecraft.railx.utils.StreamCodecs
-import com.simibubi.create.content.contraptions.AbstractContraptionEntity
+import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.createmod.catnip.net.base.ServerboundPacketPayload
 import net.minecraft.core.BlockPos
@@ -43,7 +43,7 @@ class ThrottlePacket(
 		if(player.isSpectator) return
 		
 		val world = player.commandSenderWorld
-		val entity = world.getEntity(contraptionEntityId) as? AbstractContraptionEntity ?: return
+		val entity = world.getEntity(contraptionEntityId) as? CarriageContraptionEntity ?: return
 		
 		if(stopControlling) {
 			entity.stopControlling(controlsPos)
@@ -55,7 +55,7 @@ class ThrottlePacket(
 				world,
 				entity,
 				controlsPos,
-				uniqueId = player.uuid,
+				playerId = player.uuid,
 				throttle = throttle,
 				otherKeys = otherKeys,
 			)
