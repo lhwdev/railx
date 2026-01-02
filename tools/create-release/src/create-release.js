@@ -191,7 +191,7 @@ function processTemplate(str, ctx) {
 }
 
 async function getDiff(lastTag, currentRef) {
-  const result = "";
+  let result = "";
   const raw = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,
     repo,
