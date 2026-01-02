@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.compat.onCurveUpdated
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.FlexiTrackRotateScrollBehaviors
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.*
@@ -96,6 +97,7 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 		inline fun forEachConnections(block: (connection: BezierConnection) -> Unit) {
 			for(connection in validConnections) {
 				block(connection)
+				connection.onCurveUpdated()
 				addConnection(connection)
 				
 				val otherPos = connection.key
@@ -122,6 +124,8 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 		connections.clear()
 		
 		updateConnection(UpdateEachConnectionsContext(level, validConnections))
+		
+		// TODO: train migration
 		
 		notifyUpdate()
 	}

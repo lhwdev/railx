@@ -147,6 +147,7 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 		val remapJarFiles = project.tasks.register<RemapJars>("${parent.name}RemapJarFiles") {
 			obfuscation.configureSrgToNamedOperation(remapOperation)
 			libraries.from(modDevRuntime.get().compileClasspath)
+			include("*.jar")
 			into(project.layout.buildDirectory.dir("moddevRuntime/remapped"))
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}

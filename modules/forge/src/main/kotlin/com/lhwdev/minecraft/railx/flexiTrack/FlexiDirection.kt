@@ -35,6 +35,9 @@ interface FlexiDirection {
 	
 	fun rotate(by: Rotation): FlexiDirection
 	
+	fun rotate(byRadian: Float): FlexiDirection =
+		Two(tangent = tangent.yRot(byRadian), normal = normal.yRot(byRadian))
+	
 	fun rotateKnown(by: Int): FlexiDirection
 	
 	fun applyNormal(normal: Vec3): FlexiDirection
@@ -65,6 +68,7 @@ interface FlexiDirection {
 		
 		override fun mirror(by: Mirror): Zero = this
 		override fun rotate(by: Rotation): Zero = this
+		override fun rotate(byRadian: Float): Zero = this
 		override fun rotateKnown(by: Int): Zero = this
 		override fun unaryMinus(): Zero = this
 		
@@ -93,6 +97,10 @@ interface FlexiDirection {
 		abstract override fun mirror(by: Mirror): Flat
 		
 		abstract override fun rotate(by: Rotation): Flat
+		
+		override fun rotate(byRadian: Float): Flat =
+			FlatImpl(tangent = tangent.yRot(byRadian))
+		
 		abstract override fun rotateKnown(by: Int): Flat
 		
 		override fun applyNormal(normal: Vec3): Normalized = if(normal.x == 0.0 && normal.z == 0.0) {
@@ -473,6 +481,9 @@ interface FlexiDirection {
 		override fun rotate(by: Rotation): NormalizedImpl = if(by != Rotation.NONE) {
 			NormalizedImpl(base.rotate(by), by.rotate(normal), by.rotate(tangent))
 		} else this
+		
+		override fun rotate(byRadian: Float): NormalizedImpl =
+			NormalizedImpl(base.rotate(byRadian), normal.yRot(byRadian), tangent.yRot(byRadian))
 		
 		override fun rotateKnown(by: Int): Normalized {
 			val angle = by.toFloat() / DivisionCount * PI.toFloat()

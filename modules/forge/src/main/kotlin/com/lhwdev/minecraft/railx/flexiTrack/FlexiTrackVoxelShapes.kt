@@ -21,6 +21,7 @@ import net.minecraft.world.phys.shapes.DiscreteVoxelShape
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Quaterniond
+import org.joml.Quaterniondc
 import org.joml.Vector3d
 import java.util.*
 import kotlin.math.abs
@@ -79,12 +80,12 @@ open class FlexiTrackVoxelShapes {
 		}
 	}
 	
-	protected open fun createFlatShape(rotation: Quaterniond): VoxelShape {
+	protected open fun createFlatShape(rotation: Quaterniondc): VoxelShape {
 		val box = FlatBoxShape(spec, rotation)
 		return FlatTrackVoxelShape(box)
 	}
 	
-	protected open fun createNormalShape(rotation: Quaterniond): VoxelShape {
+	protected open fun createNormalShape(rotation: Quaterniondc): VoxelShape {
 		val info = BoxShape(spec, rotation)
 		return BoxSetVoxelShapeImpl(info)
 	}
@@ -163,7 +164,7 @@ open class FlexiTrackVoxelShapes {
 	}
 	
 	
-	open class BoxShape(val spec: BoxSpec, rotation: Quaterniond) {
+	open class BoxShape(val spec: BoxSpec, rotation: Quaterniondc) {
 		private val dx = rotation.transformUnit(Vector3d(1.0, 0.0, 0.0))
 		private val dy = rotation.transformUnit(Vector3d(0.0, 1.0, 0.0))
 		private val dz = rotation.transformUnit(Vector3d(0.0, 0.0, 1.0))
@@ -342,7 +343,7 @@ open class FlexiTrackVoxelShapes {
 		
 	}
 	
-	class FlatBoxShape(spec: BoxSpec, rotation: Quaterniond) : BoxShape(spec, rotation) {
+	class FlatBoxShape(spec: BoxSpec, rotation: Quaterniondc) : BoxShape(spec, rotation) {
 		override fun createBound(range: AABB) = BoxBound(
 			minX = Mth.floor(range.minX / BoxSpec.Step - 0.5),
 			minY = 0,

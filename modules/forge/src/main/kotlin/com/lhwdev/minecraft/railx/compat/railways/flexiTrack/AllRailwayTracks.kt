@@ -31,14 +31,6 @@ object AllRailwayTracks : CompatRailwayTracks() {
 	
 	init {
 		CRBlocks.register() // does nothing but <cinit>
-		val railwayBlocks = Railways.registrate().getAll(Registries.BLOCK)
-		val tracks = HashMap<String, BlockEntry<*>>()
-		for(block in railwayBlocks) {
-			val name = block.key.location().path
-			if(!name.startsWith("track_")) continue
-			if(block !is BlockEntry) continue
-			tracks[name.substring(6)] = block // note: tracks also contain things like 'track_switch' 'track_coupler'
-		}
 		
 		fun blockStateModelOf(material: TrackMaterial) =
 			Railways.asResource("${OutputPrefixer.DEFAULT.getOutputPrefix(material)}x_ortho")
@@ -46,7 +38,9 @@ object AllRailwayTracks : CompatRailwayTracks() {
 		val materials = TrackMaterial.allFromMod(Railways.MOD_ID)
 		Standard = materials.filter { it.trackType == TrackMaterial.TrackType.STANDARD }
 			.flexiTrackBlocks(
-				originalBlock = { tracks[it.resourceName()] as BlockEntry<TrackBlock> },
+				originalBlock = {
+					Railways.registrate().get("track_" + it.resourceName(), Registries.BLOCK) as BlockEntry<TrackBlock>
+				},
 				factory = ::StandardFlexiTrackBlock,
 				blockStateModel = ::blockStateModelOf,
 			)

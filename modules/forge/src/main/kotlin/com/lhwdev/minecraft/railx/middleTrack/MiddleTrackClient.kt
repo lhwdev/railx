@@ -44,9 +44,13 @@ object MiddleTrackClient {
 		
 		val tracks = mutableSetOf<BlockPos>()
 		// Assuming every TrackBlockEntity is globalBlockEntities, as TrackRenderer.shouldRenderOffScreen returns true
-		minecraft.levelRenderer.globalBlockEntities.forEach { be ->
-			if(be.isRemoved) return@forEach
-			if(be is TrackBlockEntity) tracks += be.blockPos
+		try {
+			minecraft.levelRenderer.globalBlockEntities.forEach { be ->
+				if(be.isRemoved) return@forEach
+				if(be is TrackBlockEntity) tracks += be.blockPos
+			}
+		} catch(e: ConcurrentModificationException) {
+			// IDK reason but this happens (despite rarely), do nothing
 		}
 		
 		LoadedTracks = tracks

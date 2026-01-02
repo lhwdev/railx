@@ -10,7 +10,9 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
+import org.joml.Quaterniondc
 import org.joml.Quaternionf
+import org.joml.Quaternionfc
 
 
 class FlexiState(
@@ -35,8 +37,8 @@ class FlexiState(
 	}
 	
 	class AxisCache(direction: FlexiDirection) {
-		val rotationValueDouble: Quaterniond = direction.rotationValue()
-		val rotationValue: Quaternionf = Quaternionf(rotationValueDouble)
+		val rotationValueDouble: Quaterniondc = direction.rotationValue()
+		val rotationValue: Quaternionfc = Quaternionf(rotationValueDouble)
 	}
 	
 	

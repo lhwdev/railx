@@ -34,6 +34,8 @@ internal interface IBezierConnectionExtension {
 	 * Only accounts x and z components.
 	 */
 	fun minRadius(): Double
+	
+	fun onCurveUpdated()
 }
 
 

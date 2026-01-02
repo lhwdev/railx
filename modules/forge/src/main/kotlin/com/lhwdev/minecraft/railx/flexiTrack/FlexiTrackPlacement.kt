@@ -565,6 +565,10 @@ object FlexiTrackPlacement {
 				var state = placeTrack(pos = end.pos, end = end) ?: return
 				state = state.trySetValue(TrackBlock.HAS_BE, curve != null)
 				level.setBlock(end.pos, state, Block.UPDATE_ALL)
+				
+				(level.getBlockEntity(end.pos) as? FlexiTrackBlockEntity)?.let { be ->
+					be.updateState(be.overlayShape(direction = end.toKnownDirection()))
+				}
 			}
 			
 			placeCurveEnd(curveFrom)

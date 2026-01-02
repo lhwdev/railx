@@ -20,4 +20,9 @@ public class BezierConnectionMixin implements IBezierConnectionExtension {
 		}
 		return railx$minRadius;
 	}
+	
+	@Override
+	public void onCurveUpdated() {
+		railx$minRadius = -1;
+	}
 }

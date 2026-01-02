@@ -63,12 +63,13 @@
     "defaultRequire": 1
   },
   "client": [
+    "common.ScrollValueRendererMixin",
     "common.TrackPlacementOverlayMixin",
+    "common.ValueSettingsClientMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
     "middleTrack.LevelRendererMixin",
     "middleTrack.TrackBlockOutlineMixin",
     "middleTrack.TrackTargetingClientMixin",
-    "other.ScrollValueRendererMixin",
     "splitGraph.TrackGraphVisualizerMixin",
     "throttle.TrainHUDMixin"
   ],
