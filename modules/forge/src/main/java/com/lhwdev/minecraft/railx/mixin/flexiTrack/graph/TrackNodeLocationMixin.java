@@ -34,6 +34,7 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	public abstract Vec3 getLocation();
 	
 	@Shadow public int yOffsetPixels;
+	
 	@Unique
 	private TrackNodeLocationDelta railx$location;
 	

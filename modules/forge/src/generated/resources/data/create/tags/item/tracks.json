@@ -1,7 +1,5 @@
 {
   "values": [
-    "railx:flexi_track",
-    "railx:split_graph_track",
-    "railx:flexi_split_graph_track"
+    "railx:split_graph_track"
   ]
 }

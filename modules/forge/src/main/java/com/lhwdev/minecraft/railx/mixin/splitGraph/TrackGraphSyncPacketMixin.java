@@ -39,8 +39,7 @@ public class TrackGraphSyncPacketMixin implements SplitTrackGraphSyncPacket {
 	}
 	
 	@WrapOperation(method = "<init>(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At(value = "INVOKE", target =
-		"Lnet" +
-			"/createmod/catnip/data/Pair;of(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;",
+		"Lnet/createmod/catnip/data/Pair;of(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;",
 		ordinal = 0))
 	Pair<TrackNodeLocation, Vec3> onReadNode(
 		Object first,

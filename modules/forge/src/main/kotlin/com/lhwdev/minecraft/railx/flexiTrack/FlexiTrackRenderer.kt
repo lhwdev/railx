@@ -30,7 +30,7 @@ class FlexiTrackRenderer(context: BlockEntityRendererProvider.Context) : TrackRe
 		val level = be.level!!
 		if(VisualizationManager.supportsVisualization(level)) return
 		
-		val vb = buffer.getBuffer(RenderType.CUTOUT_MIPPED)
+		val vb = buffer.getBuffer(RenderType.cutoutMipped())
 		renderFlexiBlock(be, ms, vb, light)
 	}
 	

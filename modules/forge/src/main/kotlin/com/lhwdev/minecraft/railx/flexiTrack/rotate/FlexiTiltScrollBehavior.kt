@@ -2,14 +2,11 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.flexiTrack.map
-import com.lhwdev.minecraft.railx.flexiTrack.optimize
+import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.transformUnit
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter
-import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
@@ -22,11 +19,9 @@ import kotlin.math.roundToInt
 
 
 class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
-	FlexiTrackRotateScrollBehavior(Component.literal("Rotate Flexi Track Tilt"), be, slot) {
-	override val kind: FlexiTrackRotateScrollBehaviors.Kind
-		get() = FlexiTrackRotateScrollBehaviors.Kind.Tilt
+	FlexiTrackRotateScrollBehavior(kind = FlexiTrackRotateScrollBehaviors.Kind.Tilt, be, slot) {
 	
-	val maxTilt = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.asDouble), 80)
+	val maxTilt = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.get()), 80)
 	
 	override fun formatValue(): String {
 		val mc = Minecraft.getInstance()
@@ -46,7 +41,7 @@ class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 		}
 	}
 	
-	override fun createBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard {
+	override fun createRotationBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard {
 		val level = player.level()
 		val direction = be.block.getNearestTrackDirection(
 			level,
@@ -59,60 +54,52 @@ class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 		
 		value = maxTilt + (direction.tilt * maxTilt / PI).roundToInt()
 		
-		return ValueSettingsBoard(
-			label,
-			2 * maxTilt - 1,
-			8,
-			listOf(Component.literal("Tilt").withStyle(ChatFormatting.BOLD)),
-			ValueSettingsFormatter { v ->
-				val value = v.value - maxTilt
-				Component.literal(
-					when {
-						value == 0 -> "0‰"
-						value > 0 -> "R${value}‰"
-						else -> "L${-value}‰"
-					}
-				)
+		return createBoard(
+			maxValue = 2 * maxTilt - 1,
+			title = "Tilt",
+			formatter = { v ->
+				val value = v - maxTilt
+				when {
+					value == 0 -> "0‰"
+					value > 0 -> "R${value}‰"
+					else -> "L${-value}‰"
+				}
 			},
 		)
 	}
 	
-	override fun setValueSettings(
-		player: Player,
-		valueSetting: ValueSettingsBehaviour.ValueSettings,
-		ctrlDown: Boolean,
-	) {
+	override fun formatPreciseDelta(delta: Float): String {
+		val value = round(delta / maxTilt, 1000)
+		return when {
+			value == 0f -> "0‰"
+			value > 0f -> "R${value}‰"
+			else -> "L${-value}‰"
+		}
+	}
+	
+	override fun rotateTrack(player: Player, value: Rotation): Boolean {
 		val be = be
 		val level = be.level!!
 		
 		val direction = be.block.getNearestTrackDirection(level, be.blockPos, be.blockState, player.lookAngle)
-			?.signedAxis ?: return
-		val initialValue = maxTilt + (direction.tilt * maxTilt / PI).roundToInt()
-		val delta = valueSetting.value - initialValue
+			?.signedAxis ?: return false
+		val delta = when(value) {
+			is Rotation.Steps -> {
+				val initialValue = maxTilt + (direction.tilt * maxTilt / PI).roundToInt()
+				if(value.step == initialValue) return false
+				(value.step - initialValue) * PI / maxTilt
+			}
+			
+			is Rotation.Precise -> value.delta * PI / maxTilt
+		}
 		
 		val axis = direction.tangent
-		val rotation = Quaterniond().rotationAxis(delta.toDouble() * PI / maxTilt, axis.x, axis.y, axis.z)
+		val rotation = Quaterniond().rotationAxis(delta, axis.x, axis.y, axis.z)
 		
-		be.updateEachConnections {
-			val state = be.state
-			val newState = state.copy(
-				baseShape = state.baseShape.map { direction ->
-					direction.applyNormal(rotation.transformUnit(direction.normal).optimize())
-						.optimize()
-				},
-				tilt = state.tilt?.let { tilt -> tilt.copy(axis = rotation.transformUnit(tilt.axis).optimize()) }
-			)
-			be.updateState(newState)
-			
-			forEachConnections { connection ->
-				val axis = rotation.transformUnit(connection.axes.first).optimize()
-				connection.axes.first = axis
-				connection.normals.first = rotation.transformUnit(connection.normals.first).optimize()
-				connection.starts.first = be.block.getCurveStart(level, be.blockPos, be.blockState, axis)
-			}
-		}
+		applyRotation(
+			mapDirection = { direction.applyNormal(rotation.transformUnit(it.normal)).optimize() },
+			rotation = rotation,
+		)
+		return false
 	}
-	
-	override fun getClipboardKey(): String =
-		"FlexiTrackRotation.Gradient"
 }

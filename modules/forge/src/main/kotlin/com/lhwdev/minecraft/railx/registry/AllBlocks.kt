@@ -62,7 +62,7 @@ object AllBlocks {
 				.noOcclusion()
 				.replaceable()
 		}
-		blockstate { c, p -> p.simpleBlock(c.get(), p.models().withExistingParent(c.name, p.mcLoc("block/stone"))) }
+		blockstate { c, p -> p.simpleBlock(c.get(), p.models().getExistingFile(p.mcLoc("block/air"))) }
 		lang("Middle Track Block")
 	}
 	
@@ -100,7 +100,7 @@ object AllBlocks {
 
 
 @Suppress("DEPRECATION", "removal")
-private inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
+inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	name: String,
 	material: Material,
 	crossinline factory: (BlockBehaviour.Properties, Material) -> Track,
@@ -122,11 +122,19 @@ private inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	tag(BlockTags.MINEABLE_WITH_PICKAXE)
 	tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED)
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
+	// if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL)
 	tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 	
 	if(createItem) item(factory = ::TrackBlockItem) {
 		tag(CreateTags.AllItemTags.TRACKS.tag)
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
+		// if(
+		// 	CompatMods.railways && (
+		// 		material == CRTrackMaterials.PHANTOM ||
+		// 			material == CRTrackMaterials.getWide(CRTrackMaterials.PHANTOM) ||
+		// 			material == CRTrackMaterials.getNarrow(CRTrackMaterials.PHANTOM)
+		// 		)
+		// ) tag(CRTags.AllItemTags.PHANTOM_TRACK_REVEALING.tag)
 	}
 	
 	builder()
@@ -138,7 +146,7 @@ private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 	normalBlock: DeferredHolder<Block, out TrackBlock>,
 	crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
 	crossinline blockStates: (DataGenContext<Block, Track>, RegistrateBlockstateProvider) -> Unit = { c, p ->
-		p.getVariantBuilder(c.entry).forAllStates(BlockStateGen.mapToAir(p))
+		p.simpleBlock(c.entry, p.models().getExistingFile(Create.asResource("block/track/x_ortho")))
 	},
 	builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit,
 ): BlockEntry<Track> = trackBlock(name, material, factory, blockStates, createItem = false) {

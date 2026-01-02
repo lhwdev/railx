@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx
 
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacementClient
 import net.neoforged.neoforge.common.ModConfigSpec
 import net.neoforged.neoforge.common.ModConfigSpec.*
 
@@ -20,7 +21,11 @@ object RailXConfig {
 		inner class FlexiTrak {
 			val overlayWidth: IntValue = builder
 				.comment("Specify how wide placement overlays are shown.")
-				.defineInRange("flexi_trak.overlay_width", 3, 0, 4)
+				.defineInRange("flexi_trak.overlay_width", 3, 0, 7)
+			
+			val flexibleSelection: EnumValue<FlexiTrackPlacementClient.FlexibleSelection> = builder
+				.comment("Whether hold or toggle to enable/disable flexible placement.")
+				.defineEnum("flexi_track.flexible_selection", FlexiTrackPlacementClient.FlexibleSelection.Hold)
 		}
 		
 		
@@ -104,6 +109,10 @@ object RailXConfig {
 						"will not need it in most cases."
 				)
 				.define("common.fake_tracks.no_fake_tracks", false)
+			
+			val fixTrackBezierAsymmetry: BooleanValue = builder
+				.comment("Fixes vanilla Create behavior where, if track is placed strange enough, curve, train, signal overlay goes brurr")
+				.define("common.fix_track_bezier_asymmetry", false)
 		}
 		
 		

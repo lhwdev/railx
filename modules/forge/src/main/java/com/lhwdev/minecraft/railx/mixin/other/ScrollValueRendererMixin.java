@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.mixin.other;
 
-import com.lhwdev.minecraft.railx.other.ScrollValueBehaviorExtension;
+import com.lhwdev.minecraft.railx.common.ScrollValueBehaviorExtension;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -22,7 +22,7 @@ public class ScrollValueRendererMixin {
 		ValueSettingsClient instance,
 		List<MutableComponent> tip,
 		Operation<Void> original,
-		@Local ScrollValueBehaviour behavior
+		@Local(index = 10) ScrollValueBehaviour behavior
 	) {
 		if(behavior instanceof ScrollValueBehaviorExtension extension)
 			extension.addExtraTips(tip);

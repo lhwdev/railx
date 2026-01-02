@@ -34,7 +34,7 @@ object FlexiTrackBlockOutline {
 		val canConnectFrom = !shape.isJunction && !blockEntity.isTilted
 		
 		walkShapes(
-			shape = shape,
+			blockEntity = blockEntity,
 			msr = TransformStack.of(ms),
 			renderer = { s ->
 				TrackBlockOutline.renderShape(s, ms, vb, if(holdingTrack) canConnectFrom else null)
@@ -46,13 +46,14 @@ object FlexiTrackBlockOutline {
 		return true
 	}
 	
-	fun walkShapes(shape: FlexiShape, msr: TransformStack<*>, renderer: (VoxelShape) -> Unit) {
+	fun walkShapes(blockEntity: FlexiTrackBlockEntity, msr: TransformStack<*>, renderer: (VoxelShape) -> Unit) {
 		// According to Rodrigues' rotation formula, when normal = (x, y, z), k = (a, 0, c),
 		// (x,y,z)=(0,1,0)cos + k*(0,1,0)sin + ky k (1-cos)
 		//        =(0,1,0)cos + (-c,0,a)sin
 		//        =(-c sin, cos, a sin)
 		// conclusion: cos=y, sin=sqrt(1-y^2), c=-x/sin, a=z/sin
 		// k = (z, 0, -x) / sqrt(1-y^2)
+		val shape = blockEntity.shape
 		val normal = shape.normal
 		val sin = sqrt(1.0 - normal.y * normal.y)
 		msr.rotate(
@@ -65,7 +66,7 @@ object FlexiTrackBlockOutline {
 		for(axis in shape.axes) {
 			msr.pushPose()
 			msr.rotateYCentered(axis.tangentAngle.toFloat())
-			renderer(FlexiTrackVoxelShapes.base)
+			renderer(blockEntity.block.voxelShapes.base)
 			msr.popPose()
 		}
 	}

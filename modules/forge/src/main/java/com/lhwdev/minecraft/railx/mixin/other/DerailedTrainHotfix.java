@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
+// intentionally not in mixins json, not needed generally; use only if your world is corrupted
 @Mixin(value = Carriage.class, remap = false)
 public class DerailedTrainHotfix {
 	@Inject(method = "read", at = @At("RETURN"))

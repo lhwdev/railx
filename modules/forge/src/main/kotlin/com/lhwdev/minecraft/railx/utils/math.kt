@@ -6,6 +6,7 @@ import com.lhwdev.minecraft.utils.vectors.toVec3
 import com.lhwdev.minecraft.utils.vectors.toVector3d
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniondc
+import org.joml.Quaternionfc
 import kotlin.math.abs
 import kotlin.math.round
 
@@ -39,6 +40,9 @@ infix fun Double.floorMod(by: Double): Double {
 fun round(value: Double, points: Int): Double =
 	round(value * points) / points
 
+fun round(value: Float, points: Int): Float =
+	round(value * points) / points
+
 inline infix fun Double.similarTo(to: Double): Boolean =
 	abs(this - to) < 1e-10
 
@@ -46,3 +50,14 @@ inline infix fun Double.similarTo(to: Double): Boolean =
 fun Quaterniondc.transform(vec: Vec3): Vec3 = transform(vec.toVector3d()).toVec3()
 
 fun Quaterniondc.transformUnit(vec: Vec3): Vec3 = transformUnit(vec.toVector3d()).toVec3()
+
+fun Quaternionfc.transform(vec: Vec3): Vec3 = transform(vec.toVector3f()).toVec3()
+fun Quaternionfc.transformUnit(vec: Vec3): Vec3 = transformUnit(vec.toVector3f()).toVec3()
+
+
+fun Double.signToString(): String = when {
+	this == 0.0 -> ""
+	this > 0.0 -> "+"
+	this < 0.0 -> "-"
+	else -> ""
+}

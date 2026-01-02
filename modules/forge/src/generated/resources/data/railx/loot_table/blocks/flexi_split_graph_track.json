@@ -11,7 +11,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "railx:flexi_split_graph_track"
+          "name": "railx:split_graph_track"
         }
       ],
       "rolls": 1.0

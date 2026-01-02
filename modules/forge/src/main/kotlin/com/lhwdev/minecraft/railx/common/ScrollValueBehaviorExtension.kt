@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.other
+package com.lhwdev.minecraft.railx.common
 
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import net.minecraft.network.chat.MutableComponent

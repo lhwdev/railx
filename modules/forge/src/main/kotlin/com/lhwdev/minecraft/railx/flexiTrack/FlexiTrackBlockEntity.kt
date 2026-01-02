@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.compat.onCurveUpdated
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.FlexiTrackRotateScrollBehaviors
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
 import com.simibubi.create.content.trains.track.*
@@ -20,7 +21,7 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import net.neoforged.neoforge.network.PacketDistributor
 
 
-class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
+open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
 	TrackBlockEntity(type, pos, state), TransformableBlockEntity, IMergeableBE {
 	
 	init {
@@ -97,6 +98,7 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		inline fun forEachConnections(block: (connection: BezierConnection) -> Unit) {
 			for(connection in validConnections) {
 				block(connection)
+				connection.onCurveUpdated()
 				addConnection(connection)
 				
 				val otherPos = connection.key
@@ -124,11 +126,13 @@ class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 		
 		updateConnection(UpdateEachConnectionsContext(level, validConnections))
 		
+		// TODO: train migration
+		
 		notifyUpdate()
 	}
 	
 	fun voxelShape(): VoxelShape = voxelShapeCache?.let { cache -> cache.second.takeIf { cache.first == state } }
-		?: FlexiTrackVoxelShapes.of(state).also { voxelShapeCache = state to it }
+		?: block.voxelShapes.of(state).also { voxelShapeCache = state to it }
 	
 	
 	override fun removeConnection(target: BlockPos) {

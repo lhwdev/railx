@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "railx:block/flexi_split_graph_track"
+      "model": "create:block/track/x_ortho"
     }
   }
 }

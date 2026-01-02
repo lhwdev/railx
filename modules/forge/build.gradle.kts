@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import java.util.*
+
 
 plugins {
 	id("java-library")
@@ -11,9 +13,15 @@ plugins {
 	kotlin("jvm")
 }
 
-val modId = "railx"
+val buildProps = Properties().apply {
+	rootDir.resolve("./build.properties").reader().use { load(it) }
+}
 
-version = "1.0-SNAPSHOT"
+val modId = "railx"
+version = buildProps["version"]!!
+
+val actualVersion = providers.environmentVariable("project_version")
+	.orElse(project.version.toString())
 
 base {
 	archivesName = modId
@@ -61,7 +69,7 @@ neoForge {
 			gameDirectory = project.file("run-data")
 			
 			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-			val existingMods = listOf("create")
+			val existingMods = listOf("create", "railways")
 			
 			programArguments.addAll(
 				"--mod", modId,
@@ -70,6 +78,8 @@ neoForge {
 				"--existing", file("src/main/resources/").absolutePath,
 				*existingMods.flatMap { listOf("--existing-mod", it) }.toTypedArray(),
 			)
+			
+			sourceSet = modDevPlatform.modDevRuntime
 		}
 		
 		configureEach {
@@ -79,6 +89,7 @@ neoForge {
 			// "REGISTRIES": For firing of registry events.
 			// "REGISTRYDUMP": For getting the contents of all registries.
 			systemProperty("forge.logging.markers", "SCAN")
+			systemProperty("railx_mixin_bypass", "true")
 			systemProperties.put(
 				"railx.project_dependencies_file",
 				modDevPlatform.projectDependenciesFile.map { it.asFile.absolutePath }
@@ -133,6 +144,7 @@ dependencies {
 
 tasks.jar { isEnabled = false }
 tasks.shadowJar {
+	archiveVersion = actualVersion
 	archiveClassifier = null
 }
 
@@ -157,7 +169,8 @@ tasks.register<Copy>("modJars") {
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {
-	var replaceProperties = mapOf(
+	
+	val replaceProperties = mapOf(
 		"minecraft_version" to libs.versions.minecraft.get(),
 		"minecraft_version_range" to "[1.21.1,1.22)",
 		"neo_version" to libs.versions.neoForge.get(),
@@ -166,13 +179,14 @@ var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
 		"mod_id" to modId,
 		"mod_name" to "RailX",
 		"mod_license" to "All Rights Reserved",
-		"mod_version" to "$version",
+		"mod_version" to actualVersion,
 		"mod_authors" to "lhwdev",
 		"mod_description" to "This is good mod",
 	)
-	
 	inputs.properties(replaceProperties)
-	expand(replaceProperties)
+	
+	doFirst { expand(inputs.properties) }
+	
 	from("src/main/templates")
 	into("build/generated/sources/modMetadata")
 }

@@ -6,11 +6,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Read build metadata
+        id: meta
+        uses: BrycensRanch/read-properties-action@v1
+        with:
+          file: build.properties
+          all: true
+
+      - id: update_version
+        name: Update version
+        uses: ./tools/create-release
+        with:
+          prerelease: true
+          prerelease_suffix: build
+          auto_increment_type: prerelease
+          tag_schema: semantic
+          minimum_version: ${{ steps.meta.outputs.version }}
+          dry_run: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -22,12 +41,26 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: false
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build
         run: ./gradlew :forge:build
+        env:
+          project_version: ${{ steps.update_version.outputs.version }}
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+      - name: Release build artifacts
+        uses: ./tools/create-release
         with:
-          name: NeoForged Mod Jar 1.21.1
-          path: modules/forge/build/libs
+          prerelease: true
+          release_name: RailX {{version}} for NeoForge 1.21.1
+          body: |
+            Automatic build release.
+            This mod is **under development**, so be sure to backup before joining. Might have plenty of bugs.
+            
+            For Minecraft `1.21.1`, NeoForge `21.1.209+`, Create `6.0.8+`.
+
+            ### Updates
+            {{diff}}
+          artifacts:
+            modules/forge/build/libs/*
+          github_token: ${{ secrets.GITHUB_TOKEN }}

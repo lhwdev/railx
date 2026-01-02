@@ -35,6 +35,9 @@ interface FlexiDirection {
 	
 	fun rotate(by: Rotation): FlexiDirection
 	
+	fun rotate(byRadian: Float): FlexiDirection =
+		Two(tangent = tangent.yRot(byRadian), normal = normal.yRot(byRadian))
+	
 	fun rotateKnown(by: Int): FlexiDirection
 	
 	fun applyNormal(normal: Vec3): FlexiDirection
@@ -65,6 +68,7 @@ interface FlexiDirection {
 		
 		override fun mirror(by: Mirror): Zero = this
 		override fun rotate(by: Rotation): Zero = this
+		override fun rotate(byRadian: Float): Zero = this
 		override fun rotateKnown(by: Int): Zero = this
 		override fun unaryMinus(): Zero = this
 		
@@ -93,6 +97,10 @@ interface FlexiDirection {
 		abstract override fun mirror(by: Mirror): Flat
 		
 		abstract override fun rotate(by: Rotation): Flat
+		
+		override fun rotate(byRadian: Float): Flat =
+			FlatImpl(tangent = tangent.yRot(byRadian))
+		
 		abstract override fun rotateKnown(by: Int): Flat
 		
 		override fun applyNormal(normal: Vec3): Normalized = if(normal.x == 0.0 && normal.z == 0.0) {
@@ -115,25 +123,30 @@ interface FlexiDirection {
 		abstract val known: UnsignedKnown
 	}
 	
-	sealed class UnsignedKnown : Flat() {
+	
+	abstract class KnownLike : Flat() {
+		abstract val known: Known
+	}
+	
+	sealed class UnsignedKnown : KnownLike() {
 		companion object {
 			fun fromIndex(index: Int): UnsignedKnown {
 				check(index >= 0) { "index < 0" }
-				if(index >= Known.DivisionCount * 2) {
+				if(index >= DivisionCount * 2) {
 					TODO("index -> ordinal then approach to nearest ordinal: $index")
 				}
-				return if(index < Known.DivisionCount) {
+				return if(index < DivisionCount) {
 					Known.DivisionsByIndex[index]
 				} else {
-					-Known.DivisionsByIndex[index - Known.DivisionCount]
+					-Known.DivisionsByIndex[index - DivisionCount]
 				}
 			}
 			
 			fun roundFrom(radian: Double): UnsignedKnown {
 				val PI2 = PI * 2
-				val index = (Known.DivisionCount * (radian floorMod PI2) / PI2).roundToInt()
-				val result = Known.DivisionsByOrdinal[index % Known.DivisionCount]
-				return if(index < Known.DivisionCount) result else -result
+				val index = (DivisionCount * (radian floorMod PI2) / PI2).roundToInt()
+				val result = Known.DivisionsByOrdinal[index % DivisionCount]
+				return if(index < DivisionCount) result else -result
 			}
 			
 			fun roundFrom(vector: Vec3): UnsignedKnown =
@@ -213,6 +226,9 @@ interface FlexiDirection {
 				fromIndex(tag.asInt)
 		}
 		
+		override val known: Known
+			get() = this
+		
 		val angle = PI * (ordinal.toDouble() / DivisionCount)
 		val angleDegree get() = 180 * (ordinal.toDouble() / DivisionCount)
 		
@@ -235,9 +251,9 @@ interface FlexiDirection {
 			get() = if(ordinal % (DivisionCount / 4) == 0) {
 				when(ordinal / (DivisionCount / 4)) {
 					0 -> TrackShape.XO
-					1 -> TrackShape.PD
+					1 -> TrackShape.ND
 					2 -> TrackShape.ZO
-					3 -> TrackShape.ND
+					3 -> TrackShape.PD
 					else -> error("unreachable")
 				}
 			} else {
@@ -285,30 +301,44 @@ interface FlexiDirection {
 		override fun toString(): String = "FlexiDirection.Known(index=$index, ordinal=$ordinal)"
 	}
 	
-	object KnownCreate {
-		val Values: Array<Known> = arrayOf(
-			Known.DivisionsByOrdinal[0],
-			Known.DivisionsByOrdinal[DivisionCount / 4],
-			Known.DivisionsByOrdinal[DivisionCount / 2],
-			Known.DivisionsByOrdinal[3 * DivisionCount / 4],
-		)
-		
-		fun roundFrom(radian: Double): Known {
-			val value = radian floorMod PI
-			var max = Double.POSITIVE_INFINITY
-			var result = Values[0]
-			for(known in Values) {
-				val difference = abs(known.angle - value)
-				if(difference < max) {
-					max = difference
-					result = known
+	class KnownCreate private constructor(override val known: Known, val createShape: TrackShape) : KnownLike() {
+		companion object {
+			val Values: Array<KnownCreate> = arrayOf(
+				KnownCreate(known = Known.DivisionsByOrdinal[0], createShape = TrackShape.XO),
+				KnownCreate(known = Known.DivisionsByOrdinal[DivisionCount / 4], createShape = TrackShape.ND),
+				KnownCreate(known = Known.DivisionsByOrdinal[DivisionCount / 2], createShape = TrackShape.ZO),
+				KnownCreate(known = Known.DivisionsByOrdinal[3 * DivisionCount / 4], createShape = TrackShape.PD),
+			)
+			
+			fun roundFrom(radian: Double): KnownCreate {
+				val value = radian floorMod PI
+				var max = Double.POSITIVE_INFINITY
+				var result = Values[0]
+				for(create in Values) {
+					val difference = abs(create.tangentAngle - value)
+					if(difference < max) {
+						max = difference
+						result = create
+					}
 				}
+				if(abs(PI - value) < max) return Values[0]
+				return result
 			}
-			return result
+			
+			fun roundFrom(vector: Vec3): KnownCreate =
+				roundFrom(radian = Mth.atan2(-vector.z, vector.x))
 		}
 		
-		fun roundFrom(vector: Vec3): Known =
-			roundFrom(radian = Mth.atan2(-vector.z, vector.x))
+		override fun mirror(by: Mirror): Nothing = error("stub")
+		override fun rotate(by: Rotation): Nothing = error("stub")
+		override fun rotateKnown(by: Int): Nothing = error("stub")
+		
+		override val tangent: Vec3
+			get() = known.tangent
+		override val tangent2: Tangent2
+			get() = known.tangent2!!
+		
+		override fun write(): CompoundTag = error("not meant to be written")
 	}
 	
 	class KnownVec3(override val known: Known) : UnsignedKnownVec3(
@@ -331,8 +361,11 @@ interface FlexiDirection {
 			)
 		}
 		
+		override val known: Known
+			get() = from
+		
 		override val index: Int
-			get() = from.index + Known.DivisionCount
+			get() = from.index + DivisionCount
 		
 		override val tangent: UnsignedKnownVec3 =
 			if(sign == Direction.AxisDirection.POSITIVE) from.tangent else OppositeKnownVec3(this, from.tangent)
@@ -371,7 +404,7 @@ interface FlexiDirection {
 		override fun mirror(by: Mirror): FlatImpl = FlatImpl(by.mirror(tangent))
 		override fun rotate(by: Rotation): FlatImpl = FlatImpl(by.rotate(tangent))
 		override fun rotateKnown(by: Int): Flat =
-			FlatImpl(tangent.yRot(by.toFloat() / Known.DivisionCount * PI.toFloat())).optimize()
+			FlatImpl(tangent.yRot(by.toFloat() / DivisionCount * PI.toFloat())).optimize()
 		
 		override fun optimize(): Flat {
 			tangent.asKnown()?.let { return it }
@@ -449,8 +482,11 @@ interface FlexiDirection {
 			NormalizedImpl(base.rotate(by), by.rotate(normal), by.rotate(tangent))
 		} else this
 		
+		override fun rotate(byRadian: Float): NormalizedImpl =
+			NormalizedImpl(base.rotate(byRadian), normal.yRot(byRadian), tangent.yRot(byRadian))
+		
 		override fun rotateKnown(by: Int): Normalized {
-			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
+			val angle = by.toFloat() / DivisionCount * PI.toFloat()
 			return NormalizedImpl(base.rotateKnown(by), normal.yRot(angle), tangent.yRot(angle))
 				.optimize()
 		}
@@ -528,7 +564,7 @@ interface FlexiDirection {
 		override fun mirror(by: Mirror): FlexiDirection = Two(by.mirror(tangent), by.mirror(normal))
 		override fun rotate(by: Rotation): FlexiDirection = Two(by.rotate(tangent), by.rotate(normal))
 		override fun rotateKnown(by: Int): FlexiDirection {
-			val angle = by.toFloat() / Known.DivisionCount * PI.toFloat()
+			val angle = by.toFloat() / DivisionCount * PI.toFloat()
 			return Two(tangent.yRot(angle), normal.yRot(angle))
 		}
 		

@@ -6,6 +6,6 @@ neoForge = "21.1.209"
 mixinExtras = "0.5.0"
 kotlinForForge = "4.11.0"
 
-create = "6.0.8-168"
-ponder = "1.0.64"
+create = "6.0.8-169"
+ponder = "1.0.66"
 flywheel = "1.0.5"

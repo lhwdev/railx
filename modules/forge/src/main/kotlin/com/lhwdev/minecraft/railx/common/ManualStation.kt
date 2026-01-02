@@ -53,7 +53,7 @@ object ManualStation {
 			if(!forwardControl) points.reverse()
 			
 			val point = MovingTravellingPoint(points.first())
-			point.reverse(graph)
+			if(forwardControl) point.reverse(graph)
 			
 			points.removeFirst()
 			var distance = 0.0

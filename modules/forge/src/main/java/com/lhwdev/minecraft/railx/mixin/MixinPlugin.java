@@ -30,7 +30,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 			var index2 = index + 7;
 			var index3 = targetClassName.indexOf('.', index2);
 			var compatMod = targetClassName.substring(index2, index3);
-			return CompatMods.loaded.contains(compatMod);
+			if(!CompatMods.loaded.contains(compatMod)) return false;
 		}
 		return true;
 	}

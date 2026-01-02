@@ -16,8 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(TrackTargetingClient.class)
 public class TrackTargetingClientMixin {
 	@WrapOperation(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;" +
-		"has" +
-		"(Lnet/minecraft/core/component/DataComponentType;)Z", ordinal = 0))
+		"has(Lnet/minecraft/core/component/DataComponentType;)Z", ordinal = 0))
 	private static boolean preventClientTickIfMiddle(
 		ItemStack instance,
 		DataComponentType<?> type,

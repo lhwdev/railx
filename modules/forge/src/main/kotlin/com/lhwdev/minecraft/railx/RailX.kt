@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx
 
+import com.lhwdev.minecraft.railx.compat.RailXCompat
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrack
 import com.lhwdev.minecraft.railx.registry.*
 import com.lhwdev.minecraft.railx.splitGraph.SplitGraph
@@ -67,5 +68,7 @@ class RailX(container: ModContainer, bus: IEventBus) {
 		
 		MiddleTrack.register()
 		SplitGraph.register()
+		
+		RailXCompat.register()
 	}
 }

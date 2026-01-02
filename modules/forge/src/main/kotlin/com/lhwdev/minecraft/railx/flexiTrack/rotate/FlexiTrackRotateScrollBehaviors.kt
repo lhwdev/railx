@@ -1,14 +1,17 @@
 package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
+import com.lhwdev.minecraft.railx.common.ScrollValueBehaviorExtension
+import com.lhwdev.minecraft.railx.common.ValueSettingsBehaviourExtra
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiShape
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockBehavior
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.other.ScrollValueBehaviorExtension
+import com.lhwdev.minecraft.railx.utils.transformUnit
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsScreen
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.minecraft.ChatFormatting
@@ -26,17 +29,20 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaternionf
+import org.joml.Quaternionfc
+import java.util.function.Consumer
 import kotlin.math.PI
 
 
 class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
-	ScrollValueBehaviour(Component.literal("Rotate Flexi Track"), be, FlexiRotationValueBox()),
-	FlexiTrackBlockBehavior, ScrollValueBehaviorExtension {
+	ScrollValueBehaviour(Component.literal("Rotate Flexi Track"), be, FlexiRotationValueBox),
+	FlexiTrackBlockBehavior, ValueSettingsBehaviourExtra, ScrollValueBehaviorExtension {
 	
-	enum class Kind {
-		Direction,
-		Gradient,
-		Tilt;
+	enum class Kind(val title: String) {
+		Direction(title = "Direction"),
+		Gradient(title = "Gradient"),
+		Tilt(title = "Tilt");
 		
 		fun next(): Kind = entries[(ordinal + 1) % entries.size]
 	}
@@ -103,6 +109,21 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 		delegate().setValueSettings(player, valueSetting, ctrlDown)
 	}
 	
+	
+	override fun createBoardScreen(
+		pos: BlockPos,
+		board: ValueSettingsBoard,
+		valueSettings: ValueSettingsBehaviour.ValueSettings,
+		onHover: Consumer<ValueSettingsBehaviour.ValueSettings>,
+		netId: Int,
+	): ValueSettingsScreen? {
+		return FlexiTrackRotateScreen(
+			behavior = this,
+			hitResult = Minecraft.getInstance().hitResult as? BlockHitResult ?: return null,
+			pos, board, valueSettings, onHover, netId,
+		)
+	}
+	
 	override fun addExtraTips(to: MutableList<MutableComponent>) {
 		fun kindText(kind: Kind) = Component.literal(kind.name.first().uppercase() + kind.name.drop(1))
 			.withStyle(if(currentKind == kind) ChatFormatting.GREEN else ChatFormatting.GRAY)
@@ -116,8 +137,8 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 			.append(".")
 	}
 	
-	override fun read(nbt: CompoundTag, registries: HolderLookup.Provider?, clientPacket: Boolean) {}
-	override fun write(nbt: CompoundTag, registries: HolderLookup.Provider?, clientPacket: Boolean) {}
+	override fun read(nbt: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {}
+	override fun write(nbt: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {}
 	
 	override fun writeToClipboard(registries: HolderLookup.Provider, tag: CompoundTag, side: Direction): Boolean {
 		val axis = be.shape.axes.singleOrNull() ?: return false
@@ -140,29 +161,50 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 		be.updateState(state.copy(baseShape = FlexiShape.Single(axis = FlexiDirection.read(direction))))
 		return true
 	}
+	
+	override fun getClipboardKey(): String =
+		"FlexiTrackDirection"
 }
 
-private class FlexiRotationValueBox : ValueBoxTransform.Sided() {
-	override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 =
-		Vec3(0.5, 0.25, 0.5)
-	
+private object FlexiRotationValueBox : ValueBoxTransform.Sided() {
 	override fun getSouthLocation(): Vec3 = Vec3.ZERO
 	
 	override fun isSideActive(state: BlockState, direction: Direction): Boolean =
 		direction == Direction.UP
 	
-	override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
-		val blockEntity = level.getBlockEntity(pos) as? FlexiTrackBlockEntity ?: return
+	fun getRotation(level: LevelAccessor, pos: BlockPos): Quaternionf? {
+		val blockEntity = level.getBlockEntity(pos) as? FlexiTrackBlockEntity ?: return null
 		val direction = blockEntity.state.shape.axis1
-		val directionCache = blockEntity.state.shapeCache.firstOrNull() ?: return
-		val player = Minecraft.getInstance().player ?: return
+		val directionCache = blockEntity.state.shapeCache.firstOrNull() ?: return null
+		val player = Minecraft.getInstance().player ?: return null
 		val sign = player.lookAngle.dot(direction.tangent)
 		
 		val halfPi = PI.toFloat() * 0.5f
-		TransformStack.of(ms)
-			.rotate(directionCache.rotationValue)
-			.rotateY(if(sign < 0) halfPi else halfPi * 3)
+		return Quaternionf(directionCache.rotationValue)
+			.rotateY(if(sign < 0) halfPi * 3 else halfPi)
+	}
+	
+	fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState, rotation: Quaternionfc): Vec3? {
+		val shape = state.getShape(level, pos)
+		val height = shape.max(Direction.Axis.Y) - shape.min(Direction.Axis.Y)
 		
-		super.rotate(level, pos, state, ms)
+		return rotation.transformUnit(Vec3(0.0, height, 0.0))
+			.add(0.5, 0.0, 0.5)
+	}
+	
+	override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3? {
+		val rotation = getRotation(level, pos) ?: return null
+		return getLocalOffset(level, pos, state, rotation)
+	}
+	
+	override fun transform(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+		val rotation = getRotation(level, pos) ?: return
+		val localOffset = getLocalOffset(level, pos, state, rotation)
+		
+		TransformStack.of(ms)
+			.rotateAround(rotation, 0.5f, 0.0f, 0.5f)
+			.translate(localOffset)
+			.rotateXDegrees(90f)
+			.scale(scale, scale, scale)
 	}
 }

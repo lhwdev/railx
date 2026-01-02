@@ -22,26 +22,22 @@ import net.minecraft.client.gui.LayeredDraw
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Style
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.GameType
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.neoforge.client.event.RenderGuiEvent
 import java.lang.invoke.MethodHandles
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.log10
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 
 private val lookup = MethodHandles.lookup()
-
-private val TrackPlacement_cached =
-	lookup.unreflectGetter(TrackPlacement::class.java.getDeclaredField("cached").also { it.isAccessible = true })
 
 private val TrackPlacement_hoveringPos =
 	lookup.unreflectGetter(TrackPlacement::class.java.getDeclaredField("hoveringPos").also { it.isAccessible = true })
@@ -53,6 +49,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	
 	val infoLineCount: Int
 		get() = info?.lines?.size ?: 0
+	
 	
 	fun onPreRender(event: RenderGuiEvent.Pre) {
 		info = preciseInfo()
@@ -67,16 +64,42 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		
 		class HandItem<T>(val hand: InteractionHand, val stack: ItemStack, val item: T)
 		
-		fun flexiTrackPlacementInfo(): PrecisePlacementInfo? =
-			FlexiTrackPlacementClient.lastOverlay?.let {
-				PrecisePlacementInfo(from = it.from.toPoint(), to = it.to.toPoint(), curve = it.curve)
+		fun flexiTrackPlacementInfo(): PreciseInfo? = FlexiTrackPlacementClient.lastOverlay?.let {
+			val curve = it.curve
+			if(curve != null) {
+				PrecisePlacementInfo(
+					from = it.curveFrom.toPoint(),
+					to = it.curveTo.toPoint(),
+					curve = curve,
+					title = "Flexible Placement",
+				)
+			} else {
+				PreciseLinePlacementInfo(from = it.from, to = it.to, title = "Flexible Placement")
 			}
+		}
 		
-		fun createTrackPlacementInfo(handItem: HandItem<TrackBlockItem>): PrecisePlacementInfo? {
+		
+		fun createTrackPlacementInfo(handItem: HandItem<TrackBlockItem>): PreciseInfo? {
 			if(!handItem.stack.has(AllDataComponents.TRACK_TARGETING_ITEM_SELECTED_POS)) return null
 			
-			val info = TrackPlacement_cached.invokeExact() as TrackPlacement.PlacementInfo? as? PlacementInfoAccessor
-			if(info?.curve == null) return null
+			val info = CreateTrackPlacement.lastOverlay as? PlacementInfoAccessor ?: return null
+			
+			val curve = info.curve ?: return PreciseLinePlacementInfo(
+				from = FlexiPlacementInfo.TrackEnd(
+					state = Blocks.AIR.defaultBlockState(), // not used
+					pos = info.pos1 ?: BlockPos.ZERO,
+					end = info.end1 ?: Vec3.ZERO,
+					tangent = info.axis1 ?: Vec3.ZERO,
+					normal = info.normal1 ?: Vec3.ZERO,
+				),
+				to = FlexiPlacementInfo.TrackEnd(
+					state = Blocks.AIR.defaultBlockState(), // not used
+					pos = info.pos2 ?: BlockPos.ZERO,
+					end = info.end2 ?: Vec3.ZERO,
+					tangent = info.axis2 ?: Vec3.ZERO,
+					normal = info.normal2 ?: Vec3.ZERO,
+				),
+			)
 			
 			// do not change to, e.g, if(invokeExact() !is BlockPos)
 			val hoveringPos: BlockPos? = TrackPlacement_hoveringPos.invokeExact() as BlockPos?
@@ -85,16 +108,16 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			
 			return PrecisePlacementInfo(
 				from = FlexiPlacementInfo.TrackPoint(
-					pos = info.pos1 ?: BlockPos.ZERO,
-					tangent = info.axis1 ?: Vec3.ZERO,
-					normal = info.normal1 ?: Vec3.ZERO,
+					pos = curve.bePositions.first,
+					tangent = curve.axes.first,
+					normal = curve.normals.first,
 				),
 				to = FlexiPlacementInfo.TrackPoint(
-					pos = info.pos2 ?: BlockPos.ZERO,
-					tangent = info.axis2 ?: Vec3.ZERO,
-					normal = info.normal2 ?: Vec3.ZERO,
+					pos = curve.bePositions.second,
+					tangent = curve.axes.second,
+					normal = curve.normals.second,
 				),
-				curve = info.curve,
+				curve = curve,
 			)
 		}
 		
@@ -124,7 +147,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			val track = state.block as? ITrackBlock ?: return null
 			var tilted = false
 			return PreciseTrackInfo(
-				pos = pos.bottomCenter,
+				pos = Vec3.atBottomCenterOf(pos),
 				direction = if(track is FlexiTrackBlock) {
 					if(virtual) {
 						FlexiDirection.Known.roundFrom(player.lookAngle)
@@ -190,10 +213,28 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		val from: FlexiPlacementInfo.TrackPoint,
 		val to: FlexiPlacementInfo.TrackPoint,
 		val curve: BezierConnection,
+		title: String = "Placement",
+		placeFrom: FlexiPlacementInfo.TrackPoint = from,
+		placeTo: FlexiPlacementInfo.TrackPoint = to,
+	) : PreciseInfo() {
+		override val targetTrack = TrackPoint(placeTo.pos.toVec3(), placeTo.tangent)
+		
+		override val lines = curveInfo(
+			curve,
+			placeFrom = placeFrom.takeIf { it != from },
+			placeTo = placeTo.takeIf { it != to },
+			title = title,
+		)
+	}
+	
+	class PreciseLinePlacementInfo(
+		val from: FlexiPlacementInfo.TrackEnd,
+		val to: FlexiPlacementInfo.TrackEnd,
+		title: String = "Placement",
 	) : PreciseInfo() {
 		override val targetTrack = TrackPoint(to.pos.toVec3(), to.tangent)
 		
-		override val lines = curveInfo(curve, title = "Placement")
+		override val lines = lineInfo(from, to, title = title)
 	}
 	
 	class PreciseTrackInfo(
@@ -213,7 +254,9 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			if(curvePoint != null) first.append(", R=")
 				.append(
 					valueStyle(
-						curvePoint.curve.radiusTextAt(curvePoint.curve.getSegmentT(curvePoint.segmentIndex).toDouble())
+						curvePoint.curve.radiusTextAt(
+							curvePoint.curve.getSegmentT(curvePoint.segmentIndex).toDouble()
+						)
 					)
 				)
 			lines += first
@@ -240,16 +283,47 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 	
 	private var contextColor: Int = 0
 	
+	private fun lineInfo(
+		from: FlexiPlacementInfo.TrackEnd,
+		to: FlexiPlacementInfo.TrackEnd,
+		title: String,
+		baseColor: Int = 0xffffff,
+	): List<MutableComponent> {
+		contextColor = baseColor
+		
+		val lines = mutableListOf<MutableComponent>()
+		val delta = to.pos - from.pos
+		
+		val line = Component.empty()
+		line.append(Component.literal(title))
+		line.append(" | Axis: ")
+			.append(valueStyle(displayPoint(direction(from.normalizedTangent, from.normalizedNormal))))
+		
+		line.append(", Δ=")
+			.append(valueStyle(with(delta) { "[$x, $y, $z]" }))
+		
+		val length = from.end.distanceTo(to.end)
+		line.append(", L=")
+			.append(valueStyle(round(length, 100).toString()))
+		if(delta.y != 0) line.append(", Grad=")
+			.append(valueStyle(delta.toVec3().gradient()))
+		lines += line.withStyle(Style.EMPTY.withColor(baseColor))
+		
+		return lines
+	}
+	
 	private fun curveInfo(
 		curve: BezierConnection,
 		title: String,
+		placeFrom: FlexiPlacementInfo.TrackPoint? = null,
+		placeTo: FlexiPlacementInfo.TrackPoint? = null,
 		baseColor: Int = 0xffffff,
 		bezierPoint: TrackBezierPointSelection? = null,
 	): List<MutableComponent> {
 		contextColor = baseColor
 		
 		val lines = mutableListOf<MutableComponent>()
-		val delta = curve.bePositions.second - curve.bePositions.first
+		val delta = curve.to - curve.from
 		
 		val line = Component.empty()
 		line.append(Component.literal(title))
@@ -257,15 +331,24 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			.append(valueStyle(displayPoint(direction(curve.axes.first, curve.normals.first))))
 			.append(" -> ")
 			.append(valueStyle(displayPoint(direction(curve.axes.second, curve.normals.second))))
+		
 		line.append(", Δ=")
 			.append(valueStyle(with(delta) { "[$x, $y, $z]" }))
+		if(placeFrom != null || placeTo != null) {
+			val placeDelta = (placeTo?.pos ?: curve.to) - (placeFrom?.pos ?: curve.from)
+			line.append(" or ")
+				.append(valueStyle(with(placeDelta) { "[$x, $y, $z]" }))
+		}
+		var length = curve.length
+		if(placeFrom != null) length += sqrt(placeFrom.pos.distSqr(curve.from))
+		if(placeTo != null) length += sqrt(placeTo.pos.distSqr(curve.to))
 		line.append(", L=")
-			.append(valueStyle(round(curve.length, 100).toString()))
+			.append(valueStyle(round(length, 100).toString()))
 		line.append(", R=")
 			.append(valueStyle(minRadius(curve)))
 		if(delta.y != 0) line.append(", Grad=")
 			.append(valueStyle(delta.toVec3().gradient()))
-		lines += line.withColor(baseColor)
+		lines += line.withStyle(Style.EMPTY.withColor(baseColor))
 		
 		val onStraightLine = curve.axes.second.cross(delta.toVec3()).length() < 0.001
 		if(!onStraightLine) {
@@ -275,7 +358,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			fun dimTitle(name: String, from: Boolean) = if(dimFrom == null || from == dimFrom) {
 				Component.literal(name)
 			} else {
-				Component.literal(name).withColor(0xffffff)
+				Component.literal(name).withStyle(Style.EMPTY.withColor(0xffffff))
 			}
 			
 			fun dimContent(from: Boolean, block: () -> MutableComponent) =
@@ -296,9 +379,16 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 			})
 			
 			if(bezierPoint != null) line2.append(", at ")
-				.append(valueStyle(round(curve.lengthTo(segmentIndex = bezierPoint.segmentIndex + 1), 100).toString()))
+				.append(
+					valueStyle(
+						round(
+							curve.lengthTo(segmentIndex = bezierPoint.segmentIndex + 1),
+							100
+						).toString()
+					)
+				)
 			
-			lines += line2.withColor(baseColor)
+			lines += line2.withStyle(Style.EMPTY.withColor(baseColor))
 		}
 		return lines
 	}
@@ -307,14 +397,14 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		val previous = contextColor
 		contextColor = color
 		return try {
-			block().withColor(color)
+			block().withStyle(Style.EMPTY.withColor(color))
 		} finally {
 			contextColor = previous
 		}
 	}
 	
 	private fun valueStyle(value: String): Component =
-		Component.literal(value).withColor(ColorsArgb.multiply(contextColor, 0xffd1a6))
+		Component.literal(value).withStyle(Style.EMPTY.withColor(ColorsArgb.multiply(contextColor, 0xffd1a6)))
 	
 	private fun direction(tangent: Vec3, normal: Vec3) = when {
 		normal.x similarTo 0.0 && normal.z similarTo 0.0 -> FlexiDirection.FlatImpl(tangent.normalize())

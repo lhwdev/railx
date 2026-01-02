@@ -8,10 +8,13 @@ import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInp
 import com.simibubi.create.foundation.utility.ControlsUtil
 import net.minecraft.client.Minecraft
 import net.minecraft.world.level.LevelAccessor
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.neoforge.network.PacketDistributor
 import org.lwjgl.glfw.GLFW
 
 
+@OnlyIn(Dist.CLIENT)
 object ThrottlesClient {
 	var throttle: Throttles.Throttle? = null
 	var packetCooldown = 0

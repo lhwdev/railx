@@ -1,6 +1,8 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.minRadius
+import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
 import com.lhwdev.minecraft.railx.utils.ColorsArgb
 import com.lhwdev.minecraft.utils.vectors.minus
@@ -28,6 +30,8 @@ import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
+import java.lang.invoke.MethodHandles
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 import com.simibubi.create.AllTags as CreateTags
@@ -35,6 +39,29 @@ import com.simibubi.create.AllTags as CreateTags
 
 @OnlyIn(Dist.CLIENT)
 object FlexiTrackPlacementClient {
+	enum class FlexibleSelection { Hold, Toggle }
+	
+	private object Reflection {
+		private val lookup = MethodHandles.lookup()
+		val extraTipWarmup = TrackPlacement::class.java.getDeclaredField("extraTipWarmup")
+			.also { it.isAccessible = true }
+		val getExtraTipWarmup = lookup.unreflectGetter(extraTipWarmup)
+		val setExtraTipWarmup = lookup.unreflectSetter(extraTipWarmup)
+	}
+	
+	
+	private var flexibleSelectionToggle = false
+	
+	val isFlexibleClient: Boolean
+		get() {
+			if(!RailXConfig.Server.flexiTrak.enabled.get()) return false
+			return when(RailXConfig.Client.flexiTrak.flexibleSelection.get()) {
+				FlexibleSelection.Hold -> AllKeys.FlexiblePlacement.isPressed
+				FlexibleSelection.Toggle -> flexibleSelectionToggle
+			}
+		}
+	
+	
 	var animation: LerpedFloat = LerpedFloat.linear()
 		.startWithValue(0.0)
 	var lastLineCount: Int = 0
@@ -50,18 +77,28 @@ object FlexiTrackPlacementClient {
 	private val placementCache = PlacementCache()
 	
 	fun clientTick(defaultHandle: Cancellable) {
-		if(!FlexiTrackPlacement.isFlexibleClient) {
-			placementCache.caches.clear()
+		lastOverlay = null
+		if(!RailXConfig.Server.flexiTrak.enabled.asBoolean) {
+			hints = null
 			return
 		}
 		
-		lastOverlay = null
+		if(
+			RailXConfig.Client.flexiTrak.flexibleSelection.get() == FlexibleSelection.Toggle &&
+			AllKeys.FlexiblePlacement.isKeyDown
+		) {
+			val player = Minecraft.getInstance().player
+			if(player != null && CreateTags.AllBlockTags.TRACKS.matches(player.mainHandItem)) {
+				flexibleSelectionToggle = !flexibleSelectionToggle
+			}
+		}
 		
-		val minecraft = Minecraft.getInstance()
-		minecraft.level ?: return
-		val player = minecraft.player ?: return
+		val mc = Minecraft.getInstance()
+		val player = mc.player ?: return
+		val level = player.level()
+		
 		var stack = player.mainHandItem
-		val hitResult = minecraft.hitResult as? BlockHitResult ?: return
+		val hitResult = mc.hitResult as? BlockHitResult ?: return
 		
 		if(!stack.hasFoil()) return
 		
@@ -73,7 +110,6 @@ object FlexiTrackPlacementClient {
 		}
 		
 		val blockItem = stack.item as? TrackBlockItem ?: return
-		val level = player.level()
 		var pos = hitResult.blockPos
 		var hitState = level.getBlockState(pos)
 		
@@ -83,12 +119,25 @@ object FlexiTrackPlacementClient {
 			if(hitState == null) return
 		}
 		
+		val flexible = isFlexibleClient
+		if(
+			!flexible &&
+			!FlexiTrackPlacement.isFlexiPlacementRequired(level, toState = hitState, stack)
+		) return
+		
 		val track = hitState.block
 		if(track !is ITrackBlock) return
 		if(FlexiTrackMaterial.toFlexible(track) == null) return
 		
 		defaultHandle.cancel()
 		
+		
+		placementCache.refresh()
+		
+		val parameter = run {
+			val maxTurn = mc.options.keySprint.isDown
+			FlexiTrackPlacement.Parameter(isFlexible = flexible, extend = flexible || maxTurn)
+		}
 		val info = FlexiTrackPlacement.resolveConnection(
 			level = level,
 			player = player,
@@ -96,6 +145,7 @@ object FlexiTrackPlacementClient {
 			toState = hitState,
 			item = stack,
 			cacheStorage = placementCache,
+			parameter = parameter,
 		)
 		if(info !is FlexiPlacementInfo) {
 			if(info is FlexiPlaceResult.PlaceError) {
@@ -131,6 +181,7 @@ object FlexiTrackPlacementClient {
 		}
 		
 		var hints = hints
+		val overlayRange = RailXConfig.Client.flexiTrak.overlayWidth.asInt - 1
 		if(hitResult.direction == Direction.UP) {
 			val lookVec = player.lookAngle
 			val lookAngle = FlexiDirection.Known.roundFrom(lookVec).ordinal
@@ -140,26 +191,28 @@ object FlexiTrackPlacementClient {
 				hintAngle = lookAngle
 				hintPos = pos
 				
-				for(xOffset in -2..2) {
-					for(zOffset in -2..2) {
+				for(xOffset in -overlayRange..overlayRange) {
+					for(zOffset in -overlayRange..overlayRange) {
 						val offset = pos.offset(xOffset, 0, zOffset)
 						val adjInfo = FlexiTrackPlacement.resolveConnection(
 							level = level,
 							player = player,
 							toPos = offset,
-							toState = FlexiTrackBlockItem.getFlexiblePlacementState(
-								blockItem,
-								BlockPlaceContext(player, hand, stack, hitResult)
-							) ?: continue,
+							toState = blockItem.getPlacementState(BlockPlaceContext(player, hand, stack, hitResult))
+								?: continue,
 							item = stack,
 							cacheStorage = placementCache,
+							parameter = parameter,
 						)
 						val curvature = if(adjInfo !is FlexiPlacementInfo) {
 							0.0
 						} else {
 							val error = adjInfo.error
+							val curve = adjInfo.curve
+							val radius = curve?.minRadius() ?: Double.POSITIVE_INFINITY
+							val maxRadius = 20000.0
 							if(error != null && error.noOverlay) 0.0 else {
-								-1 / (0.004 * adjInfo.curve.minRadius() + 1) + 1 // some random function...
+								-1 / (0.004 * min(radius, maxRadius) + 1) + 1 // some random function...
 							}
 						}
 						hints += Hint(pos = offset.below(), valid = adjInfo.valid, curvature = curvature)
@@ -223,26 +276,38 @@ object FlexiTrackPlacementClient {
 		val railColor = ColorsArgb.lerp(0xEA5C2B, 0x95CD41, animation.getValue())
 		val up = Vec3(0.0, (4 / 16f).toDouble(), 0.0)
 		
+		val railWidth = when(info.material.trackType) {
+			// CRTrackMaterials.CRTrackType.WIDE_GAUGE -> 23 / 16.0
+			// CRTrackMaterials.CRTrackType.NARROW_GAUGE -> 8 / 16.0
+			// CRTrackMaterials.CRTrackType.MONORAIL -> 8 / 16.0
+			else -> 15 / 16.0
+		}
+		
+		if(!info.valid) {
+			info.fromExtent = 0
+			info.toExtent = 0
+		}
+		
 		run {
 			val from = info.from
-			val a1 = from.tangent
-			val n1 = from.normal.cross(a1).scale((15 / 16f).toDouble())
-			val o1 = a1.scale(0.125)
-			val ex1 = a1.scale(0.0)
-			line(1, from.tangent - n1 + up, o1, ex1)
-			line(2, from.tangent - n1 + up, o1, ex1)
+			val fromTangent = from.normalizedTangent
+			val fromCross = from.normalizedNormal.cross(fromTangent).scale(railWidth)
+			val o1 = fromTangent.scale(0.125)
+			val ex1 = fromTangent.scale(info.fromExtent * info.from.tangent.length())
+			line(1, info.from.end + fromCross + up, o1, ex1)
+			line(2, info.from.end - fromCross + up, o1, ex1)
 			
 			val to = info.to
-			val a2 = to.tangent
-			val n2 = to.tangent.cross(a2).scale((15 / 16f).toDouble())
-			val o2 = a2.scale(0.125)
-			val ex2 = a2.scale(0.0/*  * a2.length() */)
-			line(3, to.tangent + n2 + up, o2, ex2)
-			line(4, to.tangent - n2 + up, o2, ex2)
+			val toTangent = to.normalizedTangent
+			val toCross = to.normalizedNormal.cross(toTangent).scale(railWidth)
+			val o2 = toTangent.scale(0.125)
+			val ex2 = toTangent.scale(info.toExtent * info.to.tangent.length())
+			line(3, info.to.end + toCross + up, o2, ex2)
+			line(4, info.to.end - toCross + up, o2, ex2)
 		}
 		
 		if(info.error?.noOverlay == true) return
-		val bc = info.curve
+		val bc = info.curve ?: return
 		
 		var previous1: Vec3? = null
 		var previous2: Vec3? = null
@@ -252,8 +317,8 @@ object FlexiTrackPlacementClient {
 		val lw = animation.value * 1 / 16f + 1 / 16f
 		val end1 = bc.starts.first
 		val end2 = bc.starts.second
-		val finish1 = end1.add(bc.axes.getFirst().scale(bc.handleLength))
-		val finish2 = end2.add(bc.axes.getSecond().scale(bc.handleLength))
+		val finish1 = end1.add(bc.axes.first.scale(bc.handleLength))
+		val finish2 = end2.add(bc.axes.second.scale(bc.handleLength))
 		val key = "curve"
 		
 		for(i in 0..segCount) {
@@ -263,7 +328,7 @@ object FlexiTrackPlacementClient {
 				.normalize()
 			val normal = bc.getNormal(t.toDouble())
 				.cross(derivative)
-				.scale(15.0 / 16.0)
+				.scale(railWidth)
 			val rail1 = result.add(normal).add(up)
 			val rail2 = result.subtract(normal).add(up)
 			
@@ -272,16 +337,18 @@ object FlexiTrackPlacementClient {
 				val middle2 = rail2.add(previous2!!).scale(0.5)
 				Outliner.getInstance()
 					.showLine(
-						Pair.of(key, i * 2), VecHelper.lerp(s, middle1, previous1),
-						VecHelper.lerp(s, middle1, rail1)
+						Pair.of(key, i * 2),
+						VecHelper.lerp(s, middle1, previous1),
+						VecHelper.lerp(s, middle1, rail1),
 					)
 					.colored(railColor)
 					.disableLineNormals()
 					.lineWidth(lw)
 				Outliner.getInstance()
 					.showLine(
-						Pair.of(key, i * 2 + 1), VecHelper.lerp(s, middle2, previous2),
-						VecHelper.lerp(s, middle2, rail2)
+						Pair.of(key, i * 2 + 1),
+						VecHelper.lerp(s, middle2, previous2),
+						VecHelper.lerp(s, middle2, rail2),
 					)
 					.colored(railColor)
 					.disableLineNormals()
@@ -300,9 +367,9 @@ object FlexiTrackPlacementClient {
 		lastLineCount = segCount
 	}
 	
-	private fun line(id: Int, v1: Vec3, o1: Vec3, ex: Vec3) {
-		val color = ColorsArgb.lerp(0xEA5C2B, 0x95CD41, animation.getValue())
-		Outliner.getInstance().showLine(Pair.of("start", id), v1.subtract(o1), v1.add(ex))
+	private fun line(id: Int, center: Vec3, a: Vec3, b: Vec3) {
+		val color = ColorsArgb.lerp(0xEA5C2B, 0x95CD41, animation.value)
+		Outliner.getInstance().showLine(Pair.of("start", id), center.subtract(a), center.add(b))
 			.lineWidth(1 / 8f)
 			.disableLineNormals()
 			.colored(color)
@@ -316,7 +383,7 @@ private class PlacementCache : FlexiTrackPlacement.CacheStorage {
 		var state = true
 	}
 	
-	val caches = mutableListOf<Cache>()
+	val caches = LinkedList<Cache>()
 	
 	fun refresh() {
 		val cacheIt = caches.iterator()

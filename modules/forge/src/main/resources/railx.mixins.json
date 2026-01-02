@@ -7,7 +7,9 @@
   "plugin": "com.lhwdev.minecraft.railx.mixin.MixinPlugin",
   "mixins": [
     "ccAdvanced.CarriageMixin",
+    "common.BezierConnection$RuntimeMixin",
     "common.BezierConnectionMixin",
+    "common.TrackPlacementMixin",
     "common.VirtualRenderWorldMixin",
     "common.fakeTracks.BezierConnectionMixin",
     "common.fakeTracks.FakeTrackBlockEntityMixin",
@@ -21,7 +23,6 @@
     "flexiTrack.TrackBlockEntityTiltMixin",
     "flexiTrack.TrackBlockItemMixin",
     "flexiTrack.TrackBlockOutlineMixin",
-    "flexiTrack.TrackPlacementMixin",
     "flexiTrack.graph.TrackNodeLocationMixin",
     "flywheel.VisualizationManagerImpl$LateInitMixin",
     "flywheel.VisualizationManagerImplMixin",
@@ -59,12 +60,14 @@
     "defaultRequire": 1
   },
   "client": [
+    "common.ScrollValueRendererMixin",
     "common.TrackPlacementOverlayMixin",
+    "common.ValueSettingsClientMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
+    "flexiTrack.TrackPlacementMixin",
     "middleTrack.LevelRendererMixin",
     "middleTrack.TrackBlockOutlineMixin",
     "middleTrack.TrackTargetingClientMixin",
-    "other.ScrollValueRendererMixin",
     "splitGraph.TrackGraphVisualizerMixin",
     "throttle.TrainHUDMixin",
     "trainMap.GuiMapMixin"

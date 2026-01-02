@@ -1,0 +1,69 @@
+name: 'Create a Release'
+description: 'Create a release for a tag in your repository'
+author: 'lhwdev'
+inputs:
+  github_token:
+    description: 'The token for github authorization.'
+    required: true
+  ref:
+    description: 'Target branch or ref that this tag and release should be created from. Given to `target_commitish` REST API parameter.'
+    required: false
+  tag_name:
+    description: 'The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag'
+    required: false
+  minimum_version:
+    description: 'Minimum version constraint of result tag version.'
+    required: false
+  release_name:
+    description: 'The name of the release. For example, `Release v1.0.1`'
+    required: false
+  dry_run:
+    description: 'Can be used to get version tag before running build task'
+    required: false
+  body:
+    description: 'Text describing the contents of the tag.'
+    required: false
+  diff_template:
+    description: 'Template for diff. See code for available placeholders.'
+    required: false
+  draft:
+    description: '`true` to create a draft (unpublished) release, `false` to create a published one. Default: `false`'
+    required: false
+    default: 'false'
+  prerelease:
+    description: '`true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`'
+    required: false
+    default: 'false'
+  prerelease_suffix:
+    description: 'Annotate a prerelease version tag with suffix'
+    required: false
+    default: 'beta'
+  auto_increment_type:
+    description: 'bump tag version type, Is this a major, minor, patch, or prerelease?'
+    required: false
+    default: 'patch'
+  tag_schema:
+    description: 'schema used to compute next tag. continuous or semantic'
+    required: false
+    default: 'continuous'
+  artifacts:
+    description: 'Files to upload to release.'
+    required: false
+    default: ''
+outputs:
+  id:
+    description: 'The ID of the created Release'
+  html_url:
+    description: 'The URL users can navigate to in order to view the release'
+  upload_url:
+    description: 'The URL for uploading assets to the release'
+  current_tag:
+    description: 'The tag used to create a Release'
+  previous_tag:
+    description: 'The most recent tag found during auto incrementing the tag version'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+branding:
+  icon: 'tag'
+  color: 'gray-dark'

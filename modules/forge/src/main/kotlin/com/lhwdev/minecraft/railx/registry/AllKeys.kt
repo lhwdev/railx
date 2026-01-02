@@ -4,6 +4,8 @@ import com.lhwdev.minecraft.railx.RailX
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.bus.api.EventPriority
 import net.neoforged.bus.api.SubscribeEvent
 import net.neoforged.fml.common.EventBusSubscriber
@@ -11,7 +13,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent
 import org.lwjgl.glfw.GLFW
 
-
+@OnlyIn(Dist.CLIENT)
 enum class AllKeys(val description: String, val defaultKey: Int) {
 	FlexiblePlacement(description = "flexiTrack.flexible_placement", defaultKey = GLFW.GLFW_KEY_LEFT_CONTROL),
 	
@@ -53,10 +55,10 @@ enum class AllKeys(val description: String, val defaultKey: Int) {
 	}
 	
 	
-	@EventBusSubscriber
+	@EventBusSubscriber(Dist.CLIENT)
 	companion object {
 		@SubscribeEvent
-		private fun register(event: RegisterKeyMappingsEvent) {
+		fun register(event: RegisterKeyMappingsEvent) {
 			for(key in entries) {
 				val mapping = KeyMapping(key.description, key.defaultKey, RailX.Name)
 				key.bound = mapping
