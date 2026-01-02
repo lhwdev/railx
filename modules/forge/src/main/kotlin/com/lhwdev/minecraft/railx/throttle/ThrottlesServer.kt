@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.throttle
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.simibubi.create.content.contraptions.AbstractContraptionEntity
+import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.createmod.catnip.data.WorldAttached
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.LevelAccessor
@@ -9,26 +9,45 @@ import java.util.*
 
 
 object ThrottlesServer {
-	val receivedThrottles: WorldAttached<MutableMap<UUID, ServerThrottle>> =
-		WorldAttached { mutableMapOf() }
+	class Throttles {
+		val byPlayer = mutableMapOf<UUID, ServerThrottle>()
+		val byTrain = mutableMapOf<UUID, ServerThrottle>()
+		
+		fun remove(context: ServerThrottle) {
+			byPlayer.remove(context.playerId)
+			byTrain.remove(context.trainId)
+		}
+		
+		inline fun getOrPut(playerId: UUID, create: () -> ServerThrottle): ServerThrottle {
+			byPlayer[playerId]?.let { return it }
+			val context = create()
+			byPlayer[context.playerId] = context
+			byTrain[context.trainId] = context
+			return context
+		}
+	}
+	
+	val receivedThrottles: WorldAttached<Throttles> =
+		WorldAttached { Throttles() }
 	
 	
 	fun tick(world: LevelAccessor) {
 		if(!RailXConfig.Server.throttle.enabled.get()) return
 		
-		val worldThrottles = receivedThrottles[world].iterator()
-		while(worldThrottles.hasNext()) {
-			val (playerId, context) = worldThrottles.next()
+		val worldThrottles = receivedThrottles[world]
+		val byPlayer = worldThrottles.byPlayer.iterator()
+		while(byPlayer.hasNext()) {
+			val (playerId, context) = byPlayer.next()
 			
 			if(context.entity.isRemoved) {
-				worldThrottles.remove()
+				worldThrottles.remove(context)
 				continue
 			}
 			
 			val player = world.getPlayerByUUID(playerId)
 			if(player == null) {
 				context.entity.stopControlling(context.controlsPos)
-				worldThrottles.remove()
+				worldThrottles.remove(context)
 				continue
 			}
 			
@@ -50,19 +69,33 @@ object ThrottlesServer {
 		}
 	}
 	
+	private fun getOrCreateContext(
+		world: LevelAccessor,
+		playerId: UUID,
+		entity: CarriageContraptionEntity,
+		controlsPos: BlockPos,
+	): ServerThrottle {
+		val worldThrottles = receivedThrottles[world]
+		worldThrottles.byPlayer[playerId]?.let {
+			if(it.entity != entity) worldThrottles.remove(it)
+		}
+		
+		worldThrottles.byTrain[entity.carriage.train.id]?.let {
+			if(it.playerId != playerId) worldThrottles.remove(it)
+		}
+		
+		return worldThrottles.getOrPut(playerId = playerId) { ServerThrottle(playerId, entity, controlsPos) }
+	}
+	
 	fun receiveThrottle(
 		world: LevelAccessor,
-		entity: AbstractContraptionEntity,
+		entity: CarriageContraptionEntity,
 		controlsPos: BlockPos,
-		uniqueId: UUID,
+		playerId: UUID,
 		throttle: Throttles.Throttle,
 		otherKeys: Collection<Int>,
 	) {
-		val worldThrottles = receivedThrottles[world]
-		if(worldThrottles[uniqueId]?.let { it.entity != entity } == true)
-			worldThrottles -= uniqueId
-		
-		val context = worldThrottles.getOrPut(uniqueId) { ServerThrottle(entity, controlsPos) }
+		val context = getOrCreateContext(world, playerId, entity, controlsPos)
 		context.controlsPos = controlsPos
 		context.throttle = throttle
 		for(key in context.keys) {
@@ -77,17 +110,13 @@ object ThrottlesServer {
 	
 	fun receiveControlsInput(
 		world: LevelAccessor,
-		entity: AbstractContraptionEntity,
+		entity: CarriageContraptionEntity,
 		controlsPos: BlockPos,
-		uniqueId: UUID,
+		playerId: UUID,
 		keys: Collection<Int>,
 		pressed: Boolean,
 	) {
-		val worldThrottles = receivedThrottles[world]
-		if(worldThrottles[uniqueId]?.let { it.entity != entity } == true)
-			worldThrottles -= uniqueId
-		
-		val context = worldThrottles.getOrPut(uniqueId) { ServerThrottle(entity, controlsPos) }
+		val context = getOrCreateContext(world, playerId, entity, controlsPos)
 		context.controlsPos = controlsPos
 		if(pressed) for(key in keys) {
 			if(context.keys.any { it.key == key }) continue
@@ -101,11 +130,15 @@ object ThrottlesServer {
 
 
 class ServerThrottle(
-	val entity: AbstractContraptionEntity,
+	val playerId: UUID,
+	val entity: CarriageContraptionEntity,
 	var controlsPos: BlockPos,
 ) {
 	var throttle: Throttles.Throttle = Throttles.Throttle.Neutral
 	val keys = mutableSetOf<ManuallyPressedKey>()
+	
+	val trainId: UUID
+		get() = entity.carriage.train.id
 	
 	class ManuallyPressedKey(val key: Int) {
 		var life: Int = Timeout
