@@ -191,7 +191,7 @@ async function getDiff(lastTag, currentRef) {
 
   let template = core.getInput("diff_template");
   if (isNullString(template))
-    template = "{{title}} [{{commitHashAbbr}}]({{{commitUrl}}})";
+    template = "{{title}} ([{{commitHashAbbr}}]({{{commitUrl}}}))";
   for (const entry of commits) {
     const commit = entry.commit;
     const context = {
