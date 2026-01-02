@@ -11,6 +11,9 @@ inputs:
   tag_name:
     description: 'The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag'
     required: false
+  minimum_version:
+    description: 'Minimum version constraint of result tag version.'
+    required: false
   release_name:
     description: 'The name of the release. For example, `Release v1.0.1`'
     required: false

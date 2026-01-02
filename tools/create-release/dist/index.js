@@ -34545,7 +34545,9 @@ function computeNextSemantic(semTag) {
       case Semantic.Patch:
       case Semantic.Premajor:
       case Semantic.Prerelease:
-        core.info(`Computing semantic version, increasing ${type}; suffix=${preName}`);
+        core.info(
+          `Computing semantic version, increasing ${type}; suffix=${preName}`
+        );
         return `${semTag.options.tagPrefix}${semver.inc(semTag, type, preName)}`;
       default:
         core.setFailed(
@@ -34565,7 +34567,13 @@ async function computeLastTag() {
   if (recentTags.length < 1) {
     return null;
   }
-  return recentTags.shift().ref.replace("refs/tags/", "");
+  const recentTag = recentTags.shift().ref.replace("refs/tags/", "");
+  const fromTags = semver.parse(recentTag);
+  const minimum = core.getInput("minimum_version");
+  if (isNullString(minimum)) return recentTag;
+
+  const fromMinimum = semver.parse(minimum);
+  return fromTags.compare(fromMinimum) >= 0 ? recentTag : minimum;
 }
 
 async function computeNextTag(scheme, lastTag) {

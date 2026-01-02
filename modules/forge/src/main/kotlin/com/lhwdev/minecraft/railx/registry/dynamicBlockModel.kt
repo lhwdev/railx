@@ -7,6 +7,7 @@ import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.ModelEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
@@ -20,7 +21,7 @@ interface ConfigureBlockModel {
 	fun model(getModel: GetModel): GetModel
 }
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(value = [Dist.CLIENT], bus = Mod.EventBusSubscriber.Bus.MOD)
 object BlockModels : ConfigureBlockModel {
 	class Context(val modelBakery: ModelBakery) {
 		var location: ModelResourceLocation = ModelBakery.MISSING_MODEL_LOCATION

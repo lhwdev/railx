@@ -12,6 +12,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Read build metadata
+        id: meta
+        uses: BrycensRanch/read-properties-action@v1
+        with:
+          file: build.properties
+          all: true
+
       - id: update_version
         name: Update version
         uses: ./tools/create-release
@@ -20,6 +27,7 @@ jobs:
           prerelease_suffix: build
           auto_increment_type: prerelease
           tag_schema: semantic
+          minimum_version: ${{ steps.meta.outputs.version }}
           dry_run: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
 

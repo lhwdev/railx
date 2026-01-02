@@ -107,8 +107,8 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 	
 	val normalBlockSupplier: Supplier<out TrackBlock>
 		get() = _normalBlockSupplier ?: @Suppress("DEPRECATION")
-		FlexiTrackMaterial.ToNormal[builtInRegistryHolder().unwrapKey().get()
-			.location()]!!.also { _normalBlockSupplier = it }
+		FlexiTrackMaterial.ToNormal[builtInRegistryHolder().unwrapKey().get().location()]!!
+			.also { _normalBlockSupplier = it }
 	
 	val normalBlock: TrackBlock
 		get() = normalBlockSupplier.get()

@@ -14,6 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import org.lwjgl.glfw.GLFW
 import com.simibubi.create.AllPackets as CreatePackets
 
+
 @OnlyIn(Dist.CLIENT)
 object ThrottlesClient {
 	var throttle: Throttles.Throttle? = null
@@ -35,7 +36,8 @@ object ThrottlesClient {
 			val entity = ControlsHandler.getContraption()
 			val controlsPos = ControlsHandler.getControlsPos()
 			if(entity != null && controlsPos != null)
-				CreatePackets.getChannel().sendToServer(ControlsInputPacket(emptyList(), false, entity.id, controlsPos, false))
+				CreatePackets.getChannel()
+					.sendToServer(ControlsInputPacket(emptyList(), false, entity.id, controlsPos, false))
 		}
 		
 		throttle = null

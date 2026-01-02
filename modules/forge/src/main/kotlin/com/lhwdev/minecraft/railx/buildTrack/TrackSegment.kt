@@ -191,8 +191,8 @@ class FlexiTrackSegmentImpl(val info: FlexiPlacementInfo) : TrackSegment() {
 	override val requiredItem: ItemStack
 		get() = material.asStack(info.requiredTracks)
 	
-	override val curve: BezierConnection
-		get() = info.curve!!
+	override val curve: BezierConnection?
+		get() = info.curve
 	
 	override fun write(tag: CompoundTag) {
 		tag.put("FlexiPlacement", info.write())
