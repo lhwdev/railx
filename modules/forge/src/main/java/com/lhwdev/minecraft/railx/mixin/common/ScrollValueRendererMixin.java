@@ -1,6 +1,6 @@
-package com.lhwdev.minecraft.railx.mixin.other;
+package com.lhwdev.minecraft.railx.mixin.common;
 
-import com.lhwdev.minecraft.railx.other.ScrollValueBehaviorExtension;
+import com.lhwdev.minecraft.railx.common.ScrollValueBehaviorExtension;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;

@@ -1,71 +1,61 @@
 package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.flexiTrack.map
-import com.lhwdev.minecraft.railx.flexiTrack.optimize
-import com.lhwdev.minecraft.railx.utils.transformUnit
+import com.lhwdev.minecraft.railx.utils.round
+import com.lhwdev.minecraft.railx.utils.signToString
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter
-import net.minecraft.ChatFormatting
-import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.BlockHitResult
 import org.joml.Quaterniond
 import kotlin.math.PI
+import kotlin.math.abs
 
 
 class FlexiRotationScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
-	FlexiTrackRotateScrollBehavior(Component.literal("Rotate Flexi Track Direction"), be, slot) {
-	init {
-		value = FlexiDirection.Known.DivisionCount / 2
-	}
-	
-	override val kind: FlexiTrackRotateScrollBehaviors.Kind
-		get() = FlexiTrackRotateScrollBehaviors.Kind.Direction
+	FlexiTrackRotateScrollBehavior(kind = FlexiTrackRotateScrollBehaviors.Kind.Direction, be, slot) {
 	
 	override fun formatValue(): String = "F"
 	
-	override fun createBoard(player: Player, hitResult: BlockHitResult) = ValueSettingsBoard(
-		label,
-		FlexiDirection.Known.DivisionCount,
-		8,
-		listOf(Component.literal("Rotation \u27f3").withStyle(ChatFormatting.BOLD)),
-		ValueSettingsFormatter { v ->
-			val value = v.value - FlexiDirection.Known.DivisionCount / 2
-			Component.literal(if(value >= 0) "+K$value" else "-K${-value}")
-		},
-	)
-	
-	override fun setValueSettings(
-		player: Player,
-		valueSetting: ValueSettingsBehaviour.ValueSettings,
-		ctrlDown: Boolean,
-	) {
-		val be = be
-		val level = be.level!!
-		val delta = valueSetting.value - FlexiDirection.Known.DivisionCount / 2
-		val rotation = Quaterniond().rotationY(delta.toDouble() / FlexiDirection.Known.DivisionCount * PI)
-		
-		be.updateEachConnections {
-			val state = be.state
-			val newState = state.copy(
-				baseShape = state.baseShape.map { direction -> direction.rotateKnown(delta) },
-				tilt = state.tilt?.let { tilt -> tilt.copy(axis = rotation.transformUnit(tilt.axis).optimize()) }
-			)
-			be.updateState(newState)
-			
-			forEachConnections { connection ->
-				val axis = rotation.transformUnit(connection.axes.first).optimize()
-				connection.axes.first = axis
-				connection.normals.first = rotation.transformUnit(connection.normals.first).optimize()
-				connection.starts.first = be.block.getCurveStart(level, be.blockPos, be.blockState, axis)
-			}
-		}
+	override fun createRotationBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard {
+		value = DivisionCount / 2
+		return createBoard(
+			maxValue = DivisionCount,
+			title = "Rotation \u27f3",
+			formatter = {
+				val value = it - DivisionCount / 2
+				if(value >= 0) "+K$value" else "-K${-value}"
+			},
+		)
 	}
 	
-	override fun getClipboardKey(): String =
-		"FlexiTrackRotation.Rotation"
+	override fun formatPreciseDelta(delta: Float): String {
+		val deltaRadian = delta * PI / DivisionCount
+		val angle = round((abs(deltaRadian) * 180 / PI + 360) % 360, 100)
+		return "${deltaRadian.signToString()}${angle}°"
+	}
+	
+	override fun rotateTrack(player: Player, value: Rotation): Boolean {
+		when(value) {
+			is Rotation.Steps -> {
+				val delta = value.step - DivisionCount / 2
+				if(delta == 0) return false
+				val rotation = Quaterniond().rotationY(delta.toDouble() / DivisionCount * PI)
+				applyRotation(
+					mapDirection = { it.rotateKnown(by = delta) },
+					rotation = rotation,
+				)
+			}
+			
+			is Rotation.Precise -> {
+				val delta = value.delta.toDouble() / DivisionCount * PI
+				applyRotation(
+					mapDirection = { it.rotate(byRadian = delta.toFloat()) },
+					rotation = Quaterniond().rotationY(delta),
+				)
+			}
+		}
+		return true
+	}
 }
