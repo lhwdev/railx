@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.RailX
+import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.builders.BlockEntityBuilder
@@ -19,6 +20,8 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.neoforged.bus.api.IEventBus
+import net.neoforged.neoforge.event.BlockEntityTypeAddBlocksEvent
 
 
 val RailXRegistry = RailXRegistrate(RailX.Id)
@@ -68,6 +71,22 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 			as RailXBlockEntityBuilder<T, RailXRegistrate>)
 			.apply(block)
 			.register() as RailXBlockEntityEntry<T>
+	
+	
+	private val addValidToBlockEntity = mutableListOf<BlockBuilder<out Block, *>>()
+	fun <T> addValidToBlockEntity(block: BlockBuilder<T, *>) where T : Block, T : IBE<*> {
+		addValidToBlockEntity += block
+	}
+	
+	override fun registerEventListeners(bus: IEventBus): RailXRegistrate {
+		bus.addListener(BlockEntityTypeAddBlocksEvent::class.java) { event ->
+			for(entry in addValidToBlockEntity) {
+				val block = entry.entry
+				event.modify((block as IBE<*>).blockEntityType, block)
+			}
+		}
+		return super.registerEventListeners(bus) as RailXRegistrate
+	}
 }
 
 
@@ -81,3 +100,7 @@ inline fun <B : Block, I : Item, P> BlockBuilder<B, P>.item(
 
 fun <T : Block, P> BlockBuilder<T, P>.validFor(blockEntity: RailXBlockEntityEntry<*>): BlockBuilder<T, P> =
 	onRegister { block -> blockEntity.validBlock { block } }
+
+fun <T> BlockBuilder<T, out RailXRegistrate>.addValidToBlockEntity() where T : Block, T : IBE<*> {
+	parent.addValidToBlockEntity(block = this)
+}

@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.common.commands.cleanTrackGraphCommand
+import com.lhwdev.minecraft.railx.common.commands.fixBrokenFramedTrainsCommand
 import net.minecraft.commands.CommandBuildContext
 import net.minecraft.commands.Commands
 import net.neoforged.bus.api.SubscribeEvent
@@ -19,6 +20,7 @@ object AllCommands {
 		with(RailXCommandBuildContext(context = event.buildContext)) {
 			val railx = Commands.literal("railx")
 				.then(cleanTrackGraphCommand())
+				.then(fixBrokenFramedTrainsCommand())
 			dispatcher.register(railx)
 		}
 	}

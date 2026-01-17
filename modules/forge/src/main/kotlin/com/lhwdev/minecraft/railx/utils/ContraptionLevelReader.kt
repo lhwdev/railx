@@ -30,8 +30,11 @@ import net.neoforged.neoforge.client.model.data.ModelData
 import kotlin.math.abs
 
 
-class ContraptionLevelReader(val level: Level, val contraption: Contraption) : LevelReader {
-	val blockEntities: ContraptionBlockEntities = contraption.blockEntities(level)
+class ContraptionLevelReader(
+	val level: Level,
+	val contraption: Contraption,
+	val blockEntities: ContraptionBlockEntities = contraption.blockEntities(level),
+) : LevelReader {
 	
 	private val minY = nextMultipleOf16(contraption.bounds.minY - 1)
 	private val height = nextMultipleOf16(contraption.bounds.maxY + 1) - minY
