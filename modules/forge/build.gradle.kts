@@ -118,7 +118,7 @@ dependencies {
 	implementation(projects.utils)
 	implementation(projects.ccAsm)
 	
-	implementation("thedarkcolour:kotlinforforge-neoforge:5.10.0")
+	implementation("thedarkcolour:kotlinforforge-neoforge:${libs.versions.kotlinForForge.get()}")
 	
 	implementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}") {
 		isTransitive = false

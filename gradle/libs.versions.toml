@@ -4,7 +4,7 @@ minecraft = "1.21.1"
 neoForge = "21.1.209"
 #neoForgeModDev # declared in build-logic/build.gradle.kts
 mixinExtras = "0.5.0"
-kotlinForForge = "4.11.0"
+kotlinForForge = "5.10.0"
 
 create = "6.0.8-169"
 ponder = "1.0.66"

@@ -31,6 +31,13 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
+modId = "kotlinforforge"
+type = "required"
+versionRange = "[5.3,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
 modId = "create"
 type = "required"
 versionRange = "[6.0.8,6.1.0)"
