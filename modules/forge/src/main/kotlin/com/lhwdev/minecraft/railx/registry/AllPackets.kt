@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.ObserverEditPacket
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiblePlacementPacket
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
+import com.lhwdev.minecraft.railx.realisticSpeed.control.UpdateRealisticPacket
 import com.lhwdev.minecraft.railx.splitGraph.SplittingTrackNodeUpdatedPacket
 import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdPacket
 import com.lhwdev.minecraft.railx.throttle.StartControllingPacket
@@ -19,6 +20,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTypeProvider {
 	/// client -> server
 	FlexiblePlacement(FlexiblePlacementPacket),
+	
+	UpdateRealistic(UpdateRealisticPacket),
 	
 	StartControlling(StartControllingPacket),
 	UpdateThrottle(UpdateThrottlePacket),
