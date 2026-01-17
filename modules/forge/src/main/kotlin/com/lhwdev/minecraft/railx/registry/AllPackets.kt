@@ -6,7 +6,9 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiblePlacementPacket
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
 import com.lhwdev.minecraft.railx.splitGraph.SplittingTrackNodeUpdatedPacket
 import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdPacket
+import com.lhwdev.minecraft.railx.throttle.StartControllingPacket
 import com.lhwdev.minecraft.railx.throttle.ThrottlePacket
+import com.lhwdev.minecraft.railx.throttle.UpdateThrottlePacket
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.createmod.catnip.net.base.CatnipPacketRegistry
 import net.minecraft.network.RegistryFriendlyByteBuf
@@ -18,6 +20,8 @@ enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTy
 	/// client -> server
 	FlexiblePlacement(FlexiblePlacementPacket),
 	
+	StartControlling(StartControllingPacket),
+	UpdateThrottle(UpdateThrottlePacket),
 	Throttle(ThrottlePacket),
 	
 	ObserverEdit(ObserverEditPacket),

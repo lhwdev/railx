@@ -1,38 +1,52 @@
 package com.lhwdev.minecraft.railx.throttle
 
 import com.lhwdev.minecraft.railx.RailXConfig
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsBlock
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.createmod.catnip.data.WorldAttached
 import net.minecraft.core.BlockPos
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.LevelAccessor
+import net.neoforged.neoforge.network.PacketDistributor
 import java.util.*
 
 
 object ThrottlesServer {
-	class Throttles {
-		val byPlayer = mutableMapOf<UUID, ServerThrottle>()
-		val byTrain = mutableMapOf<UUID, ServerThrottle>()
+	class LevelThrottles {
+		val byPlayer = mutableMapOf<UUID, ServerThrottleControl>()
+		val byTrain = mutableMapOf<UUID, ServerThrottleControl>()
 		
-		fun remove(context: ServerThrottle) {
+		val values: Collection<ServerThrottleControl>
+			get() = byPlayer.values
+		
+		fun remove(context: ServerThrottleControl) {
 			byPlayer.remove(context.playerId)
 			byTrain.remove(context.trainId)
 		}
 		
-		inline fun getOrPut(playerId: UUID, create: () -> ServerThrottle): ServerThrottle {
+		inline fun getOrPut(playerId: UUID, create: () -> ServerThrottleControl): ServerThrottleControl {
 			byPlayer[playerId]?.let { return it }
 			val context = create()
 			byPlayer[context.playerId] = context
 			byTrain[context.trainId] = context
 			return context
 		}
+		
+		fun clear() {
+			byPlayer.clear()
+			byTrain.clear()
+		}
 	}
 	
-	val receivedThrottles: WorldAttached<Throttles> =
-		WorldAttached { Throttles() }
+	val receivedThrottles: WorldAttached<LevelThrottles> =
+		WorldAttached { LevelThrottles() }
 	
 	
 	fun tick(world: LevelAccessor) {
-		if(RailXConfig.Server.throttle.enabled.isFalse) return
+		if(RailXConfig.Server.throttle.enabled.isFalse) {
+			receivedThrottles[world].clear()
+			return
+		}
 		
 		val worldThrottles = receivedThrottles[world]
 		val byPlayer = worldThrottles.byPlayer.iterator()
@@ -51,7 +65,7 @@ object ThrottlesServer {
 				continue
 			}
 			
-			val keys = mutableListOf<Int>()
+			val keys = mutableSetOf<Int>()
 			val keysIterator = context.keys.iterator()
 			while(keysIterator.hasNext()) {
 				val key = keysIterator.next()
@@ -60,11 +74,22 @@ object ThrottlesServer {
 				else keys += key.key
 			}
 			
-			val controlled = context.entity.control(
-				context.controlsPos,
-				ThrottleStubs.HeldControls(context.throttle, keys),
-				player,
-			)
+			val throttle = context.throttle
+			val absoluteThrottle = throttle.reverseIf(forward = context.forward)
+			if(throttle.gear >= 0) when(throttle.reverser) {
+				Throttles.Reverser.Forward -> keys += 0
+				Throttles.Reverser.Neutral -> {}
+				Throttles.Reverser.Backward -> keys += 1
+			}
+			when(throttle.steering) {
+				Throttles.Steering.Left -> keys += 2
+				Throttles.Steering.Neutral -> {}
+				Throttles.Steering.Right -> keys += 3
+			}
+			
+			context.entity.carriage.train.absoluteThrottle = absoluteThrottle
+			
+			val controlled = context.entity.control(context.controlsPos, keys, player)
 			if(!controlled) context.entity.stopControlling(context.controlsPos)
 		}
 	}
@@ -74,7 +99,7 @@ object ThrottlesServer {
 		playerId: UUID,
 		entity: CarriageContraptionEntity,
 		controlsPos: BlockPos,
-	): ServerThrottle {
+	): ServerThrottleControl {
 		val worldThrottles = receivedThrottles[world]
 		worldThrottles.byPlayer[playerId]?.let {
 			if(it.entity != entity) worldThrottles.remove(it)
@@ -84,7 +109,10 @@ object ThrottlesServer {
 			if(it.playerId != playerId) worldThrottles.remove(it)
 		}
 		
-		return worldThrottles.getOrPut(playerId = playerId) { ServerThrottle(playerId, entity, controlsPos) }
+		val context =
+			worldThrottles.getOrPut(playerId = playerId) { ServerThrottleControl(playerId, entity, controlsPos) }
+		context.updateControlsPos(controlsPos)
+		return context
 	}
 	
 	fun receiveThrottle(
@@ -93,19 +121,30 @@ object ThrottlesServer {
 		controlsPos: BlockPos,
 		playerId: UUID,
 		throttle: Throttles.Throttle,
-		otherKeys: Collection<Int>,
+		keys: Collection<Int>,
 	) {
 		val context = getOrCreateContext(world, playerId, entity, controlsPos)
-		context.controlsPos = controlsPos
+		context.updateControlsPos(controlsPos)
 		context.throttle = throttle
+		
 		for(key in context.keys) {
-			if(key.key in otherKeys) key.keepAlive()
+			if(key.key in keys) key.keepAlive()
 			else key.life = 0
 		}
-		for(key in otherKeys) {
+		for(key in keys) {
 			if(context.keys.any { it.key == key }) continue
-			context.keys += ServerThrottle.ManuallyPressedKey(key)
+			context.keys += ServerThrottleControl.ManuallyPressedKey(key)
 		}
+	}
+	
+	fun startControlsInput(
+		world: LevelAccessor,
+		entity: CarriageContraptionEntity,
+		controlsPos: BlockPos,
+		player: ServerPlayer,
+	) {
+		val context = getOrCreateContext(world, playerId = player.uuid, entity, controlsPos)
+		PacketDistributor.sendToPlayer(player, UpdateThrottlePacket(context))
 	}
 	
 	fun receiveControlsInput(
@@ -117,10 +156,9 @@ object ThrottlesServer {
 		pressed: Boolean,
 	) {
 		val context = getOrCreateContext(world, playerId, entity, controlsPos)
-		context.controlsPos = controlsPos
 		if(pressed) for(key in keys) {
 			if(context.keys.any { it.key == key }) continue
-			context.keys += ServerThrottle.ManuallyPressedKey(key)
+			context.keys += ServerThrottleControl.ManuallyPressedKey(key)
 		} else for(key in keys) {
 			val previous = context.keys.find { it.key == key } ?: continue
 			previous.life = 0
@@ -129,13 +167,32 @@ object ThrottlesServer {
 }
 
 
-class ServerThrottle(
+class ServerThrottleControl(
 	val playerId: UUID,
 	val entity: CarriageContraptionEntity,
-	var controlsPos: BlockPos,
+	controlsPos: BlockPos,
 ) {
-	var throttle: Throttles.Throttle = Throttles.Throttle.Neutral
+	var controlsPos: BlockPos = controlsPos
+		private set
+	
+	val forward: Boolean
+		get() {
+			val info = entity.contraption.blocks[controlsPos] ?: return true
+			if(!info.state.hasProperty(ControlsBlock.FACING)) return true
+			
+			return info.state.getValue(ControlsBlock.FACING) == entity.initialOrientation.counterClockWise
+		}
+	
+	var throttle: Throttles.Throttle = entity.carriage.train.relativeThrottle(forward = forward)
 	val keys = mutableSetOf<ManuallyPressedKey>()
+	
+	fun updateControlsPos(pos: BlockPos) {
+		if(controlsPos == pos) return
+		
+		val previousForward = forward
+		controlsPos = pos
+		if(forward != previousForward) throttle = throttle.reverse()
+	}
 	
 	val trainId: UUID
 		get() = entity.carriage.train.id

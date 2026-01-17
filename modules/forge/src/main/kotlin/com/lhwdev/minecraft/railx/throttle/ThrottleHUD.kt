@@ -9,9 +9,12 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.LayeredDraw
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.GameType
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.api.distmarker.OnlyIn
 import kotlin.math.abs
 
 
+@OnlyIn(Dist.CLIENT)
 object ThrottleHUD : LayeredDraw.Layer {
 	override fun render(graphics: GuiGraphics, deltaTracker: DeltaTracker) {
 		val mc = Minecraft.getInstance()

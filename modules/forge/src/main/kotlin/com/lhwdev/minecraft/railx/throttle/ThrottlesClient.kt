@@ -26,7 +26,10 @@ object ThrottlesClient {
 	}
 	
 	fun startControlling() {
-		throttle = Throttles.Throttle.Neutral
+		val contraptionEntityId = ControlsHandler.getContraption()?.id ?: return
+		val controlsPos = ControlsHandler.getControlsPos() ?: return
+		
+		PacketDistributor.sendToServer(StartControllingPacket(contraptionEntityId, controlsPos))
 	}
 	
 	fun stopControlling() {
@@ -54,21 +57,21 @@ object ThrottlesClient {
 					contraptionEntityId = entity.id,
 					controlsPos = controlsPos,
 					throttle = Throttles.Throttle.Neutral,
-					otherKeys = ControlsHandler.currentlyPressed.toList(),
+					keys = ControlsHandler.currentlyPressed.toList(),
 					stopControlling = true,
 				)
 			)
 			return
 		}
 		
-		val previous = throttle
+		val previous = throttle ?: return
 		
 		val controls = ControlsUtil.getControls()
 		val pressedKeys = controls
 			.mapIndexedNotNull { index, control -> index.takeIf { ControlsUtil.isActuallyPressed(control) } }
 		
-		var reverser = previous?.reverser ?: Throttles.Reverser.Neutral
-		var gear = previous?.gear ?: 0
+		var reverser = previous.reverser
+		var gear = previous.gear
 		
 		if(gear <= 0) {
 			if(AllKeys.ThrottleReverserForward.isKeyDown) reverser = reverser.forward()
@@ -95,7 +98,7 @@ object ThrottlesClient {
 				contraptionEntityId = entity.id,
 				controlsPos = controlsPos,
 				throttle = throttle,
-				otherKeys = pressedKeys,
+				keys = pressedKeys,
 			)
 			PacketDistributor.sendToServer(packet)
 			packetCooldown = ControlsHandler.PACKET_RATE

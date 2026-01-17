@@ -12,19 +12,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ControlsHandler.class)
 public class ControlsHandlerMixin {
-	@Inject(method = "levelUnloaded", at = @At("HEAD"))
+	@Inject(method = "levelUnloaded", at = @At("RETURN"))
 	private static void onLevelUnloaded(LevelAccessor level, CallbackInfo ci) {
 		if(RailXConfig.Server.Value.getThrottle().getEnabled().isFalse()) return;
 		ThrottlesClient.INSTANCE.levelUnloaded(level);
 	}
 	
-	@Inject(method = "startControlling", at = @At("HEAD"))
+	@Inject(method = "startControlling", at = @At("RETURN"))
 	private static void onStartControlling(CallbackInfo ci) {
 		if(RailXConfig.Server.Value.getThrottle().getEnabled().isFalse()) return;
 		ThrottlesClient.INSTANCE.startControlling();
 	}
 	
-	@Inject(method = "stopControlling", at = @At("HEAD"))
+	@Inject(method = "stopControlling", at = @At("RETURN"))
 	private static void onStopControlling(CallbackInfo ci) {
 		if(RailXConfig.Server.Value.getThrottle().getEnabled().isFalse()) return;
 		ThrottlesClient.INSTANCE.stopControlling();
