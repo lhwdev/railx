@@ -11,6 +11,9 @@ inputs:
   tag_name:
     description: 'The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag'
     required: false
+  tag_format:
+    description: 'Format of the tag. Uses placeholder $1 to include version in string. Fed into regex.'
+    required: false
   minimum_version:
     description: 'Minimum version constraint of result tag version.'
     required: false
