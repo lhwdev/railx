@@ -23,7 +23,7 @@ jobs:
         name: Update version
         uses: ./tools/create-release
         with:
-          tag_format: 'mc1.21.1-$0'
+          tag_format: 'mc1.21.1-$1'
           prerelease: true
           prerelease_suffix: build
           auto_increment_type: prerelease
