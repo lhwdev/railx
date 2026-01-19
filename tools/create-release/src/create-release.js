@@ -148,21 +148,14 @@ async function computeLastTag() {
     .filter((name) => name.match(tagFormatRegex));
   core.info(`recentTags (first 10): ${tagNames.slice(0, 10).join(", ")}`);
 
-  const recentTag = recentTags.shift()?.ref.replace("refs/tags/", "");
-  if (!recentTag) return null;
-
-  const minimum = core.getInput("minimum_version");
-  if (isNullString(minimum)) return recentTag;
-
-  const fromTags = semver.parse(recentTag);
-  const fromMinimum = semver.parse(minimum);
-  return fromTags.compare(fromMinimum) >= 0 ? recentTag : minimum;
+  return recentTags.shift()?.ref.replace("refs/tags/", "");
 }
 
 async function computeNextTag(scheme, lastTag) {
+  const minimum = orNullString(core.getInput("minimum_version"));
+
   // Handle zero-state where no tags exist for the repo
   if (!lastTag) {
-    const minimum = orNullString(core.getInput("minimum_version"));
     core.info(`Creating initial tag on ${scheme} scheme, minimum=${minimum}`);
     if (scheme === Scheme.Continuous) {
       return initialTag(minimum ?? "1");
@@ -177,6 +170,24 @@ async function computeNextTag(scheme, lastTag) {
   if (semTag == null) {
     core.setFailed(`Failed to parse tag: ${lastTag}`);
     return null;
+  }
+
+  if (minimum != null) {
+    const minimumVersion = semver.parse(minimum);
+    if (semver.compare(minimumVersion, semTag) < 0) {
+      if (
+        minimumVersion.major == semTag.major &&
+        minimumVersion.minor == semTag.minor &&
+        minimumVersion.patch == semTag.patch &&
+        minimumVersion.build.every((v, i) => v == semTag.build.at(i)) &&
+        minimumVersion.prerelease.length == 0 &&
+        semTag.prerelease.length > 0
+      ) {
+        // special case where minimum=1.0.0, last=1.0.0-build.n -> allows this
+      } else {
+        return initialTag(minimum);
+      }
+    }
   }
 
   if (scheme === Scheme.Continuous) {
