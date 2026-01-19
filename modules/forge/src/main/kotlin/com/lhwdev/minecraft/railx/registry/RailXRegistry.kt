@@ -1,6 +1,9 @@
 package com.lhwdev.minecraft.railx.registry
 
+import com.google.common.collect.ImmutableSet
 import com.lhwdev.minecraft.railx.RailX
+import com.lhwdev.minecraft.railx.mixin.common.BlockEntityTypeAccessor
+import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.builders.BlockEntityBuilder
@@ -77,3 +80,13 @@ inline fun <B : Block, I : Item, P> BlockBuilder<B, P>.item(
 
 fun <T : Block, P> BlockBuilder<T, P>.validFor(blockEntity: RailXBlockEntityEntry<*>): BlockBuilder<T, P> =
 	onRegister { block -> blockEntity.validBlock { block } }
+
+fun <T> BlockBuilder<T, *>.addValidToBlockEntity() where T : Block, T : IBE<*> {
+	onRegister { block ->
+		val accessor = block.blockEntityType as BlockEntityTypeAccessor
+		accessor.validBlocks = ImmutableSet.Builder<Block>()
+			.addAll(accessor.validBlocks)
+			.add(block)
+			.build()
+	}
+}

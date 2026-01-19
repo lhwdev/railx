@@ -87,6 +87,7 @@ object AllBlocks {
 	) {
 		tag(AllTags.Features.SplitGraph.block)
 		lang("Split Graph Train Track")
+		addValidToBlockEntity()
 	}
 	
 	val FlexiSplitGraphTrack: BlockEntry<FlexiSplitGraphTrackBlock> = Registry.flexiTrackBlock(

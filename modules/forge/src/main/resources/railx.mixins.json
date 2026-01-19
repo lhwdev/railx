@@ -9,6 +9,7 @@
     "ccAdvanced.CarriageMixin",
     "common.BezierConnection$RuntimeMixin",
     "common.BezierConnectionMixin",
+    "common.BlockEntityTypeAccessor",
     "common.TrackPlacementMixin",
     "common.VirtualRenderWorldMixin",
     "common.fakeTracks.BezierConnectionMixin",
@@ -66,12 +67,12 @@
     "common.TrackPlacementOverlayMixin",
     "common.ValueSettingsClientMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
+    "flexiTrack.TrackPlacementMixin",
     "middleTrack.LevelRendererMixin",
     "middleTrack.TrackBlockOutlineMixin",
     "middleTrack.TrackTargetingClientMixin",
     "splitGraph.TrackGraphVisualizerMixin",
-    "throttle.TrainHUDMixin",
-    "flexiTrack.TrackPlacementMixin"
+    "throttle.TrainHUDMixin"
   ],
   "mixinextras": {
     "minVersion": "0.5.0"

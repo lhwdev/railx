@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import java.util.*
+
 
 plugins {
 	id("java-library")
@@ -11,9 +13,15 @@ plugins {
 	kotlin("jvm")
 }
 
-val modId = "railx"
+val buildProps = Properties().apply {
+	rootDir.resolve("./build.properties").reader().use { load(it) }
+}
 
-version = providers.environmentVariable("project_version").orElse("1.0-SNAPSHOT")
+val modId = "railx"
+version = buildProps["version"]!!
+
+val actualVersion = providers.environmentVariable("project_version")
+	.orElse(project.version.toString())
 
 base {
 	archivesName = modId
@@ -195,7 +203,7 @@ var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
 	)
 	
 	inputs.properties(replaceProperties)
-	expand(replaceProperties)
+	doFirst { expand(inputs.properties) }
 	from("src/main/templates")
 	into("build/generated/sources/modMetadata")
 }
