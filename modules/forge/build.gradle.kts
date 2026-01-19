@@ -153,6 +153,7 @@ dependencies {
 
 tasks.jar { isEnabled = false }
 tasks.shadowJar {
+	archiveVersion = actualVersion
 	archiveClassifier = null
 	
 	from(tasks.jarJar)
@@ -189,7 +190,7 @@ tasks.register<Copy>("modJars") {
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {
-	var replaceProperties = mapOf(
+	val replaceProperties = mapOf(
 		"minecraft_version" to libs.versions.minecraft.get(),
 		"minecraft_version_range" to "[1.20.1,1.20.2)",
 		"forge_version_range" to "[${libs.versions.forge.get()},)",
@@ -197,11 +198,10 @@ var generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
 		"mod_id" to modId,
 		"mod_name" to "RailX",
 		"mod_license" to "All Rights Reserved",
-		"mod_version" to "$version",
+		"mod_version" to actualVersion,
 		"mod_authors" to "lhwdev",
 		"mod_description" to "This is good mod",
 	)
-	
 	inputs.properties(replaceProperties)
 	doFirst { expand(inputs.properties) }
 	from("src/main/templates")

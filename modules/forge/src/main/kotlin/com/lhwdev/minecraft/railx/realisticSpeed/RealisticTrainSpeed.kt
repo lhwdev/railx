@@ -257,7 +257,9 @@ class RealisticTrainSpeed(private val train: Train) {
 	private var netWheelAcceleration = 0.0
 	private var netEnvironmentalSlowdown = 0.0
 	private var netWheelSlowdown = 0.0
-	private var slipAmount = 0.0
+	
+	var slipAmount = 0.0
+		private set
 	
 	private var mass: Double = 1.0
 	
@@ -534,7 +536,7 @@ class RealisticTrainSpeed(private val train: Train) {
 		} else {
 			val p = p ?: return
 			var resistance = (p.rollingFactor + p.rolling2Factor * abs(currentSpeed)) / mass * normalMassRatio
-			resistance * config.rollingResistanceMultiplier.get()
+			resistance *= config.rollingResistanceMultiplier.get()
 			
 			val creepingThreshold = 0.03
 			val creeping = creepingThreshold - abs(currentSpeed)
@@ -612,7 +614,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	private fun handleSlip() {
-		// slips are not generally happen, but they might happen where gradient is too large
+		// slips do not generally happen, but they might happen where gradient is too large
 		if(!config.slipEnabled.get()) {
 			slipAmount = 0.0
 			return

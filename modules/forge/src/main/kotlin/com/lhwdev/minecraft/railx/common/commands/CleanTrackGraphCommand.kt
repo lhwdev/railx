@@ -124,7 +124,7 @@ fun RailXCommandBuildContext.cleanTrackGraphCommand(): LiteralArgumentBuilder<Co
 		}
 		
 		source.sendSuccess({ Component.literal("Successfully updated all track nodes in selection") }, true)
-		1
+		0
 	}
 
 private object LocationComparator : Comparator<TrackNodeLocation> {

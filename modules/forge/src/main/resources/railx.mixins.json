@@ -57,7 +57,8 @@
     "splitGraph.TravellingPointMixin",
     "throttle.CarriageContraptionEntityMixin",
     "throttle.ControlsHandlerMixin",
-    "throttle.ControlsInputPacketMixin"
+    "throttle.ControlsInputPacketMixin",
+    "throttle.TrainMixin"
   ],
   "injectors": {
     "defaultRequire": 1

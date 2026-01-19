@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.throttle
+package com.lhwdev.minecraft.railx.realisticSpeed.control
 
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
@@ -11,40 +11,31 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.gui.overlay.ForgeGui
 import net.minecraftforge.client.gui.overlay.IGuiOverlay
-import kotlin.math.abs
 
 
 @OnlyIn(Dist.CLIENT)
-object ThrottleHUD : IGuiOverlay {
-	override fun render(gui: ForgeGui, graphics: GuiGraphics, partialTick: Float, width: Int, height: Int) {
+object RealisticSpeedHUD : IGuiOverlay {
+	override fun render(gui: ForgeGui, graphics: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
 		val mc = Minecraft.getInstance()
 		if(mc.options.hideGui || mc.gameMode?.playerMode == GameType.SPECTATOR) return
+		if(!RailXConfig.Server.flexiTrak.enabled.get()) return
 		
 		val entity = ControlsHandler.getContraption()
 		if(entity !is CarriageContraptionEntity) return
-		if(!RailXConfig.Server.throttle.enabled.get()) return
 		
 		if(entity.carriage == null) return
 		if(mc.cameraEntity == null) return
-		if(ControlsHandler.getControlsPos() == null) return
+		val parameters = RealisticSpeedClient.parameters ?: return
 		
-		val throttle = ThrottlesClient.throttle ?: return
 		val text = Component.empty()
-		when(throttle.reverser) {
-			Throttles.Reverser.Forward -> text.append("Forward")
-			Throttles.Reverser.Neutral -> text.append("Neutral")
-			Throttles.Reverser.Backward -> text.append("Backward")
-		}
-		text.append(" ")
-		text.append(
-			when {
-				throttle.gear > 0 -> "F"
-				throttle.gear == 0 -> "N"
-				else -> "B"
-			}
-		)
-		text.append("${abs(throttle.gear)}")
+		if(parameters.slip) text.append("Slip")
 		
-		graphics.drawString(mc.font, text, 16, graphics.guiHeight() - 29, 0xffffff)
+		graphics.drawString(
+			mc.font,
+			text,
+			graphics.guiWidth() - 16 - mc.font.width(text),
+			graphics.guiHeight() - 29,
+			0xffffff
+		)
 	}
 }

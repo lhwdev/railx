@@ -26,6 +26,14 @@ interface ContraptionBlockEntities {
 	fun load()
 	
 	val blockEntities: Map<BlockPos, BlockEntity>
+	
+	
+	object Empty : ContraptionBlockEntities {
+		override fun load() {}
+		
+		override val blockEntities: Map<BlockPos, BlockEntity>
+			get() = emptyMap()
+	}
 }
 
 class ClientSideContraptionBlockEntities(private val base: ClientContraption) : ContraptionBlockEntities {
@@ -43,11 +51,12 @@ class ClientSideContraptionBlockEntities(private val base: ClientContraption) : 
 	override fun load() {}
 }
 
-class ServerSideContraptionBlockEntities(private val contraption: Contraption, private val level: Level) :
+
+abstract class CustomContraptionBlockEntities(private val contraption: Contraption, private val level: Level) :
 	ContraptionBlockEntities {
-	init {
-		check(!level.isClientSide) { "ServerSideContraptionBlockEntity created on client side" }
-	}
+	
+	abstract val isClientSide: Boolean
+	
 	
 	override val blockEntities = HashMap<BlockPos, BlockEntity>()
 	
@@ -60,7 +69,8 @@ class ServerSideContraptionBlockEntities(private val contraption: Contraption, p
 		}
 	}
 	
-	private fun readBlockEntity(info: StructureTemplate.StructureBlockInfo, legacy: Boolean): BlockEntity? {
+	
+	fun readBlockEntity(info: StructureTemplate.StructureBlockInfo, legacy: Boolean): BlockEntity? {
 		val state = info.state
 		val pos = info.pos
 		val nbt = info.nbt
@@ -80,8 +90,10 @@ class ServerSideContraptionBlockEntities(private val contraption: Contraption, p
 		
 		val be = block.newBlockEntity(pos, state)
 		postprocessReadBlockEntity(be, state)
-		if(be != null && nbt != null)
-			be.handleUpdateTag(nbt)
+		if(be != null && nbt != null) {
+			if(isClientSide) be.handleUpdateTag(nbt)
+			else be.load(nbt)
+		}
 		return be
 	}
 	
@@ -94,6 +106,17 @@ class ServerSideContraptionBlockEntities(private val contraption: Contraption, p
 			be.speed = 0f
 		}
 	}
+}
+
+class ServerSideContraptionBlockEntities(contraption: Contraption, level: Level) :
+	CustomContraptionBlockEntities(contraption, level) {
+	
+	init {
+		check(!level.isClientSide) { "ServerSideContraptionBlockEntity created on client side" }
+	}
+	
+	override val isClientSide: Boolean
+		get() = false
 }
 
 

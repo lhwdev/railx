@@ -193,7 +193,7 @@ object RailXConfig {
 			// TODO 3: add slip sound and effect
 			val slipEnabled: BooleanValue = builder
 				.comment("Whether train slips where there are not sufficient adhesion(friction) between wheels and track.")
-				.define("realistic_speed.slip.enabled", true)
+				.define("realistic_speed.slip.enabled", false)
 			
 			val slipCoefficient: DoubleValue = builder
 				.comment("The coefficient of friction. The larger, the less it slips.")

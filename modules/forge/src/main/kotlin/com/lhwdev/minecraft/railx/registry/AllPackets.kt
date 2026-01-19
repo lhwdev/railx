@@ -4,9 +4,12 @@ import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.ObserverEditPacket
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiblePlacementPacket
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
+import com.lhwdev.minecraft.railx.realisticSpeed.control.UpdateRealisticPacket
 import com.lhwdev.minecraft.railx.splitGraph.SplittingTrackNodeUpdatedPacket
 import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdPacket
+import com.lhwdev.minecraft.railx.throttle.StartControllingPacket
 import com.lhwdev.minecraft.railx.throttle.ThrottlePacket
+import com.lhwdev.minecraft.railx.throttle.UpdateThrottlePacket
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.network.FriendlyByteBuf
@@ -22,6 +25,10 @@ enum class AllPackets(val base: RailXPacketType<*>) {
 	/// client -> server
 	FlexiblePlacement(FlexiblePlacementPacket),
 	
+	UpdateRealistic(UpdateRealisticPacket),
+	
+	StartControlling(StartControllingPacket),
+	UpdateThrottle(UpdateThrottlePacket),
 	Throttle(ThrottlePacket),
 	
 	ObserverEdit(ObserverEditPacket),
@@ -65,6 +72,10 @@ enum class AllPackets(val base: RailXPacketType<*>) {
 		
 		val channel: SimpleChannel
 			get() = _channel!!
+		
+		fun sendToPlayer(player: ServerPlayer, packet: ClientboundPacket) {
+			channel.send(PacketDistributor.PLAYER.with { player }, packet)
+		}
 		
 		fun sendToAllPlayers(packet: ClientboundPacket) {
 			channel.send(PacketDistributor.ALL.noArg(), packet)

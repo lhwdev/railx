@@ -2,18 +2,15 @@ package com.lhwdev.minecraft.railx.mixin.throttle;
 
 import com.lhwdev.minecraft.railx.RailXConfig;
 import com.lhwdev.minecraft.railx.realisticSpeed.RealisticTrainSpeedKt;
-import com.lhwdev.minecraft.railx.throttle.ThrottleStubs;
+import com.lhwdev.minecraft.railx.throttle.TrainThrottleUtils;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.trains.entity.Carriage;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.trains.entity.Train;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-
-import java.util.Collection;
 
 
 @Mixin(CarriageContraptionEntity.class)
@@ -25,16 +22,15 @@ public class CarriageContraptionEntityMixin {
 	void approachTargetSpeed(
 		Train instance,
 		float accelerationMod,
-		Operation<Void> original,
-		@Local(index = 2, argsOnly = true) Collection<Integer> heldControls
+		Operation<Void> original
 	) {
-		if(!(heldControls instanceof ThrottleStubs.HeldControls controls)) {
+		if(!RailXConfig.Server.Value.getThrottle().getEnabled().get()) {
 			original.call(instance, accelerationMod);
 			return;
 		}
 		
 		var train = carriage.train;
-		var throttle = controls.getThrottle();
+		var throttle = TrainThrottleUtils.getAbsoluteThrottle(train);
 		if(RailXConfig.Server.Value.getRealisticSpeed().getEnabled().get() && train.navigation.destination == null) {
 			var realisticSpeed = RealisticTrainSpeedKt.getRealisticSpeed(train);
 			if(realisticSpeed != null) {

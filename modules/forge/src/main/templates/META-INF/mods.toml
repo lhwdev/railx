@@ -14,7 +14,7 @@ description = '''${mod_description}'''
 config = "${mod_id}.mixins.json"
 
 [[accessTransformers]]
-file="META-INF/accesstransformer.cfg"
+file = "META-INF/accesstransformer.cfg"
 
 [[dependencies."${mod_id}"]]
 modId = "forge"
@@ -28,6 +28,13 @@ modId = "minecraft"
 mandatory = true
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "kotlinforforge"
+mandatory = true
+versionRange = "[5.3,)"
+ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]

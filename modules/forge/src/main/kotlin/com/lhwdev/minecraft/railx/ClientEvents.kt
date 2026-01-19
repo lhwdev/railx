@@ -7,6 +7,7 @@ import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackInteraction
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackOutline
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackTargetingClient
 import com.lhwdev.minecraft.railx.middleTrack.renderer.MiddleTracksRenderer
+import com.lhwdev.minecraft.railx.realisticSpeed.control.RealisticSpeedHUD
 import com.lhwdev.minecraft.railx.throttle.ThrottleHUD
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
@@ -84,6 +85,11 @@ object ClientEvents {
 object ClientModBusEvents {
 	@SubscribeEvent
 	fun registerGuiOverlays(event: RegisterGuiOverlaysEvent) {
+		event.registerAbove(
+			VanillaGuiOverlay.EXPERIENCE_BAR.id(),
+			"realistic_speed",
+			RealisticSpeedHUD
+		)
 		event.registerAbove(
 			VanillaGuiOverlay.EXPERIENCE_BAR.id(),
 			"throttle_hud",
