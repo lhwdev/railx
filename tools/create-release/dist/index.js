@@ -34570,7 +34570,7 @@ async function computeLastTag() {
     .filter((name) => name.match(tagFormatRegex));
   core.info(`recentTags (first 10): ${tagNames.slice(0, 10).join(", ")}`);
 
-  return recentTags.shift()?.ref.replace("refs/tags/", "");
+  return tagNames.shift()?.ref.replace("refs/tags/", "");
 }
 
 async function computeNextTag(scheme, lastTag) {
