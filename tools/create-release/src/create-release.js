@@ -148,7 +148,7 @@ async function computeLastTag() {
     .filter((name) => name.match(tagFormatRegex));
   core.info(`recentTags (first 10): ${tagNames.slice(0, 10).join(", ")}`);
 
-  return tagNames.shift()?.ref.replace("refs/tags/", "");
+  return tagNames.shift();
 }
 
 async function computeNextTag(scheme, lastTag) {
@@ -254,7 +254,7 @@ async function run() {
       "lhwdev_create_release_info" in process.env
         ? JSON.parse(process.env["lhwdev_create_release_info"])
         : null;
-    const lastTag = releaseInfo?.lastTag ?? (await computeLastTag());
+    const lastTag = releaseInfo ? releaseInfo.lastTag : await computeLastTag();
     let version, tag;
 
     if (isNullString(tagName)) {
@@ -270,7 +270,7 @@ async function run() {
       version = tagFormatRegex.exec(tag)[1];
     }
 
-    if ("lhwdev_create_release_info" in process.env) {
+    if (releaseInfo) {
       core.info(`Reused tag from previous run: ${tag}`);
     } else {
       core.info(`Computed the next tag: ${tag}`);
