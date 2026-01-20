@@ -74,22 +74,27 @@ object ThrottlesServer {
 				else keys += key.key
 			}
 			
+			val actualKeys = mutableSetOf<Int>()
 			val throttle = context.throttle
 			val absoluteThrottle = throttle.reverseIf(forward = context.forward)
 			if(throttle.gear >= 0) when(throttle.reverser) {
-				Throttles.Reverser.Forward -> keys += 0
+				Throttles.Reverser.Forward -> actualKeys += 0
 				Throttles.Reverser.Neutral -> {}
-				Throttles.Reverser.Backward -> keys += 1
+				Throttles.Reverser.Backward -> actualKeys += 1
 			}
 			when(throttle.steering) {
-				Throttles.Steering.Left -> keys += 2
+				Throttles.Steering.Left -> actualKeys += 2
 				Throttles.Steering.Neutral -> {}
-				Throttles.Steering.Right -> keys += 3
+				Throttles.Steering.Right -> actualKeys += 3
+			}
+			
+			for(key in keys) {
+				if(key > 3) actualKeys += key
 			}
 			
 			context.entity.carriage.train.absoluteThrottle = absoluteThrottle
 			
-			val controlled = context.entity.control(context.controlsPos, keys, player)
+			val controlled = context.entity.control(context.controlsPos, actualKeys, player)
 			if(!controlled) context.entity.stopControlling(context.controlsPos)
 		}
 	}

@@ -614,7 +614,7 @@ class RealisticTrainSpeed(private val train: Train) {
 	}
 	
 	private fun handleSlip() {
-		// slips does not generally happen, but they might happen where gradient is too large
+		// slips do not generally happen, but they might happen where gradient is too large
 		if(!config.slipEnabled.isTrue) {
 			slipAmount = 0.0
 			return

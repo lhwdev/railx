@@ -47,8 +47,6 @@ neoForge {
 			client()
 			systemProperty("neoforge.enabledGameTestNamespaces", modId)
 			systemProperty("mixin.debug", "true")
-			
-			sourceSet = modDevPlatform.modDevRuntime
 		}
 		
 		register("server") {
@@ -78,11 +76,11 @@ neoForge {
 				"--existing", file("src/main/resources/").absolutePath,
 				*existingMods.flatMap { listOf("--existing-mod", it) }.toTypedArray(),
 			)
-			
-			sourceSet = modDevPlatform.modDevRuntime
 		}
 		
 		configureEach {
+			sourceSet = modDevPlatform.modDevRuntime
+			
 			// Recommended logging data for a userdev environment
 			// The markers can be added/remove as needed separated by commas.
 			// "SCAN": For mods scan.
