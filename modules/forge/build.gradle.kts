@@ -151,7 +151,7 @@ dependencies {
 	annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 }
 
-tasks.jar { isEnabled = false }
+tasks.jar { enabled = false }
 tasks.shadowJar {
 	archiveVersion = actualVersion
 	archiveClassifier = null
@@ -162,6 +162,7 @@ tasks.shadowJar {
 }
 
 tasks.named("reobfJar") {
+	enabled = false
 	dependsOn(tasks.shadowJar) // to fix 'uses output of task without declaring an explicit or implicit dependency' error
 }
 
