@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraftforge.eventbus.api.IEventBus
+import net.minecraftforge.registries.RegisterEvent
 
 
 val RailXRegistry = RailXRegistrate(RailX.Id)
@@ -67,6 +68,25 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	
 	override fun getModEventBus(): IEventBus =
 		RailX.bus
+	
+	private val addValidToBlockEntity = mutableListOf<BlockBuilder<out Block, *>>()
+	fun <T> addValidToBlockEntity(block: BlockBuilder<T, *>) where T : Block, T : IBE<*> {
+		addValidToBlockEntity += block
+	}
+	
+	override fun onRegisterLate(event: RegisterEvent) {
+		super.onRegisterLate(event)
+		if(event.registryKey != Registries.BLOCK_ENTITY_TYPE) return
+		
+		for(entry in addValidToBlockEntity) {
+			val block = entry.entry
+			val accessor = (block as IBE<*>).blockEntityType as BlockEntityTypeAccessor
+			accessor.validBlocks = ImmutableSet.Builder<Block>()
+				.addAll(accessor.validBlocks)
+				.add(block)
+				.build()
+		}
+	}
 }
 
 
@@ -81,12 +101,6 @@ inline fun <B : Block, I : Item, P> BlockBuilder<B, P>.item(
 fun <T : Block, P> BlockBuilder<T, P>.validFor(blockEntity: RailXBlockEntityEntry<*>): BlockBuilder<T, P> =
 	onRegister { block -> blockEntity.validBlock { block } }
 
-fun <T> BlockBuilder<T, *>.addValidToBlockEntity() where T : Block, T : IBE<*> {
-	onRegister { block ->
-		val accessor = block.blockEntityType as BlockEntityTypeAccessor
-		accessor.validBlocks = ImmutableSet.Builder<Block>()
-			.addAll(accessor.validBlocks)
-			.add(block)
-			.build()
-	}
+fun <T> BlockBuilder<T, out RailXRegistrate>.addValidToBlockEntity() where T : Block, T : IBE<*> {
+	parent.addValidToBlockEntity(block = this)
 }

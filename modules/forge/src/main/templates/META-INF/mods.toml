@@ -33,7 +33,7 @@ side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "kotlinforforge"
 mandatory = true
-versionRange = "[5.3,)"
+versionRange = "${loader_version_range}"
 ordering = "AFTER"
 side = "BOTH"
 
