@@ -203,7 +203,7 @@ function processTemplate(str, ctx) {
   return Mustache.render(str, context);
 }
 
-async function getDiff(lastTag, currentRef) {
+async function getDiff(lastTag, currentTag, currentRef) {
   let result = "";
   const raw = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,
@@ -238,7 +238,7 @@ async function getDiff(lastTag, currentRef) {
     };
     result += "\n- " + Mustache.render(template, context);
   }
-  result += `\n\n**Full Changelog**: ${raw.data.html_url}`
+  result += `\n\n**Full Changelog**: https://github.com/${owner}/${repo}/compare/${lastTag}...${currentTag}`;
   return result;
 }
 
@@ -307,7 +307,7 @@ async function run() {
 
     const bodyInput = core.getInput("body", { required: false });
     ctx.diff =
-      bodyInput.includes("diff") && lastTag ? await getDiff(lastTag, ref) : "";
+      bodyInput.includes("diff") && lastTag ? await getDiff(lastTag, tag, ref) : "";
 
     const body = processTemplate(bodyInput, ctx);
 
