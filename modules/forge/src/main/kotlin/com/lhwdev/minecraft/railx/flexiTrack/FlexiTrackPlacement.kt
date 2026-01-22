@@ -5,7 +5,6 @@ import com.lhwdev.minecraft.railx.buildTrack.BuildTrak
 import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult.PlaceError
 import com.lhwdev.minecraft.railx.registry.AllDataComponents
-import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.utils.closeTo
 import com.lhwdev.minecraft.railx.utils.pow2
 import com.lhwdev.minecraft.railx.utils.similarTo
@@ -40,9 +39,6 @@ import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
 
 
 object FlexiTrackPlacement {
-	val isFlexibleClient: Boolean
-		get() = RailXConfig.Server.flexiTrak.enabled.isTrue && AllKeys.FlexiblePlacement.isPressed
-	
 	fun isFlexible(level: LevelReader, stack: ItemStack): Boolean = if(level.isClientSide) {
 		FlexiTrackPlacementClient.isFlexibleClient
 	} else {
@@ -605,7 +601,16 @@ object FlexiTrackPlacement {
 			return
 		
 		val visited = hashSetOf<BlockPos>()
-		requiredPavement += TrackPaver.paveCurve(level, curve, block, simulate, visited)
+		
+		fun paveExtent(end: FlexiPlacementInfo.TrackEnd, extent: Int) {
+			if(extent == 0) return
+			TrackPaver.paveStraight(level, end.pos.below(), end.tangent, extent, block, simulate, visited)
+		}
+		
+		paveExtent(from, fromExtent)
+		paveExtent(to, toExtent)
+		
+		curve?.let { requiredPavement += TrackPaver.paveCurve(level, it, block, simulate, visited) }
 	}
 }
 
