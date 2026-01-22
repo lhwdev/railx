@@ -28,7 +28,7 @@ public class TrainMixin implements TrainWithThrottle {
 	@NotNull
 	public Throttles.Throttle getRailx$throttle() {
 		var previous = railx$throttle;
-		if(previous == null) return Throttles.Throttle.Neutral;
+		if(previous == null) return Throttles.Throttle.NeutralStop;
 		return previous;
 	}
 	

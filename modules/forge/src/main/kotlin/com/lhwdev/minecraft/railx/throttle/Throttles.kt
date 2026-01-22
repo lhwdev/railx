@@ -74,6 +74,9 @@ object Throttles {
 			@JvmField
 			val Neutral = Throttle(reverser = Reverser.Neutral, steering = Steering.Neutral, gear = 0)
 			
+			@JvmField
+			val NeutralStop = Throttle(reverser = Reverser.Neutral, steering = Steering.Neutral, gear = -7)
+			
 			fun read(tag: Tag): Throttle = when(tag) {
 				is CompoundTag -> Throttle(
 					reverser = Reverser.valueOf(tag.getString("Reverser")),

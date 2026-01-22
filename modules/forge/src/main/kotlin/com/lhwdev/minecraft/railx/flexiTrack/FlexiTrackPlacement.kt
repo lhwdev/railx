@@ -603,7 +603,16 @@ object FlexiTrackPlacement {
 			return
 		
 		val visited = hashSetOf<BlockPos>()
-		requiredPavement += TrackPaver.paveCurve(level, curve, block, simulate, visited)
+		
+		fun paveExtent(end: FlexiPlacementInfo.TrackEnd, extent: Int) {
+			if(extent == 0) return
+			TrackPaver.paveStraight(level, end.pos.below(), end.tangent, extent, block, simulate, visited)
+		}
+		
+		paveExtent(from, fromExtent)
+		paveExtent(to, toExtent)
+		
+		curve?.let { requiredPavement += TrackPaver.paveCurve(level, it, block, simulate, visited) }
 	}
 }
 
