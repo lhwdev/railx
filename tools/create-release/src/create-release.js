@@ -238,6 +238,7 @@ async function getDiff(lastTag, currentRef) {
     };
     result += "\n- " + Mustache.render(template, context);
   }
+  result += `\n\n**Full Changelog**: ${raw.data.html_url}`
   return result;
 }
 
