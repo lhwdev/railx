@@ -42,6 +42,8 @@ interface FlexiDirection {
 	
 	fun applyNormal(normal: Vec3): FlexiDirection
 	
+	fun toNormalized(): Normalized
+	
 	fun optimize(): FlexiDirection = this
 	
 	
@@ -55,16 +57,12 @@ interface FlexiDirection {
 		override fun unaryMinus(): FlexiDirection = Two(-tangent, normal)
 	}
 	
-	object Zero : FlexiDirection, Signed {
+	object Zero : Flat(), Signed {
 		override val tangent: Vec3
 			get() = Vec3.ZERO
 		
 		override val tangent2: Tangent2?
 			get() = null
-		
-		override val normal: Vec3
-			get() = Vec3(0.0, 1.0, 0.0)
-		
 		
 		override fun mirror(by: Mirror): Zero = this
 		override fun rotate(by: Rotation): Zero = this
@@ -114,6 +112,8 @@ interface FlexiDirection {
 	
 	interface Normalized : FlexiDirection {
 		val base: Flat
+		
+		override fun toNormalized(): Normalized = this
 		
 		override fun optimize(): Normalized
 	}
@@ -541,7 +541,7 @@ interface FlexiDirection {
 			                                     1-2) k=0 -> j=1, xc=ya, x=at, y=ct
 			
 		 */
-		fun toNormalized(): Normalized {
+		override fun toNormalized(): Normalized {
 			val a = normal.x
 			val b = normal.y
 			val c = normal.z
