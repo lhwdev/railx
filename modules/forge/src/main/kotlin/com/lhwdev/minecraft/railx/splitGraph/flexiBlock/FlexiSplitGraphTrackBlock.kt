@@ -12,7 +12,6 @@ import com.simibubi.create.content.trains.track.TrackMaterial
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
@@ -34,7 +33,6 @@ class FlexiSplitGraphTrackBlock(properties: Properties, material: TrackMaterial)
 		linear: Boolean,
 		connectedTo: TrackNodeLocation?,
 	): Collection<DiscoveredLocation> {
-		
 		if(linear) return emptyList()
 		
 		val world = if(connectedTo != null && worldIn is ServerLevel) {
@@ -62,10 +60,6 @@ class FlexiSplitGraphTrackBlock(properties: Properties, material: TrackMaterial)
 		}
 		
 		return list
-	}
-	
-	override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
-		return super.getStateForPlacement(context)
 	}
 }
 

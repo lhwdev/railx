@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.throttle
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.utils.sign
 import com.mojang.blaze3d.platform.InputConstants
@@ -85,9 +86,17 @@ object ThrottlesClient {
 		}
 		
 		// TODO: hold long to move more
-		if(AllKeys.ThrottleAccelerate.isKeyDown) gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)
-		if(AllKeys.ThrottleNeutral.isKeyDown) gear += -sign(gear)
-		if(AllKeys.ThrottleBrake.isKeyDown) gear = (gear - 1).coerceAtLeast(-Throttles.maxBreak)
+		val emergencyBrake = RailXConfig.Server.throttle.emergencyBrakeMultiplier.asDouble
+		
+		if(AllKeys.ThrottleAccelerate.isKeyDown)
+			gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)
+		
+		if(AllKeys.ThrottleNeutral.isKeyDown)
+			gear += -sign(gear)
+		
+		if(AllKeys.ThrottleBrake.isKeyDown)
+			gear = (gear - 1).coerceAtLeast(-Throttles.maxBreak - if(emergencyBrake != 1.0) 1 else 0)
+		
 		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
 		
 		val throttle = Throttles.Throttle(reverser, steering, gear)

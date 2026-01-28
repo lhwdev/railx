@@ -4,6 +4,7 @@
 
 - Cannot put Split Train Track Block in a row; usually you don't have to.
 - Cannot relocate train over splitting point.
+- Still has some minor bugs I could not find
 
 ## What's going under the hood
 
@@ -43,3 +44,11 @@ There is special type of `TrackNode` called [SplittingTrackNode](SplittingTrackN
   - When train moves from `graph A` to `graph B` to enter split state, `graph A` takes priority. That means, some
     mutating methods like `train.graph.addNode` will happen on `graph A`. While train is in this split state, this order
     won't change, even when moving opposite to direction train entered split state.
+
+---
+
+All implementation of **SplitGraphTrack** handles by following:
+
+- Implement `getConnected()` by:
+  - Does not add any points returned by `linear=true`, each end of axis.
+  - Add all from `connections`. (of course, if `linear=false`)

@@ -212,6 +212,10 @@ object RailXConfig {
 			val enabled: BooleanValue = builder
 				.comment("Enables throttle control, which is similar to real-life master controller.")
 				.define("throttle.enabled", false)
+			
+			val emergencyBrakeMultiplier: DoubleValue = builder
+				.comment("Sets multiplier of emergency break. Actual braking is determined by (breaking power of B7) * multiplier. Set to 1 to disable emergency brake.")
+				.defineInRange("throttle.emergency_brake_multiplier", 1.0, 1.0, Double.POSITIVE_INFINITY)
 		}
 		
 		inner class MiddleTrack {
