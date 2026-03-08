@@ -134,7 +134,7 @@ dependencies {
 	modImplementation(jarJar("com.tterrag.registrate:Registrate:MC1.20-1.3.11")!!)
 	
 	// for mod compatibility
-	optionalModDependency("com.railwayteam.railways:Steam_Rails-forge-1.20.1:1.6.14-beta+forge-mc1.20.1")
+	optionalModDependency("com.railwayteam.railways:Steam_Rails-forge-1.20.1:1.7.1+forge-mc1.20.1")
 	optionalModDependency("maven.modrinth:framedblocks:9.4.2")
 	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_Forge_1.20")
 	optionalModDependency("maven.modrinth:copycats:3.0.4+mc.1.20.1-forge")

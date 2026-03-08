@@ -4,9 +4,12 @@ import com.lhwdev.minecraft.railx.common.addIfConnected
 import com.lhwdev.minecraft.railx.common.from
 import com.lhwdev.minecraft.railx.common.to
 import com.lhwdev.minecraft.railx.compat.CompatMods
+import com.lhwdev.minecraft.railx.compat.railways.RailwaysCasingExtension.isAlternate
+import com.lhwdev.minecraft.railx.compat.railways.RailwaysCasingExtension.trackCasing
 import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.mojang.blaze3d.vertex.PoseStack
+import com.railwayteam.railways.content.custom_tracks.CustomTrackBlock
 import com.railwayteam.railways.content.custom_tracks.phantom.PhantomSpriteManager
 import com.railwayteam.railways.mixin_interfaces.IHasTrackCasing
 import com.railwayteam.railways.registry.CRBlockPartials
@@ -267,6 +270,11 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 		hand: InteractionHand,
 		hit: BlockHitResult,
 	): InteractionResult {
+		if(CompatMods.railways) {
+			CustomTrackBlock.casingUse(state, world, pos, player, hand, hit)
+				?.let { return it }
+		}
+		
 		if(world.isClientSide) return InteractionResult.SUCCESS
 		return InteractionResult.PASS
 	}
@@ -415,10 +423,9 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 				if(bc.material.trackType == CRTrackMaterials.CRTrackType.MONORAIL) {
 					affine.translate(0f, 14 / 16f, 0f)
 				} else {
-					val casing = bc as IHasTrackCasing
-					if(casing.trackCasing != null) {
+					if(bc.trackCasing != null) {
 						if(bc.from.y == bc.to.y) affine.translate(0f, 1 / 16f, 0f)
-						else if(!casing.isAlternate) affine.translate(0f, 4 / 16f, 0f)
+						else if(!bc.isAlternate) affine.translate(0f, 4 / 16f, 0f)
 					}
 				}
 			}
@@ -482,7 +489,7 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 			TrackTargetingBehaviour.RenderedTrackOverlayType.SIGNAL -> AllPartialModels.TRACK_SIGNAL_OVERLAY
 			TrackTargetingBehaviour.RenderedTrackOverlayType.STATION -> AllPartialModels.TRACK_STATION_OVERLAY
 			else -> { // in case other addons add other RenderedTrackOverlayTypes
-				return if(affine is TransformStack<*>) {
+				if(affine is TransformStack<*>) {
 					affine.pushPose()
 					try {
 						super.prepareTrackOverlay(affine, world, pos, state, bezierPoint, direction, type)

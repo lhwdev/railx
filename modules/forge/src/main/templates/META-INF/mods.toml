@@ -45,6 +45,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
+modId = "railways"
+mandatory = false
+versionRange = "[1.7.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
 modId = "framedblocks"
 mandatory = false
 versionRange = "[9.4.2,)"

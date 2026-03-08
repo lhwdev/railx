@@ -30,7 +30,7 @@ object AllRailwayTracks : CompatRailwayTracks() {
 	
 	
 	init {
-		CRBlocks.register() // does nothing but <cinit>
+		CRBlocks.NARROW_GAUGE_TRACKS // does nothing but <cinit>
 		
 		fun blockStateModelOf(material: TrackMaterial) =
 			Railways.asResource("${OutputPrefixer.DEFAULT.getOutputPrefix(material)}x_ortho")

@@ -5,6 +5,10 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 
 
+fun Vector3d.set(v: Vec3) {
+	set(v.x, v.y, v.z)
+}
+
 fun Vector3dc.add(v: Vec3, destination: Vector3d) {
 	add(v.x, v.y, v.z, destination)
 }

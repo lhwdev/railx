@@ -84,6 +84,9 @@ interface FlexiDirection {
 	abstract class Flat : Normalized {
 		companion object {
 			val normal = Vec3(0.0, 1.0, 0.0)
+			
+			fun isFlat(normal: Vec3): Boolean =
+				normal.x similarTo 0.0 && normal.z similarTo 0.0
 		}
 		
 		override val base: Flat
@@ -101,7 +104,7 @@ interface FlexiDirection {
 		
 		abstract override fun rotateKnown(by: Int): Flat
 		
-		override fun applyNormal(normal: Vec3): Normalized = if(normal.x == 0.0 && normal.z == 0.0) {
+		override fun applyNormal(normal: Vec3): Normalized = if(isFlat(normal)) {
 			this
 		} else {
 			NormalizedImpl(this, normal)
@@ -472,7 +475,7 @@ interface FlexiDirection {
 		}
 		
 		override val tangent2: Tangent2?
-			get() = if(normal.x similarTo 0.0 && normal.z similarTo 0.0) base.tangent2 else null
+			get() = if(Flat.isFlat(normal)) base.tangent2 else null
 		
 		override fun mirror(by: Mirror): NormalizedImpl = if(by != Mirror.NONE) {
 			NormalizedImpl(base.mirror(by), by.mirror(normal), by.mirror(tangent))
@@ -495,7 +498,7 @@ interface FlexiDirection {
 		
 		override fun optimize(): Normalized {
 			val base = base.optimize()
-			if(normal.x similarTo 0.0 && normal.z similarTo 0.0) return base
+			if(Flat.isFlat(normal)) return base
 			if(base === this.base) return NormalizedImpl(base, normal.optimize(), tangent)
 			return NormalizedImpl(base, normal.optimize(), tangent.optimize())
 		}
@@ -570,7 +573,7 @@ interface FlexiDirection {
 		
 		override fun optimize(): FlexiDirection {
 			val tangent = tangent.optimize()
-			if(normal.x similarTo 0.0 && normal.z similarTo 0.0) FlatImpl(tangent).optimize()
+			if(Flat.isFlat(normal)) FlatImpl(tangent).optimize()
 			val normal = normal.optimize()
 			if(tangent !== this.tangent || normal !== this.normal) Two(tangent, normal)
 			return this
