@@ -40,14 +40,14 @@ function orNullString(string) {
   return isNullString(string) ? null : string;
 }
 
-/** @type {string} */
 const previousTagFormat = new RegExp(
-  core.getInput("tag_format", { required: false }) ?? "$1",
+  (core.getInput("tag_format", { required: false }) ?? "$1")
+  .replaceAll("$1", "(?<version>.+)")
 );
 
 /** @type {string} */
 const tagFormat = core.getInput("tag_format", { required: false }) ?? "$1";
-const tagFormatRegex = new RegExp(tagFormat.replaceAll("$1", "(.+)"));
+const tagFormatRegex = new RegExp(tagFormat.replaceAll("$1", "(?<version>.+)"));
 
 const prerelease = core.getInput("prerelease", { required: false }) === "true";
 
@@ -74,21 +74,21 @@ function asLastTag(ref) {
   /** @type {Partial<Tag>} */
   const result = {};
 
-  const previous = previousTagFormat.match(tag);
+  const previous = previousTagFormat.exec(tag);
   if (!previous) {
     return null;
   }
-  tagVersion = previous[1];
+  tagVersion = previous.groups.version;
   result.previous = tagVersion;
 
-  const current = tagFormatRegex.match(tag);
+  const current = tagFormatRegex.exec(tag);
   if (current) {
-    tagVersion = current[1];
+    tagVersion = current.groups.version;
     result.current = tagVersion;
   }
 
   // Try to parse as semantic versions
-  const version = semver.coerce(tag);
+  const version = semver.coerce(tagVersion);
   if (!version) return null;
   ref.version = version;
 
@@ -192,7 +192,7 @@ function computeNextSemantic(semTag) {
 }
 async function computeLastTag() {
   const recentTags = await existingTags();
-  core.info(`recentTags (first 10): ${recentTags.slice(0, 10).join(", ")}`);
+  core.info(`recentTags (first 10): ${recentTags.slice(0, 10).map(t => t.tag).join(", ")}`);
 
   const current = recentTags.find((tag) => tag.current);
   const latest = recentTags[0];
@@ -329,11 +329,11 @@ async function run() {
         tag = releaseInfo.tag;
       } else {
         version = await computeNextVersion(scheme, lastTag);
-        tag = tagFormat.replaceAll("$1", version);
+        tag = tagFormat.replace("$1", version);
       }
     } else {
       tag = tagName.replace("refs/tags/", "");
-      version = tagFormatRegex.exec(tag)[1];
+      version = tagFormatRegex.exec(tag).groups.version;
     }
 
     if (releaseInfo) {
