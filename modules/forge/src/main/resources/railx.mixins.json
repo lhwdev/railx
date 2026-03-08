@@ -19,6 +19,7 @@
     "common.manualStation.CarriageContraptionEntityMixin",
     "common.manualStation.TrainMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
+    "compat.railways.flexiTrack.CasingRenderUtilsMixin",
     "compat.railways.flexiTrack.CustomTrackOverlayRenderingMixin",
     "compat.railways.flexiTrack.TrackTargetingBlockItemMixin",
     "flexiTrack.GameDataMixin",
