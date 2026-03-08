@@ -34717,25 +34717,20 @@ async function run() {
       ? JSON.parse(process.env["lhwdev_create_release_info"])
       : null;
 
-  const lastTag = releaseInfo
-    ? {
-        current: asLastTag(releaseInfo.lastTag.current),
-        latest: asLastTag(releaseInfo.lastTag.latest),
-      }
-    : await computeLastTag();
+  const lastTag = releaseInfo ? null : await computeLastTag();
   let version, tag;
 
-  if (isNullString(tagName)) {
-    if (releaseInfo != null) {
-      version = releaseInfo.version;
-      tag = releaseInfo.tag;
-    } else {
+  if (releaseInfo != null) {
+    version = releaseInfo.version;
+    tag = releaseInfo.tag;
+  } else {
+    if (isNullString(tagName)) {
       version = await computeNextVersion(scheme, lastTag);
       tag = tagFormat.replace("$1", version);
+    } else {
+      tag = tagName.replace("refs/tags/", "");
+      version = tagFormatRegex.exec(tag).groups.version;
     }
-  } else {
-    tag = tagName.replace("refs/tags/", "");
-    version = tagFormatRegex.exec(tag).groups.version;
   }
 
   if (releaseInfo) {
@@ -34744,7 +34739,13 @@ async function run() {
     core.info(`Computed the next tag: ${tag}`);
   }
 
-  const ctx = { lastTag, version, tag };
+  const ctx = {
+    lastTag: releaseInfo
+      ? null
+      : { current: lastTag.current.tag, latest: lastTag.latest.tag },
+    version,
+    tag,
+  };
   if (core.getInput("dry_run") && core.getBooleanInput("dry_run")) {
     core.setOutput("current_tag", tag);
     core.setOutput("version", version);
