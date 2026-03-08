@@ -34463,8 +34463,9 @@ function orNullString(string) {
 }
 
 const previousTagFormat = new RegExp(
-  (core.getInput("tag_format", { required: false }) ?? "$1")
-  .replaceAll("$1", "(?<version>.+)")
+  (
+    core.getInput("previous_tag_format", { required: false }) ?? "$1"
+  ).replaceAll("$1", "(?<version>.+)"),
 );
 
 /** @type {string} */
@@ -34510,9 +34511,9 @@ function asLastTag(ref) {
   }
 
   // Try to parse as semantic versions
-  const version = semver.coerce(tagVersion);
+  const version = semver.coerce(tagVersion, { includePrerelease: true });
   if (!version) return null;
-  ref.version = version;
+  result.version = version;
 
   result.tag = tag;
   result.tagVersion = tagVersion;
@@ -34531,33 +34532,7 @@ async function existingTags() {
     .map((ref) => asLastTag(ref.ref))
     .filter((tag) => tag !== null);
 
-  return tags.sort((a, b) => {
-    // let tagA = a.tag;
-    // let tagB = b.tag;
-
-    if (!a.previous !== !b.previous) {
-      if (a.previous) return -1;
-      if (b.previous) return 1;
-    }
-
-    // Try to parse as semantic versions
-    const versionA = a.version;
-    const versionB = b.version;
-
-    // If both are valid semantic versions, compare them
-    return -semver.compareBuild(versionA, versionB);
-
-    // // If one or both are not valid semantic versions, fall back to string comparison
-    // if (!versionA && !versionB) {
-    //   return tagB.localeCompare(tagA); // reverse for descending order
-    // }
-
-    // // Put valid semantic versions before invalid ones
-    // if (versionA && !versionB) return -1;
-    // if (!versionA && versionB) return 1;
-
-    // return 0;
-  });
+  return tags.sort((a, b) => -semver.compareBuild(a.version, b.version));
 }
 
 function determineContinuousBumpType(semTag) {
@@ -34608,13 +34583,19 @@ function computeNextSemantic(semTag) {
         );
     }
   } catch (error) {
+    core.error(error);
     core.setFailed(`Failed to compute next semantic tag: ${error}`);
   }
   return null;
 }
 async function computeLastTag() {
   const recentTags = await existingTags();
-  core.info(`recentTags (first 10): ${recentTags.slice(0, 10).map(t => t.tag).join(", ")}`);
+  core.info(
+    `recentTags (first 10): ${recentTags
+      .slice(0, 10)
+      .map((t) => t.tag)
+      .join(", ")}`,
+  );
 
   const current = recentTags.find((tag) => tag.current);
   const latest = recentTags[0];
@@ -34637,7 +34618,7 @@ async function computeNextVersion(scheme, lastTag) {
     return initialTag(minimum ?? "0.1.0");
   }
   core.info(
-    `Computing the next tag based on: current=${lastTag.current} latest=${lastTag.latest}`,
+    `Computing the next tag based on: current=${lastTag.current.tag} latest=${lastTag.latest.tag}`,
   );
 
   let next;
@@ -34654,16 +34635,16 @@ async function computeNextVersion(scheme, lastTag) {
     const version = next?.version ?? latest.version;
     if (semver.compareBuild(minimumVersion, version) > 0) {
       if (
-        minimumVersion.major == semTag.major &&
-        minimumVersion.minor == semTag.minor &&
-        minimumVersion.patch == semTag.patch &&
-        minimumVersion.build.every((v, i) => v == semTag.build.at(i)) &&
+        minimumVersion.major == version.major &&
+        minimumVersion.minor == version.minor &&
+        minimumVersion.patch == version.patch &&
+        minimumVersion.build.every((v, i) => v == version.build.at(i)) &&
         minimumVersion.prerelease.length == 0 &&
-        semTag.prerelease.length > 0
+        version.prerelease.length > 0
       ) {
         // special case where minimum=1.0.0, last=1.0.0-build.n -> allows this
       } else {
-        next = initialTag(minimum)
+        next = initialTag(minimum);
         console.log("minimum version applied:", minimum);
       }
     }
@@ -34672,9 +34653,9 @@ async function computeNextVersion(scheme, lastTag) {
   if (next) return next;
 
   if (scheme === Scheme.Continuous) {
-    return computeNextContinuous(latest);
+    return computeNextContinuous(latest.version);
   }
-  return computeNextSemantic(latest);
+  return computeNextSemantic(latest.version);
 }
 
 /** @param {string} str */
@@ -34724,130 +34705,124 @@ async function getDiff(lastTag, currentTag, currentRef) {
 }
 
 async function run() {
-  try {
-    const tagName = core.getInput("tag_name", { required: false });
-    const scheme = core.getInput("tag_schema", { required: false });
-    if (scheme !== Scheme.Continuous && scheme !== Scheme.Semantic) {
-      core.setFailed(`Unsupported version scheme: ${scheme}`);
-      return;
-    }
-    // Use predefined tag or calculate automatic next tag
-    const releaseInfo =
-      "lhwdev_create_release_info" in process.env
-        ? JSON.parse(process.env["lhwdev_create_release_info"])
-        : null;
+  const tagName = core.getInput("tag_name", { required: false });
+  const scheme = core.getInput("tag_schema", { required: false });
+  if (scheme !== Scheme.Continuous && scheme !== Scheme.Semantic) {
+    core.setFailed(`Unsupported version scheme: ${scheme}`);
+    return;
+  }
+  // Use predefined tag or calculate automatic next tag
+  const releaseInfo =
+    "lhwdev_create_release_info" in process.env
+      ? JSON.parse(process.env["lhwdev_create_release_info"])
+      : null;
 
-    const lastTag = releaseInfo
-      ? {
-          current: asLastTag(releaseInfo.lastTag.current),
-          latest: asLastTag(releaseInfo.lastTag.latest),
-        }
-      : await computeLastTag();
-    let version, tag;
-
-    if (isNullString(tagName)) {
-      if (releaseInfo != null) {
-        version = releaseInfo.version;
-        tag = releaseInfo.tag;
-      } else {
-        version = await computeNextVersion(scheme, lastTag);
-        tag = tagFormat.replace("$1", version);
+  const lastTag = releaseInfo
+    ? {
+        current: asLastTag(releaseInfo.lastTag.current),
+        latest: asLastTag(releaseInfo.lastTag.latest),
       }
+    : await computeLastTag();
+  let version, tag;
+
+  if (isNullString(tagName)) {
+    if (releaseInfo != null) {
+      version = releaseInfo.version;
+      tag = releaseInfo.tag;
     } else {
-      tag = tagName.replace("refs/tags/", "");
-      version = tagFormatRegex.exec(tag).groups.version;
+      version = await computeNextVersion(scheme, lastTag);
+      tag = tagFormat.replace("$1", version);
     }
+  } else {
+    tag = tagName.replace("refs/tags/", "");
+    version = tagFormatRegex.exec(tag).groups.version;
+  }
 
-    if (releaseInfo) {
-      core.info(`Reused tag from previous run: ${tag}`);
-    } else {
-      core.info(`Computed the next tag: ${tag}`);
-    }
+  if (releaseInfo) {
+    core.info(`Reused tag from previous run: ${tag}`);
+  } else {
+    core.info(`Computed the next tag: ${tag}`);
+  }
 
-    const ctx = { lastTag, version, tag };
-    if (core.getInput("dry_run") && core.getBooleanInput("dry_run")) {
-      core.setOutput("current_tag", tag);
-      core.setOutput("version", version);
-      core.exportVariable("lhwdev_create_release_info", ctx);
-      return;
-    }
-
-    const releaseName = core.getInput("release_name", { required: false });
-    const release = isNullString(releaseName)
-      ? tag
-      : processTemplate(releaseName.replace("refs/tags/", ""), ctx);
-    ctx.release = release;
-
-    const draft = core.getInput("draft", { required: false }) === "true";
-    ctx.draft = draft;
-
-    let ref = core.getInput("ref");
-    if (isNullString(ref)) {
-      const output = await getExecOutput("git", [
-        "rev-parse",
-        "--abbrev-ref",
-        "HEAD",
-      ]);
-      ref = output.stdout.trim();
-      core.info(`Defaulting to ref ${ref}`);
-    }
-
-    const bodyInput = core.getInput("body", { required: false });
-    ctx.diff =
-      bodyInput.includes("diff") && lastTag
-        ? await getDiff(lastTag, tag, ref)
-        : "";
-
-    const body = processTemplate(bodyInput, ctx);
-
-    // Create a release
-    // API Documentation: https://developer.github.com/v3/repos/releases/#create-a-release
-    // Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-create-release
-    const createReleaseResponse = await octokit.rest.repos.createRelease({
-      owner,
-      repo,
-      target_commitish: ref,
-      tag_name: tag,
-      name: release,
-      body,
-      draft,
-      prerelease,
-    });
-
-    core.info(
-      `Created Github release ${createReleaseResponse.data.id} in ${createReleaseResponse.data.html_url}`,
-    );
-
-    // Get the ID, html_url, and upload URL for the created Release from the response
-    const {
-      data: { id: releaseId, html_url: htmlUrl, upload_url: uploadUrl },
-    } = createReleaseResponse;
-
-    // Set the output variables for use by other actions: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
+  const ctx = { lastTag, version, tag };
+  if (core.getInput("dry_run") && core.getBooleanInput("dry_run")) {
     core.setOutput("current_tag", tag);
     core.setOutput("version", version);
-    core.setOutput("id", releaseId);
-    core.setOutput("html_url", htmlUrl);
-    core.setOutput("upload_url", uploadUrl);
+    core.exportVariable("lhwdev_create_release_info", ctx);
+    return;
+  }
 
-    const artifacts = core.getMultilineInput("artifacts", { required: false });
-    if (artifacts.length != 0 && artifacts[0].length != 0) {
-      const files = await glob(artifacts, { absolute: false });
-      for (const path of files) {
-        const uploadReleaseResult = await octokit.rest.repos.uploadReleaseAsset(
-          {
-            owner,
-            repo,
-            release_id: releaseId,
-            name: path.slice(path.lastIndexOf("/") + 1),
-            data: fs.readFileSync(path),
-          },
-        );
-        core.info(`Uploaded file ${path}, id=${uploadReleaseResult.data.id}`);
-      }
+  const releaseName = core.getInput("release_name", { required: false });
+  const release = isNullString(releaseName)
+    ? tag
+    : processTemplate(releaseName.replace("refs/tags/", ""), ctx);
+  ctx.release = release;
+
+  const draft = core.getInput("draft", { required: false }) === "true";
+  ctx.draft = draft;
+
+  let ref = core.getInput("ref");
+  if (isNullString(ref)) {
+    const output = await getExecOutput("git", [
+      "rev-parse",
+      "--abbrev-ref",
+      "HEAD",
+    ]);
+    ref = output.stdout.trim();
+    core.info(`Defaulting to ref ${ref}`);
+  }
+
+  const bodyInput = core.getInput("body", { required: false });
+  ctx.diff =
+    bodyInput.includes("diff") && lastTag
+      ? await getDiff(lastTag, tag, ref)
+      : "";
+
+  const body = processTemplate(bodyInput, ctx);
+
+  // Create a release
+  // API Documentation: https://developer.github.com/v3/repos/releases/#create-a-release
+  // Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-create-release
+  const createReleaseResponse = await octokit.rest.repos.createRelease({
+    owner,
+    repo,
+    target_commitish: ref,
+    tag_name: tag,
+    name: release,
+    body,
+    draft,
+    prerelease,
+  });
+
+  core.info(
+    `Created Github release ${createReleaseResponse.data.id} in ${createReleaseResponse.data.html_url}`,
+  );
+
+  // Get the ID, html_url, and upload URL for the created Release from the response
+  const {
+    data: { id: releaseId, html_url: htmlUrl, upload_url: uploadUrl },
+  } = createReleaseResponse;
+
+  // Set the output variables for use by other actions: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
+  core.setOutput("current_tag", tag);
+  core.setOutput("version", version);
+  core.setOutput("id", releaseId);
+  core.setOutput("html_url", htmlUrl);
+  core.setOutput("upload_url", uploadUrl);
+
+  const artifacts = core.getMultilineInput("artifacts", { required: false });
+  if (artifacts.length != 0 && artifacts[0].length != 0) {
+    const files = await glob(artifacts, { absolute: false });
+    for (const path of files) {
+      const uploadReleaseResult = await octokit.rest.repos.uploadReleaseAsset({
+        owner,
+        repo,
+        release_id: releaseId,
+        name: path.slice(path.lastIndexOf("/") + 1),
+        data: fs.readFileSync(path),
+      });
+      core.info(`Uploaded file ${path}, id=${uploadReleaseResult.data.id}`);
     }
-  } catch (error) {
-    core.setFailed(error.message);
   }
 }
 
@@ -45050,10 +45025,16 @@ exports.PathScurry = process.platform === 'win32' ? PathScurryWin32
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
+const core = __nccwpck_require__(1635);
 const run = __nccwpck_require__(4092);
 
 if (require.main === require.cache[eval('__filename')]) {
-  run();
+  try {
+    run();
+  } catch (e) {
+    core.error(e);
+    core.setFailed(e instanceof Error ? e.message : `${e}`);
+  }
 }
 
 module.exports = __webpack_exports__;
