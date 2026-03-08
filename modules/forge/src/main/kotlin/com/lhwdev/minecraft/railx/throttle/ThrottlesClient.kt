@@ -88,7 +88,7 @@ object ThrottlesClient {
 		}
 		
 		// TODO: hold long to move more
-		val emergencyBrake = RailXConfig.Server.throttle.emergencyBrakeMultiplier.asDouble
+		val emergencyBrake = RailXConfig.Server.throttle.emergencyBrakeMultiplier.get()
 		
 		if(AllKeys.ThrottleAccelerate.isKeyDown)
 			gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)

@@ -53,7 +53,7 @@ object Throttles {
 			get() = when {
 				gear == 0 -> 0.0
 				gear > 0 -> throttleAccelerations.getOrElse(gear - 1) { 1.0 }
-				gear == -maxBreak - 1 -> -RailXConfig.Server.throttle.emergencyBrakeMultiplier.asDouble
+				gear == -maxBreak - 1 -> -RailXConfig.Server.throttle.emergencyBrakeMultiplier.get()
 				else -> -breakAccelerations.getOrElse(-gear - 1) { 1.0 }
 			}
 		
