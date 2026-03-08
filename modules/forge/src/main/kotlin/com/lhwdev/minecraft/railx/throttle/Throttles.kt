@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.throttle
 
+import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import net.minecraft.nbt.ByteTag
 import net.minecraft.nbt.CompoundTag
@@ -15,10 +16,10 @@ object Throttles {
 		get() = 7
 	
 	private val throttleAccelerations: DoubleArray =
-		doubleArrayOf(0.15, 0.4, 0.7, 1.0)
+		doubleArrayOf(0.24, 0.48, 0.74, 1.0)
 	
 	private val breakAccelerations: DoubleArray =
-		doubleArrayOf(0.12, 0.24, 0.37, 0.50, 0.66, 0.83, 1.0)
+		doubleArrayOf(0.14, 0.27, 0.40, 0.54, 0.69, 0.84, 1.0)
 	
 	
 	enum class Reverser(val step: Int) {
@@ -52,6 +53,7 @@ object Throttles {
 			get() = when {
 				gear == 0 -> 0.0
 				gear > 0 -> throttleAccelerations.getOrElse(gear - 1) { 1.0 }
+				gear == -maxBreak - 1 -> -RailXConfig.Server.throttle.emergencyBrakeMultiplier.asDouble
 				else -> -breakAccelerations.getOrElse(-gear - 1) { 1.0 }
 			}
 		

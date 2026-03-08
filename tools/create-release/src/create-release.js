@@ -40,9 +40,14 @@ function orNullString(string) {
   return isNullString(string) ? null : string;
 }
 
+const previousTagFormat = new RegExp(
+  (core.getInput("tag_format", { required: false }) ?? "$1")
+  .replaceAll("$1", "(?<version>.+)")
+);
+
 /** @type {string} */
 const tagFormat = core.getInput("tag_format", { required: false }) ?? "$1";
-const tagFormatRegex = new RegExp(tagFormat.replaceAll("$1", "(.+)"));
+const tagFormatRegex = new RegExp(tagFormat.replaceAll("$1", "(?<version>.+)"));
 
 const prerelease = core.getInput("prerelease", { required: false }) === "true";
 
@@ -54,6 +59,44 @@ function initialTag(tag) {
   return version.format();
 }
 
+/** @typedef {{ tag: string; tagVersion: string; previous?: string; current?: string; version: import("semver").SemVer; }} Tag */
+
+/** @typedef {{ current: Tag | null; latest: Tag; }} LastTag */
+
+/**
+ * @param {string} ref
+ * @returns {Tag | null}
+ */
+function asLastTag(ref) {
+  let tag = ref.replace("refs/tags/", "");
+  let tagVersion = tag;
+
+  /** @type {Partial<Tag>} */
+  const result = {};
+
+  const previous = previousTagFormat.exec(tag);
+  if (!previous) {
+    return null;
+  }
+  tagVersion = previous.groups.version;
+  result.previous = tagVersion;
+
+  const current = tagFormatRegex.exec(tag);
+  if (current) {
+    tagVersion = current.groups.version;
+    result.current = tagVersion;
+  }
+
+  // Try to parse as semantic versions
+  const version = semver.coerce(tagVersion);
+  if (!version) return null;
+  ref.version = version;
+
+  result.tag = tag;
+  result.tagVersion = tagVersion;
+  return result;
+}
+
 async function existingTags() {
   const { data: refs } = await octokit.rest.git.listMatchingRefs({
     owner,
@@ -62,29 +105,36 @@ async function existingTags() {
   });
 
   // Sort tags by semantic version in descending order (highest first)
-  return refs.sort((a, b) => {
-    const tagA = a.ref.replace("refs/tags/", "");
-    const tagB = b.ref.replace("refs/tags/", "");
+  const tags = refs
+    .map((ref) => asLastTag(ref.ref))
+    .filter((tag) => tag !== null);
+
+  return tags.sort((a, b) => {
+    // let tagA = a.tag;
+    // let tagB = b.tag;
+
+    if (!a.previous !== !b.previous) {
+      if (a.previous) return -1;
+      if (b.previous) return 1;
+    }
 
     // Try to parse as semantic versions
-    const versionA = semver.coerce(tagA);
-    const versionB = semver.coerce(tagB);
+    const versionA = a.version;
+    const versionB = b.version;
 
     // If both are valid semantic versions, compare them
-    if (versionA && versionB) {
-      return semver.rcompare(versionA, versionB); // reverse compare for descending order
-    }
+    return -semver.compareBuild(versionA, versionB);
 
-    // If one or both are not valid semantic versions, fall back to string comparison
-    if (!versionA && !versionB) {
-      return tagB.localeCompare(tagA); // reverse for descending order
-    }
+    // // If one or both are not valid semantic versions, fall back to string comparison
+    // if (!versionA && !versionB) {
+    //   return tagB.localeCompare(tagA); // reverse for descending order
+    // }
 
-    // Put valid semantic versions before invalid ones
-    if (versionA && !versionB) return -1;
-    if (!versionA && versionB) return 1;
+    // // Put valid semantic versions before invalid ones
+    // if (versionA && !versionB) return -1;
+    // if (!versionA && versionB) return 1;
 
-    return 0;
+    // return 0;
   });
 }
 
@@ -140,41 +190,47 @@ function computeNextSemantic(semTag) {
   }
   return null;
 }
-
 async function computeLastTag() {
   const recentTags = await existingTags();
-  const tagNames = recentTags
-    .map((tag) => tag.ref.replace("refs/tags/", ""))
-    .filter((name) => name.match(tagFormatRegex));
-  core.info(`recentTags (first 10): ${tagNames.slice(0, 10).join(", ")}`);
+  core.info(`recentTags (first 10): ${recentTags.slice(0, 10).map(t => t.tag).join(", ")}`);
 
-  return tagNames.shift();
+  const current = recentTags.find((tag) => tag.current);
+  const latest = recentTags[0];
+  return { current, latest };
 }
 
-async function computeNextTag(scheme, lastTag) {
+/**
+ * @param {LastTag} lastTag
+ */
+async function computeNextVersion(scheme, lastTag) {
   const minimum = orNullString(core.getInput("minimum_version"));
 
   // Handle zero-state where no tags exist for the repo
-  if (!lastTag) {
+  const latest = lastTag.latest;
+  if (!latest) {
     core.info(`Creating initial tag on ${scheme} scheme, minimum=${minimum}`);
     if (scheme === Scheme.Continuous) {
       return initialTag(minimum ?? "1");
     }
     return initialTag(minimum ?? "0.1.0");
   }
-  core.info(`Computing the next tag based on: ${lastTag}`);
-  core.setOutput("previous_tag", lastTag);
+  core.info(
+    `Computing the next tag based on: current=${lastTag.current} latest=${lastTag.latest}`,
+  );
 
-  const semTag = semver.parse(tagFormatRegex.exec(lastTag)[1]);
+  let next;
 
-  if (semTag == null) {
-    core.setFailed(`Failed to parse tag: ${lastTag}`);
-    return null;
+  const current = lastTag.current;
+  if (current && latest.tag !== current.tag) {
+    if (semver.compareBuild(current.version, latest.version) > 0) {
+      next = latest.tagVersion;
+    }
   }
 
   if (minimum != null) {
     const minimumVersion = semver.parse(minimum);
-    if (semver.compare(minimumVersion, semTag) < 0) {
+    const version = next?.version ?? latest.version;
+    if (semver.compareBuild(minimumVersion, version) > 0) {
       if (
         minimumVersion.major == semTag.major &&
         minimumVersion.minor == semTag.minor &&
@@ -185,15 +241,18 @@ async function computeNextTag(scheme, lastTag) {
       ) {
         // special case where minimum=1.0.0, last=1.0.0-build.n -> allows this
       } else {
-        return initialTag(minimum);
+        next = initialTag(minimum)
+        console.log("minimum version applied:", minimum);
       }
     }
   }
 
+  if (next) return next;
+
   if (scheme === Scheme.Continuous) {
-    return computeNextContinuous(semTag);
+    return computeNextContinuous(latest);
   }
-  return computeNextSemantic(semTag);
+  return computeNextSemantic(latest);
 }
 
 /** @param {string} str */
@@ -255,7 +314,13 @@ async function run() {
       "lhwdev_create_release_info" in process.env
         ? JSON.parse(process.env["lhwdev_create_release_info"])
         : null;
-    const lastTag = releaseInfo ? releaseInfo.lastTag : await computeLastTag();
+
+    const lastTag = releaseInfo
+      ? {
+          current: asLastTag(releaseInfo.lastTag.current),
+          latest: asLastTag(releaseInfo.lastTag.latest),
+        }
+      : await computeLastTag();
     let version, tag;
 
     if (isNullString(tagName)) {
@@ -263,12 +328,12 @@ async function run() {
         version = releaseInfo.version;
         tag = releaseInfo.tag;
       } else {
-        version = await computeNextTag(scheme, lastTag);
-        tag = tagFormat.replaceAll("$1", version);
+        version = await computeNextVersion(scheme, lastTag);
+        tag = tagFormat.replace("$1", version);
       }
     } else {
       tag = tagName.replace("refs/tags/", "");
-      version = tagFormatRegex.exec(tag)[1];
+      version = tagFormatRegex.exec(tag).groups.version;
     }
 
     if (releaseInfo) {
@@ -307,7 +372,9 @@ async function run() {
 
     const bodyInput = core.getInput("body", { required: false });
     ctx.diff =
-      bodyInput.includes("diff") && lastTag ? await getDiff(lastTag, tag, ref) : "";
+      bodyInput.includes("diff") && lastTag
+        ? await getDiff(lastTag, tag, ref)
+        : "";
 
     const body = processTemplate(bodyInput, ctx);
 
