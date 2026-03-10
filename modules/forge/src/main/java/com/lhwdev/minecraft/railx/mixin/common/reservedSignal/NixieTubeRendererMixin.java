@@ -19,7 +19,7 @@ public class NixieTubeRendererMixin {
 	@Redirect(method = "renderAsSignal", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/render" +
 		"/CachedBuffers;partial(Ldev/engine_room/flywheel/lib/model/baked/PartialModel;" +
 		"Lnet/minecraft/world/level/block/state/BlockState;)Lnet/createmod/catnip/render/SuperByteBuffer;",
-		remap = false), remap = false)
+		remap = false), remap = false, require = 0)
 	SuperByteBuffer partial(
 		PartialModel partial,
 		BlockState referenceState,

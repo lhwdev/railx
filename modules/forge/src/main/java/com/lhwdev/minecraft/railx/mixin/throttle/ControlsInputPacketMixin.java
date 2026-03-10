@@ -19,8 +19,8 @@ import java.util.UUID;
 @Mixin(ControlsInputPacket.class)
 public class ControlsInputPacketMixin {
 	@WrapOperation(method = "lambda$handle$0", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content" +
-		"/contraptions" +
-		"/actors/trainControls/ControlsServerHandler;receivePressed(Lnet/minecraft/world/level/LevelAccessor;" +
+		"/contraptions/actors/trainControls/ControlsServerHandler;receivePressed" +
+		"(Lnet/minecraft/world/level/LevelAccessor;" +
 		"Lcom/simibubi/create/content/contraptions/AbstractContraptionEntity;Lnet/minecraft/core/BlockPos;" +
 		"Ljava/util/UUID;Ljava/util/Collection;Z)V", remap = false), remap = false)
 	void receivePressed(

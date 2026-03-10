@@ -9,6 +9,7 @@ import net.createmod.catnip.data.Pair;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,15 +34,16 @@ public abstract class TrackGraphSyncMixin implements SplitTrackGraphSync {
 	}
 	
 	@Inject(method = "sendFullGraphTo", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
-		"/graph" +
-		"/TrackGraphSyncPacket;fullWipe:Z", shift = At.Shift.AFTER, remap = false), remap = false)
+		"/graph/TrackGraphSyncPacket;fullWipe:Z", shift = At.Shift.AFTER, remap = false, opcode = Opcodes.PUTFIELD),
+		remap = false)
 	void sendFullGraphTo(TrackGraph graph, ServerPlayer player, CallbackInfo ci, @Local TrackGraphSyncPacket packet) {
 		((SplitTrackGraphSyncPacket) packet)
 			.railx$setConnectedId(TrackGraphForSplitUtils.getConnectedId(graph));
 	}
 	
 	@WrapOperation(method = "nodeAdded", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/data/Pair;of" +
-		"(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;", ordinal = 0, remap = false), remap = false)
+		"(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;", ordinal = 0, remap = false), remap =
+		false)
 	Pair<?, ?> addNodeToNodeAdded(
 		Object location,
 		Object normal,
@@ -59,7 +61,8 @@ public abstract class TrackGraphSyncMixin implements SplitTrackGraphSync {
 	}
 	
 	@Redirect(method = "sendFullGraphTo", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/data/Pair;of" +
-		"(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;", ordinal = 0, remap = false), remap = false)
+		"(Ljava/lang/Object;Ljava/lang/Object;)Lnet/createmod/catnip/data/Pair;", ordinal = 0, remap = false), remap =
+		false)
 	Pair<?, ?> addNodeToFullGraph(Object location, Object normal, @Local TrackNode node) {
 		var result = Pair.of(location, normal);
 		if(node instanceof SplittingTrackNode split)

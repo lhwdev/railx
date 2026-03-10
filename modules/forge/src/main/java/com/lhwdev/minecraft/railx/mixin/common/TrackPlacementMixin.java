@@ -22,7 +22,7 @@ public class TrackPlacementMixin {
 		"Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;" +
 		"Lnet/minecraft/world/item/ItemStack;ZZ)" +
 		"Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;", ordinal = 0, remap = false),
-		remap = false)
+		remap = false, require = 0)
 	private static TrackPlacement.PlacementInfo mapPlacementInfo(TrackPlacement.PlacementInfo original) {
 		CreateTrackPlacement.INSTANCE.setLastOverlay(original);
 		return original;

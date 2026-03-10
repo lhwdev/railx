@@ -16,7 +16,6 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -196,7 +195,8 @@ public abstract class TrainMixin implements TrainForSplit {
 	
 	@ModifyExpressionValue(method = {"tickOccupiedObservers", "updateNavigationTarget", "getCurrentStation"},
 		at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains/entity/Train;" +
-			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", opcode = Opcodes.GETFIELD, remap = false), remap = false)
+			"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", opcode = Opcodes.GETFIELD, remap = false),
+		remap = false)
 	TrackGraph getPathGraph(TrackGraph original) {
 		var pathGraph = ((SplittingNavigation) navigation).railx$currentPathGraph();
 		if(pathGraph != null) return pathGraph;
@@ -204,8 +204,8 @@ public abstract class TrainMixin implements TrainForSplit {
 	}
 	
 	@ModifyExpressionValue(method = "collectInitiallyOccupiedSignalBlocks", at = @At(value = "FIELD", target = "Lcom" +
-		"/simibubi" +
-		"/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", remap = false), remap = false)
+		"/simibubi/create/content/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;",
+		remap = false), remap = false)
 	TrackGraph getGraphForCollectInitiallyOccupiedSignalBlocks(TrackGraph original) {
 		return getPathGraph(original);
 	}
@@ -223,7 +223,8 @@ public abstract class TrainMixin implements TrainForSplit {
 	@Definition(id = "graph", field = "Lcom/simibubi/create/content/trains/entity/Train;" +
 		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;")
 	@Expression("train.graph != this.graph")
-	@ModifyExpressionValue(method = "findCollidingTrain", at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false), remap = false)
+	@ModifyExpressionValue(method = "findCollidingTrain", at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false),
+		remap = false, require = 0)
 	boolean isCollidingTrainNotReachableTo(boolean original, @Local(index = 9) Train train) {
 		return !TrackGraphConnectedIdUtils.isReachableTo(train.graph, graph);
 	}
@@ -243,8 +244,8 @@ public abstract class TrainMixin implements TrainForSplit {
 	 * @author lhwdev
 	 * @reason whole overhaul
 	 */
-	@Overwrite(remap = false)
-	public void reattachToTracks(Level level) {
+	@Inject(method = "reattachToTracks", at = @At("HEAD"), remap = false)
+	public void onReattachToTracks(Level level, CallbackInfo ci) {
 		if(migrationCooldown > 0) {
 			migrationCooldown--;
 			return;

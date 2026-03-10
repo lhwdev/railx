@@ -173,7 +173,7 @@ class NavigationMixin implements SplittingNavigation {
 	@Expression("otherTrain.fGraph != graph")
 	@ModifyExpressionValue(method = "search(DDZLjava/util/ArrayList;" +
 		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V",
-		at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false), remap = false)
+		at = @At(value = "MIXINEXTRAS:EXPRESSION", remap = false), remap = false, require = 0)
 	boolean isTrainNotReachable(boolean original, @Local(index = 13) Train otherTrain) {
 		return !TrackGraphConnectedIdUtils.isReachableTo(train, otherTrain);
 	}
@@ -181,7 +181,7 @@ class NavigationMixin implements SplittingNavigation {
 	@Redirect(method = "search(DDZLjava/util/ArrayList;" +
 		"Lcom/simibubi/create/content/trains/entity/Navigation$StationTest;)V", at = @At(value = "INVOKE", target =
 		"Lcom/simibubi/create/content/trains/entity/Train;getEndpointEdges()Lnet/createmod/catnip/data/Couple;",
-		remap = false), remap = false)
+		remap = false), remap = false, require = 0)
 	Couple<Couple<TrackNode>> getEndpointEdgesForTrainCost(Train instance) {
 		return Couple.create(
 			instance.carriages.get(0).getLeadingPoint(),
@@ -195,7 +195,7 @@ class NavigationMixin implements SplittingNavigation {
 	
 	@Redirect(method = "lambda$search$7", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
 		"/graph/TrackGraph;getConnection(Lnet/createmod/catnip/data/Couple;)" +
-		"Lcom/simibubi/create/content/trains/graph/TrackEdge;", remap = false), remap = false)
+		"Lcom/simibubi/create/content/trains/graph/TrackEdge;", remap = false), remap = false, require = 0)
 	private static TrackEdge getConnectionForTrainCost(
 		TrackGraph instance,
 		Couple<TrackNode> nodes,
