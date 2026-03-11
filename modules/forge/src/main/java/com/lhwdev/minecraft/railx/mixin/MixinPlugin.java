@@ -25,7 +25,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 		if(!mixinClassName.startsWith(mixinPackage)) return true;
-		var index = mixinClassName.length() + 1;
+		var index = mixinPackage.length() + 1;
 		if(targetClassName.startsWith("compat.", index)) {
 			var index2 = index + 7;
 			var index3 = targetClassName.indexOf('.', index2);
