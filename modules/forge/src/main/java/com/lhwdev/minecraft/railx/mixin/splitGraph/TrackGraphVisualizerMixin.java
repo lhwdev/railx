@@ -17,7 +17,8 @@ import java.util.Random;
 @Mixin(TrackGraphVisualizer.class)
 public class TrackGraphVisualizerMixin {
 	@Redirect(method = "debugViewGraph", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
-		"/graph/TrackGraph;color:Lnet/createmod/catnip/theme/Color;", ordinal = 2, opcode = Opcodes.GETFIELD))
+		"/graph/TrackGraph;color:Lnet/createmod/catnip/theme/Color;", ordinal = 2, opcode = Opcodes.GETFIELD),
+		require = 0)
 	private static Color getGraphColor(TrackGraph instance) {
 		var id = ((TrackGraphForSplit) instance).railx$getConnectedId();
 		var graph = CreateClient.RAILWAYS.trackNetworks.get(id);
@@ -26,7 +27,8 @@ public class TrackGraphVisualizerMixin {
 	}
 	
 	@Redirect(method = "debugViewGraph", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
-		"/graph/TrackGraph;color:Lnet/createmod/catnip/theme/Color;", ordinal = 4, opcode = Opcodes.GETFIELD))
+		"/graph/TrackGraph;color:Lnet/createmod/catnip/theme/Color;", ordinal = 4, opcode = Opcodes.GETFIELD),
+		require = 0)
 	private static Color getGraphColorForCurve(TrackGraph instance) {
 		var id = ((TrackGraphForSplit) instance).railx$getConnectedId();
 		var graph = CreateClient.RAILWAYS.trackNetworks.get(id);

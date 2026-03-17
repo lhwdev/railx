@@ -31,8 +31,8 @@ public class SignalPropagatorMixin {
 		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;")
 	@Definition(id = "graph", local = @Local(type = TrackGraph.class, argsOnly = true))
 	@Expression("train.fGraph != graph")
-	@ModifyExpressionValue(method = "notifyTrains", at = @At("MIXINEXTRAS:EXPRESSION"))
-	private static boolean is(
+	@ModifyExpressionValue(method = "notifyTrains", at = @At(value = "MIXINEXTRAS:EXPRESSION"), require = 0)
+	private static boolean inDifferentGraphForNotify(
 		boolean original,
 		@Local(index = 7) Train train,
 		@Local(index = 0, argsOnly = true) TrackGraph graph

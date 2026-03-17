@@ -65,8 +65,6 @@ outputs:
     description: 'The URL for uploading assets to the release'
   current_tag:
     description: 'The tag used to create a Release'
-  previous_tag:
-    description: 'The most recent tag found during auto incrementing the tag version'
 runs:
   using: 'node16'
   main: 'dist/index.js'

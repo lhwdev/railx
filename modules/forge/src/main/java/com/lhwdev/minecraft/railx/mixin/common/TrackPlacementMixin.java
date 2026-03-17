@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(TrackPlacement.class)
 public class TrackPlacementMixin {
-	@Inject(method = "clientTick", at = @At("HEAD"))
+	@Inject(method = "clientTick", at = @At("HEAD"), remap = false)
 	private static void beforeClientTick(CallbackInfo ci) {
 		CreateTrackPlacement.INSTANCE.setLastOverlay(null);
 	}
@@ -21,7 +21,7 @@ public class TrackPlacementMixin {
 		"Lnet/minecraft/world/entity/player/Player;" +
 		"Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;" +
 		"Lnet/minecraft/world/item/ItemStack;ZZ)" +
-		"Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;", ordinal = 0))
+		"Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;", ordinal = 0), require = 0)
 	private static TrackPlacement.PlacementInfo mapPlacementInfo(TrackPlacement.PlacementInfo original) {
 		CreateTrackPlacement.INSTANCE.setLastOverlay(original);
 		return original;

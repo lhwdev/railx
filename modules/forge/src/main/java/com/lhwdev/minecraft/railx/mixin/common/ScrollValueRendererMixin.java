@@ -17,7 +17,7 @@ import java.util.List;
 @Mixin(ScrollValueRenderer.class)
 public class ScrollValueRendererMixin {
 	@WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/blockEntity" +
-		"/behaviour/ValueSettingsClient;showHoverTip(Ljava/util/List;)V"))
+		"/behaviour/ValueSettingsClient;showHoverTip(Ljava/util/List;)V"), require = 0)
 	private static void showHoverTip(
 		ValueSettingsClient instance,
 		List<MutableComponent> tip,

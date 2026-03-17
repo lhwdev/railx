@@ -140,7 +140,7 @@ dependencies {
 	modDevRuntimeMods("maven.modrinth:worldedit:7.3.8")
 }
 
-tasks.jar { isEnabled = false }
+tasks.jar { enabled = false }
 tasks.shadowJar {
 	archiveVersion = actualVersion
 	archiveClassifier = null

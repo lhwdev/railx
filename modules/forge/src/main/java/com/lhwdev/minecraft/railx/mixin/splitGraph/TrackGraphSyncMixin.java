@@ -9,6 +9,7 @@ import net.createmod.catnip.data.Pair;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,8 +33,7 @@ public abstract class TrackGraphSyncMixin implements SplitTrackGraphSync {
 	}
 	
 	@Inject(method = "sendFullGraphTo", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
-		"/graph" +
-		"/TrackGraphSyncPacket;fullWipe:Z", shift = At.Shift.AFTER))
+		"/graph/TrackGraphSyncPacket;fullWipe:Z", shift = At.Shift.AFTER, opcode = Opcodes.PUTFIELD))
 	void sendFullGraphTo(TrackGraph graph, ServerPlayer player, CallbackInfo ci, @Local TrackGraphSyncPacket packet) {
 		((SplitTrackGraphSyncPacket) packet)
 			.railx$setConnectedId(TrackGraphForSplitUtils.getConnectedId(graph));
