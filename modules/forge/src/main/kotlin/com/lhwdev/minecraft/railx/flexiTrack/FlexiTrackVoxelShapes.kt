@@ -10,6 +10,7 @@ import com.lhwdev.minecraft.utils.vectors.toVector3d
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList
 import it.unimi.dsi.fastutil.doubles.DoubleList
+import net.createmod.catnip.outliner.Outliner
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
@@ -73,11 +74,11 @@ open class FlexiTrackVoxelShapes {
 	
 	fun createShape(direction: FlexiDirection, cache: FlexiState.AxisCache? = null): VoxelShape {
 		val rotation = cache?.rotationValueDouble ?: direction.rotationValue()
-		return if(direction is FlexiDirection.Flat) {
-			createFlatShape(rotation)
-		} else {
-			createNormalShape(rotation)
-		}
+		// return if(direction is FlexiDirection.Flat) {
+		// 	createFlatShape(rotation)
+		// } else {
+		return createNormalShape(rotation)
+		// }
 	}
 	
 	protected open fun createFlatShape(rotation: Quaterniondc): VoxelShape {
@@ -208,9 +209,12 @@ open class FlexiTrackVoxelShapes {
 				abs(pos.dot(dz)) <= spec.halfSizeZ
 		
 		fun updateLookup(lookup: BitSet, startX: Int, startY: Int, startZ: Int) {
+			val bound = bound
+			val spec = spec
+			
 			val currentPos = Vector3d()
-			for(y in 0..<bound.sizeY) {
-				for(z in 0..<bound.sizeZ) {
+			for(z in 0..<bound.sizeZ) {
+				for(y in 0..<bound.sizeY) {
 					for(x in 0..<bound.sizeX) {
 						currentPos.set(
 							(x + bound.minX + 0.5) * BoxSpec.Step - spec.centerX,
@@ -218,7 +222,7 @@ open class FlexiTrackVoxelShapes {
 							(z + bound.minZ + 0.5) * BoxSpec.Step - spec.centerZ,
 						)
 						if(isInsideBoxCentered(currentPos)) {
-							val index = (x + startX) + ((z + startZ) + (y + startY) * bound.sizeY) * bound.sizeX
+							val index = (x + startX) + ((y + startY) + (z + startZ) * bound.sizeY) * bound.sizeX
 							lookup.set(index)
 						}
 					}
@@ -229,6 +233,8 @@ open class FlexiTrackVoxelShapes {
 		
 		open fun clip(from: Vec3, to: Vec3, pos: BlockPos): BlockHitResult? {
 			// if(range.clip(from, to)) // AABB.clip is not that faster than this... I think; need some benchmark? maybe?
+			
+			fun aabb(pos: Vec3) = AABB(pos.x - 0.1, pos.y - 0.1, pos.z - 0.1, pos.x + 0.1, pos.y + 0.1, pos.z + 0.1)
 			
 			val spec = spec
 			val sizeX = spec.halfSizeX
@@ -337,6 +343,11 @@ open class FlexiTrackVoxelShapes {
 			} else {
 				val location = delta.mul(bestT).add(from).add(offset) // << mutation
 				val normal = buffer.set(bestNormal).mul(bestNormalSign.toDouble())
+				
+				Outliner.getInstance().showAABB("clip", aabb(location.toVec3()))
+					.colored(0xff5555)
+					.lineWidth(.05f)
+				
 				BlockHitResult(location.toVec3(), Direction.getNearest(normal.x, normal.y, normal.z), pos, false)
 			}
 		}
@@ -357,6 +368,7 @@ open class FlexiTrackVoxelShapes {
 	abstract class BoxShapeContainer {
 		abstract val bound: BoxBound
 		abstract fun lookup(x: Int, y: Int, z: Int): Boolean
+		abstract fun clip(from: Vec3, to: Vec3, pos: BlockPos): BlockHitResult?
 	}
 	
 	class SingleBoxShapeContainer(val box: BoxShape) : BoxShapeContainer() {
@@ -374,7 +386,10 @@ open class FlexiTrackVoxelShapes {
 			get() = box.bound
 		
 		override fun lookup(x: Int, y: Int, z: Int): Boolean =
-			lookup[x + (z + y * bound.sizeY) * bound.sizeX]
+			lookup[x + (y + z * bound.sizeY) * bound.sizeX]
+		
+		override fun clip(from: Vec3, to: Vec3, pos: BlockPos): BlockHitResult? =
+			box.clip(from, to, pos)
 	}
 	
 	abstract class BoxShapeContainerBase : BoxShapeContainer() {
@@ -406,7 +421,7 @@ open class FlexiTrackVoxelShapes {
 		
 		
 		override fun lookup(x: Int, y: Int, z: Int): Boolean =
-			lookup[x + (z + y * bound.sizeY) * bound.sizeX]
+			lookup[x + (y + z * bound.sizeY) * bound.sizeX]
 	}
 	
 	
@@ -435,18 +450,21 @@ open class FlexiTrackVoxelShapes {
 	}
 	
 	
-	class BoxSetVoxelShapeImpl(boxes: BoxShapeContainer) : BoxSetVoxelShape(boxes) {
+	class BoxSetVoxelShapeImpl(private val boxes: BoxShapeContainer) : BoxSetVoxelShape(boxes) {
 		constructor(box: BoxShape) : this(boxes = SingleBoxShapeContainer(box))
 		
-		private val listX = VoxelRange(boxes.bound.minX, boxes.bound.sizeX + 1)
-		private val listY = VoxelRange(boxes.bound.minX, boxes.bound.sizeX + 1)
-		private val listZ = VoxelRange(boxes.bound.minZ, boxes.bound.sizeZ + 1)
+		private val listX = VoxelRange(min = boxes.bound.minX, size = boxes.bound.sizeX + 1)
+		private val listY = VoxelRange(min = boxes.bound.minY, size = boxes.bound.sizeY + 1)
+		private val listZ = VoxelRange(min = boxes.bound.minZ, size = boxes.bound.sizeZ + 1)
 		
 		override fun getCoords(axis: Direction.Axis): DoubleList = when(axis) {
 			Direction.Axis.X -> listX
 			Direction.Axis.Y -> listY
 			Direction.Axis.Z -> listZ
 		}
+		
+		override fun clip(startVec: Vec3, endVec: Vec3, pos: BlockPos): BlockHitResult? =
+			boxes.clip(startVec, endVec, pos)
 	}
 	
 	private class FlatTrackVoxelShape(val box: BoxShape) : BoxSetVoxelShape(SingleBoxShapeContainer(box)) {

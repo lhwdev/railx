@@ -41,8 +41,10 @@ function orNullString(string) {
 }
 
 const previousTagFormat = new RegExp(
-  (core.getInput("tag_format", { required: false }) ?? "$1")
-  .replaceAll("$1", "(?<version>.+)")
+  (core.getInput("tag_format", { required: false }) ?? "$1").replaceAll(
+    "$1",
+    "(?<version>.+)",
+  ),
 );
 
 /** @type {string} */
@@ -192,7 +194,12 @@ function computeNextSemantic(semTag) {
 }
 async function computeLastTag() {
   const recentTags = await existingTags();
-  core.info(`recentTags (first 10): ${recentTags.slice(0, 10).map(t => t.tag).join(", ")}`);
+  core.info(
+    `recentTags (first 10): ${recentTags
+      .slice(0, 10)
+      .map((t) => t.tag)
+      .join(", ")}`,
+  );
 
   const current = recentTags.find((tag) => tag.current);
   const latest = recentTags[0];
@@ -241,7 +248,7 @@ async function computeNextVersion(scheme, lastTag) {
       ) {
         // special case where minimum=1.0.0, last=1.0.0-build.n -> allows this
       } else {
-        next = initialTag(minimum)
+        next = initialTag(minimum);
         console.log("minimum version applied:", minimum);
       }
     }

@@ -19,10 +19,15 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.shapes.VoxelShape
 import net.neoforged.neoforge.network.PacketDistributor
+import org.joml.Vector3f
 
 
 open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
 	TrackBlockEntity(type, pos, state), TransformableBlockEntity, IMergeableBE {
+	
+	companion object {
+		private val CenterOffset = Vector3f(0.5f, 0.125f, 0.5f)
+	}
 	
 	init {
 		tilt = FlexiTrackBlockEntityTilt(this)
@@ -40,6 +45,8 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 	
 	val shape: FlexiShape
 		get() = state.shape
+	
+	open val center get() = CenterOffset
 	
 	val block: FlexiTrackBlock
 		get() = blockState.block

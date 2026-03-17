@@ -5,10 +5,8 @@ import com.simibubi.create.content.trains.track.TrackBlockOutline
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderType
-import net.minecraft.util.Mth
 import net.minecraft.world.phys.shapes.VoxelShape
 import net.neoforged.neoforge.client.event.RenderHighlightEvent
-import kotlin.math.sqrt
 
 object FlexiTrackBlockOutline {
 	fun drawCustomBlockSelection(event: RenderHighlightEvent.Block): Boolean {
@@ -47,27 +45,36 @@ object FlexiTrackBlockOutline {
 	}
 	
 	fun walkShapes(blockEntity: FlexiTrackBlockEntity, msr: TransformStack<*>, renderer: (VoxelShape) -> Unit) {
-		// According to Rodrigues' rotation formula, when normal = (x, y, z), k = (a, 0, c),
-		// (x,y,z)=(0,1,0)cos + k*(0,1,0)sin + ky k (1-cos)
-		//        =(0,1,0)cos + (-c,0,a)sin
-		//        =(-c sin, cos, a sin)
-		// conclusion: cos=y, sin=sqrt(1-y^2), c=-x/sin, a=z/sin
-		// k = (z, 0, -x) / sqrt(1-y^2)
-		val shape = blockEntity.shape
-		val normal = shape.normal
-		val sin = sqrt(1.0 - normal.y * normal.y)
-		msr.rotate(
-			Mth.atan2(sin, normal.y).toFloat(),
-			(normal.z / sin).toFloat(),
-			0f,
-			(-normal.x / sin).toFloat(),
-		)
-		
-		for(axis in shape.axes) {
+		for(axis in blockEntity.state.shapeCache) {
 			msr.pushPose()
-			msr.rotateYCentered(axis.tangentAngle.toFloat())
+			msr.rotateAround(axis.rotationValue, blockEntity.center)
 			renderer(blockEntity.block.voxelShapes.base)
 			msr.popPose()
 		}
 	}
+	
+	// fun walkShapes(blockEntity: FlexiTrackBlockEntity, msr: TransformStack<*>, renderer: (VoxelShape) -> Unit) {
+	// 	// According to Rodrigues' rotation formula, when normal = (x, y, z), k = (a, 0, c),
+	// 	// (x,y,z)=(0,1,0)cos + k*(0,1,0)sin + ky k (1-cos)
+	// 	//        =(0,1,0)cos + (-c,0,a)sin
+	// 	//        =(-c sin, cos, a sin)
+	// 	// conclusion: cos=y, sin=sqrt(1-y^2), c=-x/sin, a=z/sin
+	// 	// k = (z, 0, -x) / sqrt(1-y^2)
+	// 	val shape = blockEntity.shape
+	// 	val normal = shape.normal
+	// 	val sin = sqrt(1.0 - normal.y * normal.y)
+	// 	msr.rotate(
+	// 		Mth.atan2(sin, normal.y).toFloat(),
+	// 		(normal.z / sin).toFloat(),
+	// 		0f,
+	// 		(-normal.x / sin).toFloat(),
+	// 	)
+	//
+	// 	for(axis in shape.axes) {
+	// 		msr.pushPose()
+	// 		msr.rotateYCentered(axis.tangentAngle.toFloat())
+	// 		renderer(blockEntity.block.voxelShapes.base)
+	// 		msr.popPose()
+	// 	}
+	// }
 }
