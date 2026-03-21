@@ -49,19 +49,20 @@ object ThrottlesServer {
 		}
 		
 		val worldThrottles = receivedThrottles[world]
+		val throttlesToRemove = mutableListOf<ServerThrottleControl>()
 		val byPlayer = worldThrottles.byPlayer.iterator()
 		while(byPlayer.hasNext()) {
 			val (playerId, context) = byPlayer.next()
 			
 			if(context.entity.isRemoved) {
-				worldThrottles.remove(context)
+				throttlesToRemove += context
 				continue
 			}
 			
 			val player = world.getPlayerByUUID(playerId)
 			if(player == null) {
 				context.entity.stopControlling(context.controlsPos)
-				worldThrottles.remove(context)
+				throttlesToRemove += context
 				continue
 			}
 			
@@ -97,6 +98,9 @@ object ThrottlesServer {
 			val controlled = context.entity.control(context.controlsPos, actualKeys, player)
 			if(!controlled) context.entity.stopControlling(context.controlsPos)
 		}
+		
+		for(toRemove in throttlesToRemove)
+			worldThrottles.remove(toRemove)
 	}
 	
 	private fun getOrCreateContext(
