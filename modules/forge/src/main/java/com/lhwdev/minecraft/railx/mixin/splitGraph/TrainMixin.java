@@ -241,7 +241,7 @@ public abstract class TrainMixin implements TrainForSplit {
 	 * @author lhwdev
 	 * @reason whole overhaul
 	 */
-	@Inject(method = "reattachToTracks", at = @At("HEAD"))
+	@Inject(method = "reattachToTracks", at = @At("HEAD"), cancellable = true)
 	public void onReattachToTracks(Level level, CallbackInfo ci) {
 		if(migrationCooldown > 0) {
 			migrationCooldown--;
