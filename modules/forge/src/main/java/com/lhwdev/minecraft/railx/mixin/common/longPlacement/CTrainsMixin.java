@@ -13,7 +13,7 @@ public class CTrainsMixin {
 		index = 2, require = 0)
 	int maxForTrackPlacementLength(int current, int min, int max, String name, String[] comment) {
 		if(!name.equals("maxTrackPlacementLength"))
-			throw new RuntimeException("railx broken due to Create update; call developer");
+			return max;
 		
 		return 1024;
 	}
