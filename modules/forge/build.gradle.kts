@@ -122,7 +122,7 @@ dependencies {
 		isTransitive = false
 	}
 	
-	implementation("net.createmod.ponder:Ponder-NeoForge-${v.minecraft.get()}:${v.ponder.get()}")
+	implementation("net.createmod.ponder:ponder-neoforge:${v.ponder.get()}+mc${v.minecraft.get()}")
 	// compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${libs.versions.minecraft.get()}:1.0.4")
 	implementation("dev.engine-room.flywheel:flywheel-neoforge-${v.minecraft.get()}:${v.flywheel.get()}")
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+67")

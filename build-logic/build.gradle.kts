@@ -42,6 +42,6 @@ gradlePlugin {
 }
 
 dependencies {
-	implementation("net.neoforged:moddev-gradle:2.0.95")
+	implementation("net.neoforged:moddev-gradle:2.0.141")
 	implementation("com.gradleup.shadow:shadow-gradle-plugin:9.2.2")
 }
