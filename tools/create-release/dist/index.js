@@ -34511,9 +34511,9 @@ function asLastTag(ref) {
   }
 
   // Try to parse as semantic versions
-  const version = semver.coerce(tagVersion);
+  const version = semver.coerce(tagVersion, { includePrerelease: true });
   if (!version) return null;
-  ref.version = version;
+  result.version = version;
 
   result.tag = tag;
   result.tagVersion = tagVersion;
@@ -34532,33 +34532,7 @@ async function existingTags() {
     .map((ref) => asLastTag(ref.ref))
     .filter((tag) => tag !== null);
 
-  return tags.sort((a, b) => {
-    // let tagA = a.tag;
-    // let tagB = b.tag;
-
-    if (!a.previous !== !b.previous) {
-      if (a.previous) return -1;
-      if (b.previous) return 1;
-    }
-
-    // Try to parse as semantic versions
-    const versionA = a.version;
-    const versionB = b.version;
-
-    // If both are valid semantic versions, compare them
-    return -semver.compareBuild(versionA, versionB);
-
-    // // If one or both are not valid semantic versions, fall back to string comparison
-    // if (!versionA && !versionB) {
-    //   return tagB.localeCompare(tagA); // reverse for descending order
-    // }
-
-    // // Put valid semantic versions before invalid ones
-    // if (versionA && !versionB) return -1;
-    // if (!versionA && versionB) return 1;
-
-    // return 0;
-  });
+  return tags.sort((a, b) => -semver.compareBuild(a.version, b.version));
 }
 
 function determineContinuousBumpType(semTag) {
@@ -34609,6 +34583,7 @@ function computeNextSemantic(semTag) {
         );
     }
   } catch (error) {
+    core.error(error);
     core.setFailed(`Failed to compute next semantic tag: ${error}`);
   }
   return null;
