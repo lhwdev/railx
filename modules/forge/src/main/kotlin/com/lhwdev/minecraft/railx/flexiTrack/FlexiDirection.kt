@@ -298,6 +298,8 @@ interface FlexiDirection {
 		
 		fun writeInt(): Tag = IntTag.valueOf(index)
 		
+		fun format(): String = "K$ordinal"
+		
 		override fun toString(): String = "FlexiDirection.Known(index=$index, ordinal=$ordinal)"
 	}
 	

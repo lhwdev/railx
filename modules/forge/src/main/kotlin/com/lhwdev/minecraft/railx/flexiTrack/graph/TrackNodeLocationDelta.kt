@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.flexiTrack.graph
 
 import com.lhwdev.minecraft.railx.utils.similarTo
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
+import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
 import kotlin.math.floor
 import kotlin.math.round
@@ -29,13 +30,17 @@ class TrackNodeLocationDelta private constructor(
 		
 		
 		@JvmStatic
-		fun of(base: TrackNodeLocation, vec: Vec3): TrackNodeLocationDelta? {
-			if(vec.isIntTrackNodeLocation()) return null
+		fun of(base: TrackNodeLocation, vec: Vec3): TrackNodeLocationDelta? =
+			of(base, vec.x, vec.y, vec.z)
+		
+		@JvmStatic
+		fun of(base: TrackNodeLocation, x: Double, y: Double, z: Double): TrackNodeLocationDelta? {
+			if(isIntTrackNodeLocation(x, y, z)) return null
 			
-			val x = ((vec.x * 2.0 - base.x) * HScale).roundToInt().coerceIn(-HBase, HBase)
-			val y = ((vec.y - base.y * 0.5) * VScale).roundToInt().coerceIn(0, 127)
-			val z = ((vec.z * 2.0 - base.z) * HScale).roundToInt().coerceIn(-HBase, HBase)
-			return TrackNodeLocationDelta(base, x, y, z)
+			val dx = ((x * 2.0 - base.x) * HScale).roundToInt().coerceIn(-HBase, HBase)
+			val dy = Mth.floor((y - base.y * 0.5) * VScale).coerceIn(0, 127)
+			val dz = ((z * 2.0 - base.z) * HScale).roundToInt().coerceIn(-HBase, HBase)
+			return TrackNodeLocationDelta(base, dx, dy, dz)
 		}
 		
 		@JvmField
@@ -69,7 +74,7 @@ class TrackNodeLocationDelta private constructor(
 	}
 }
 
-private fun Vec3.isIntTrackNodeLocation(): Boolean {
+private fun isIntTrackNodeLocation(x: Double, y: Double, z: Double): Boolean {
 	val x = x * 2.0
 	val z = z * 2.0
 	return round(x) similarTo x &&
