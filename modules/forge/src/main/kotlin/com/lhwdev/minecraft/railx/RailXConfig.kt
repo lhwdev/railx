@@ -25,7 +25,7 @@ object RailXConfig {
 			
 			val flexibleSelection: EnumValue<FlexiTrackPlacementClient.FlexibleSelection> = builder
 				.comment("Whether hold or toggle to enable/disable flexible placement.")
-				.defineEnum("flexi_track.flexible_selection", FlexiTrackPlacementClient.FlexibleSelection.Hold)
+				.defineEnum("flexi_trak.flexible_selection", FlexiTrackPlacementClient.FlexibleSelection.Hold)
 		}
 		
 		
