@@ -27,7 +27,7 @@ object FlexiTrackBlockItem {
 	fun sendFlexiblePlacementPacket(event: PlayerInteractEvent.RightClickBlock) {
 		val stack = event.itemStack
 		if(!event.level.isClientSide) return
-		if(!com.simibubi.create.AllTags.AllBlockTags.TRACKS.matches(stack)) return
+		if(!com.simibubi.create.AllTags.AllItemTags.TRACKS.matches(stack)) return
 		val packet = FlexiblePlacementPacket(
 			mainHand = event.hand == InteractionHand.MAIN_HAND,
 			flexible = FlexiTrackPlacementClient.isFlexibleClient,

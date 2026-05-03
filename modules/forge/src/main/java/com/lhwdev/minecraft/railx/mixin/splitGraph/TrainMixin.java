@@ -273,5 +273,7 @@ public abstract class TrainMixin implements TrainForSplit {
 			currentStation.reserveFor((Train) (Object) this);
 		updateSignalBlocks = true;
 		migrationCooldown = 0;
+		
+		ci.cancel();
 	}
 }

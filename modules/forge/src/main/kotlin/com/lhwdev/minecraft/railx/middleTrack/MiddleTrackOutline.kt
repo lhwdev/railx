@@ -195,7 +195,7 @@ object MiddleTrackOutline {
 			.rotateX(angles.x.toFloat())
 			.translate(-.5, -.125, -.5)
 		
-		val holdingTrack = CreateTags.AllBlockTags.TRACKS.matches(Minecraft.getInstance().player!!.mainHandItem)
+		val holdingTrack = CreateTags.AllItemTags.TRACKS.matches(Minecraft.getInstance().player!!.mainHandItem)
 		val shape = getShape(result.curve.material, direction = Direction.EAST)
 		TrackBlockOutline.renderShape(shape, ms, vb, if(holdingTrack) false else null)
 		

@@ -23,7 +23,7 @@ object CurvedMiddleTrackInteraction {
 			val heldItem = player.mainHandItem
 			val item = heldItem.item
 			
-			if(CreateTags.AllBlockTags.TRACKS.matches(heldItem)) {
+			if(CreateTags.AllItemTags.TRACKS.matches(heldItem)) {
 				player.displayClientMessage(
 					CreateLang.translateDirect("track.turn_start").withStyle(ChatFormatting.RED),
 					true

@@ -35,7 +35,6 @@ import net.minecraft.world.level.block.EntityBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import kotlin.math.*
-import com.simibubi.create.AllTags as CreateTags
 import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
 
 
@@ -53,7 +52,7 @@ object FlexiTrackPlacement {
 	}
 	
 	private fun isFromFlexiPlacementRequired(world: BlockGetter, stack: ItemStack): Boolean {
-		if(!CreateTags.AllBlockTags.TRACKS.matches(stack)) return false
+		if(!CreateItemTags.TRACKS.matches(stack)) return false
 		val connectingFrom = stack.tag?.getCompound("ConnectingFrom") ?: return false
 		val from = world.getBlockState(NbtUtils.readBlockPos(connectingFrom.getCompound("Pos")))
 		return from.block is FlexiTrackBlock
@@ -484,7 +483,7 @@ object FlexiTrackPlacement {
 			else if(j == inv.selected) continue
 			
 			val stackInSlot = (if(offhand) inv.offhand else inv.items)[i]
-			val isTrack = CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
+			val isTrack = CreateItemTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
 			if(!isTrack) {
 				val item = stackInSlot.item as? BlockItem
 				if(item != null && pavementBlock != item.block) continue

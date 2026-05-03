@@ -29,7 +29,7 @@ object FlexiTrackBlockOutline {
 		ms.pushPose()
 		ms.translate(pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z)
 		
-		val holdingTrack = AllTags.AllBlockTags.TRACKS.matches(mc.player!!.mainHandItem)
+		val holdingTrack = AllTags.AllItemTags.TRACKS.matches(mc.player!!.mainHandItem)
 		val shape = blockEntity.shape
 		val canConnectFrom = !shape.isJunction && !blockEntity.isTilted
 		

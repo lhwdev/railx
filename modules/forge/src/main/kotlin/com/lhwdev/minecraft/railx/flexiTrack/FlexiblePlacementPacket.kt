@@ -20,7 +20,7 @@ class FlexiblePlacementPacket(val mainHand: Boolean, val flexible: Boolean) : Se
 		if(player == null) return
 		val hand = if(mainHand) InteractionHand.MAIN_HAND else InteractionHand.OFF_HAND
 		val stack = player.getItemInHand(hand)
-		if(!com.simibubi.create.AllTags.AllBlockTags.TRACKS.matches(stack)) return
+		if(!com.simibubi.create.AllTags.AllItemTags.TRACKS.matches(stack)) return
 		stack.orCreateTag.putBoolean("railx:FlexiblePlacement", flexible)
 	}
 	
