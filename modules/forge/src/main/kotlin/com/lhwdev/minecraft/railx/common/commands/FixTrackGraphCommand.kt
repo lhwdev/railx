@@ -4,14 +4,12 @@ import com.lhwdev.minecraft.railx.registry.RailXCommandBuildContext
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
-import com.simibubi.create.Create
-import com.simibubi.create.content.trains.graph.TrackGraph
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import com.simibubi.create.content.trains.track.ITrackBlock
-import com.simibubi.create.content.trains.track.TrackPropagator
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.neoforge.NeoForgeAdapter
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap
+import net.createmod.catnip.data.WorldAttached
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands
 import net.minecraft.core.BlockPos
@@ -25,8 +23,11 @@ private val ErrorNoWorldEdit =
 private val ErrorNoSelection = SimpleCommandExceptionType(Component.literal("no selection"))
 
 
-fun RailXCommandBuildContext.cleanTrackGraphCommand(): LiteralArgumentBuilder<CommandSourceStack> = Commands
-	.literal("clearTrackGraph")
+private var enabled = WorldAttached { false }
+
+
+fun RailXCommandBuildContext.fixTrackGraphCommand(): LiteralArgumentBuilder<CommandSourceStack> = Commands
+	.literal("fixTrackGraph")
 	.requires { it.hasPermission(2) }
 	.executes { context ->
 		if(!ModList.get().isLoaded("worldedit")) throw ErrorNoWorldEdit.create()
@@ -78,74 +79,10 @@ fun RailXCommandBuildContext.cleanTrackGraphCommand(): LiteralArgumentBuilder<Co
 			}
 		}
 		
-		class TrackNodeToRemove(val graph: TrackGraph, val node: TrackNodeLocation)
-		
-		val manager = Create.RAILWAYS
-		val nodesToRemove = mutableListOf<TrackNodeToRemove>()
-		for(graph in manager.trackNetworks.values) {
-			for(node in graph.nodes) {
-				if(node.dimension != dimension) continue
-				if(!inSelection(node.location)) continue
-				if(node !in nodes) {
-					nodesToRemove += TrackNodeToRemove(graph, node)
-				} else {
-					nodes -= node
-				}
-			}
-		}
-		
-		for(nodeToRemove in nodesToRemove) {
-			val graph = nodeToRemove.graph
-			val node = nodeToRemove.node
-			val trackNode = graph.locateNode(node)!!
-			graph.removeNode(null, node)
-			manager.sync.nodeRemoved(graph, trackNode)
-			if(graph.isEmpty) {
-				manager.removeGraphAndGroup(graph)
-				manager.sync.graphRemoved(graph)
-			}
-		}
-		
-		if(nodesToRemove.isNotEmpty()) manager.markTracksDirty()
-		
-		for(missingInfo in nodes.values) {
-			// val node = missingInfo.current
-			// if( // limitation: selecting multiple linear tracks less than certain counts -> no node added
-			// 	!TrackPropagator.isValidGraphNodeLocation(
-			// 		node,
-			// 		missingInfo.next.filter { it != node },
-			// 		false
-			// 	)
-			// ) continue
-			
-			// TODO: implement this, which will improve performance a lot.
-			val pos = missingInfo.pos
-			TrackPropagator.onRailAdded(level, pos, level.getBlockState(pos))
+		for(node in nodes.values) {
+			fixTrackBlock(level, node.pos)
 		}
 		
 		source.sendSuccess({ Component.literal("Successfully updated all track nodes in selection") }, true)
 		0
 	}
-
-internal object LocationComparator : Comparator<TrackNodeLocation> {
-	override fun compare(a: TrackNodeLocation, b: TrackNodeLocation): Int {
-		var result = a.x.compareTo(b.x)
-		if(result != 0) return result
-		result = a.y.compareTo(b.y)
-		if(result != 0) return result
-		result = a.z.compareTo(b.z)
-		if(result != 0) return result
-		
-		val aa = a.location
-		val bb = b.location
-		result = aa.x.compareTo(bb.x)
-		if(result != 0) return result
-		result = aa.y.compareTo(bb.y)
-		if(result != 0) return result
-		result = aa.z.compareTo(bb.z)
-		if(result != 0) return result
-		
-		return 0
-	}
-}
-

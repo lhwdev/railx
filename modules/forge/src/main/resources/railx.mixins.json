@@ -14,6 +14,7 @@
     "common.fakeTracks.BezierConnectionMixin",
     "common.fakeTracks.FakeTrackBlockEntityMixin",
     "common.fakeTracks.TrackBlockEntityMixin",
+    "common.fixBrokenGraphs.TrackBlockEntityMixin",
     "common.longPlacement.CTrainsMixin",
     "common.manualStation.CarriageContraptionEntityMixin",
     "common.manualStation.TrainMixin",
