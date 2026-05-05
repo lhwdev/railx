@@ -54,17 +54,7 @@ open class ModDevPlatformExtension @Inject constructor(private val project: Proj
 		}
 		
 		val mainTask = sourceSets.named("main")
-		modDevRuntimeStandalone = sourceSets.register("modDevRuntimeStandalone") {
-			val main = mainTask.get()
-			
-			configurations.named(compileOnlyConfigurationName) {
-				extendsFrom(configurations.getByName(main.compileClasspathConfigurationName))
-			}
-			
-			configurations.named(runtimeOnlyConfigurationName) {
-				extendsFrom(configurations.getByName(main.runtimeClasspathConfigurationName))
-			}
-		}
+		modDevRuntimeStandalone = sourceSets.register("modDevRuntimeStandalone")
 		
 		modDevRuntimeStandaloneJar = tasks.register(modDevRuntimeStandalone.get().jarTaskName, Jar::class.java) {
 			description = "Assembles a jar archive containing the classes of the '${modDevRuntimeStandalone.name}'."
