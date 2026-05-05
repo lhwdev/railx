@@ -71,8 +71,7 @@
     "middleTrack.TrackBlockOutlineMixin",
     "middleTrack.TrackTargetingClientMixin",
     "splitGraph.TrackGraphVisualizerMixin",
-    "throttle.TrainHUDMixin",
-    "trainMap.GuiMapMixin"
+    "throttle.TrainHUDMixin"
   ],
   "mixinextras": {
     "minVersion": "0.5.0"
