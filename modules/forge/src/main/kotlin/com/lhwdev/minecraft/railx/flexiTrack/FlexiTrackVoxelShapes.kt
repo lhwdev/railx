@@ -10,7 +10,6 @@ import com.lhwdev.minecraft.utils.vectors.toVector3d
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList
 import it.unimi.dsi.fastutil.doubles.DoubleList
-import net.createmod.catnip.outliner.Outliner
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
@@ -234,8 +233,6 @@ open class FlexiTrackVoxelShapes {
 		open fun clip(from: Vec3, to: Vec3, pos: BlockPos): BlockHitResult? {
 			// if(range.clip(from, to)) // AABB.clip is not that faster than this... I think; need some benchmark? maybe?
 			
-			fun aabb(pos: Vec3) = AABB(pos.x - 0.1, pos.y - 0.1, pos.z - 0.1, pos.x + 0.1, pos.y + 0.1, pos.z + 0.1)
-			
 			val spec = spec
 			val sizeX = spec.halfSizeX
 			val sizeY = spec.halfSizeY
@@ -343,10 +340,6 @@ open class FlexiTrackVoxelShapes {
 			} else {
 				val location = delta.mul(bestT).add(from).add(offset) // << mutation
 				val normal = buffer.set(bestNormal).mul(bestNormalSign.toDouble())
-				
-				Outliner.getInstance().showAABB("clip", aabb(location.toVec3()))
-					.colored(0xff5555)
-					.lineWidth(.05f)
 				
 				BlockHitResult(location.toVec3(), Direction.getNearest(normal.x, normal.y, normal.z), pos, false)
 			}
