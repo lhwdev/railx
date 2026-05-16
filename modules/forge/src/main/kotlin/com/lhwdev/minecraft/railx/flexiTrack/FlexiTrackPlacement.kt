@@ -433,14 +433,14 @@ object FlexiTrackPlacement {
 			Direction.Axis.Y
 		)
 		if(intersect != null) {
-			if(curveFrom.tangent.dot(curveTo.tangent) > 0) // illegal curve
+			if(curveFrom.normalizedTangent.dot(curveTo.normalizedTangent) > 0) // illegal curve
 				return placeError(PlaceError.TooSharp().noOverlay())
 			
 			if(curve != null) {
 				if(curve.minRadius() < minimumAllowedRadius)
 					return placeError(PlaceError.TooSharp())
 			} else {
-				if(!(curveFrom.tangent closeTo -curveTo.tangent))
+				if(!(curveFrom.normalizedTangent closeTo -curveTo.normalizedTangent))
 					return placeError(PlaceError.TooSharp().noOverlay())
 			}
 		} else {
@@ -518,14 +518,19 @@ object FlexiTrackPlacement {
 		requiredTracks = 0
 		
 		fun placeTrack(pos: BlockPos, end: FlexiPlacementInfo.TrackEnd, state: BlockState = end.state): BlockState? {
+			var state = state
+			end.toCreateShape()?.let {
+				state = state.trySetValue(TrackBlock.SHAPE, it)
+			}
+			
 			val stateAtPos = level.getBlockState(pos)
 			val blockAtPos = stateAtPos.block
 			return when {
 				blockAtPos is FlexiTrackBlock -> null
 				
 				blockAtPos is ITrackBlock -> {
-					if(stateAtPos.block !is FlexiTrackBlock) end.toCreateShape()?.let {
-						blockAtPos.overlay(level, pos, stateAtPos, state.trySetValue(TrackBlock.SHAPE, it))
+					if(stateAtPos.block !is FlexiTrackBlock) {
+						blockAtPos.overlay(level, pos, stateAtPos, state)
 							.let { ProperWaterloggedBlock.withWater(level, it, pos) }
 					} else null
 				}
