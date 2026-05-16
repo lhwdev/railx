@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -39,11 +40,14 @@ public abstract class TrackNodeLocationMixin extends Vec3i implements ITrackNode
 	private TrackNodeLocationDelta railx$location;
 	
 	
-	// NOTE: <init>(DDD)V constructor is never called anywhere so far (other than (BlockPos)V one)
-	//       so did not handle that case
-	@Inject(method = "<init>(Lnet/minecraft/world/phys/Vec3;)V", at = @At("RETURN"), remap = false)
-	void onInit(Vec3 vec, CallbackInfo ci) {
-		var location = TrackNodeLocationDelta.of((TrackNodeLocation) (Object) this, vec);
+	@ModifyVariable(method = "<init>(DDD)V", at = @At("HEAD"), index = 3, argsOnly = true, remap = false)
+	private static double offsetYOnInit(double y) {
+		return y + (1.0 / 64.0) / TrackNodeLocationDelta.VScale;
+	}
+	
+	@Inject(method = "<init>(DDD)V", at = @At("RETURN"), remap = false)
+	void onInit(double x, double y, double z, CallbackInfo ci) {
+		var location = TrackNodeLocationDelta.of((TrackNodeLocation) (Object) this, x, y, z);
 		if(location != null) {
 			var asYOffset = location.asYOffset();
 			if(asYOffset != -1) yOffsetPixels = asYOffset;

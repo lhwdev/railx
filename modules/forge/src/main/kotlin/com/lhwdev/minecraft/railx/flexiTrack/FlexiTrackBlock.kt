@@ -264,18 +264,18 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 	// No assembly on flexi track
 	override fun use(
 		state: BlockState,
-		world: Level,
+		level: Level,
 		pos: BlockPos,
 		player: Player,
 		hand: InteractionHand,
 		hit: BlockHitResult,
 	): InteractionResult {
 		if(CompatMods.railways) {
-			CustomTrackBlock.casingUse(state, world, pos, player, hand, hit)
+			CustomTrackBlock.casingUse(state, level, pos, player, hand, hit)
 				?.let { return it }
 		}
 		
-		if(world.isClientSide) return InteractionResult.SUCCESS
+		if(level.isClientSide) return InteractionResult.SUCCESS
 		return InteractionResult.PASS
 	}
 	

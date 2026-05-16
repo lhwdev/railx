@@ -35,7 +35,7 @@ import net.minecraft.world.level.block.EntityBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import kotlin.math.*
-import com.simibubi.create.AllTags.AllItemTags as CreateItemTags
+import com.simibubi.create.AllTags as CreateTags
 
 
 object FlexiTrackPlacement {
@@ -52,7 +52,7 @@ object FlexiTrackPlacement {
 	}
 	
 	private fun isFromFlexiPlacementRequired(world: BlockGetter, stack: ItemStack): Boolean {
-		if(!CreateItemTags.TRACKS.matches(stack)) return false
+		if(!CreateTags.AllBlockTags.TRACKS.matches(stack)) return false
 		val connectingFrom = stack.tag?.getCompound("ConnectingFrom") ?: return false
 		val from = world.getBlockState(NbtUtils.readBlockPos(connectingFrom.getCompound("Pos")))
 		return from.block is FlexiTrackBlock
@@ -204,7 +204,8 @@ object FlexiTrackPlacement {
 		info.hasGirder = parameter.hasGirder
 		
 		val offhandItem = player.offhandItem.item
-		val shouldPave = offhandItem is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
+		val shouldPave =
+			offhandItem is BlockItem && !CreateTags.AllItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
 		if(shouldPave) info.pavementBlock = offhandItem.block
 		
 		info.curve = if(info.curveFrom.pos != info.curveTo.pos) info.createCurve() else null
@@ -434,14 +435,14 @@ object FlexiTrackPlacement {
 			Direction.Axis.Y
 		)
 		if(intersect != null) {
-			if(curveFrom.tangent.dot(curveTo.tangent) > 0) // illegal curve
+			if(curveFrom.normalizedTangent.dot(curveTo.normalizedTangent) > 0) // illegal curve
 				return placeError(PlaceError.TooSharp().noOverlay())
 			
 			if(curve != null) {
 				if(curve.minRadius() < minimumAllowedRadius)
 					return placeError(PlaceError.TooSharp())
 			} else {
-				if(!(curveFrom.tangent closeTo -curveTo.tangent))
+				if(!(curveFrom.normalizedTangent closeTo -curveTo.normalizedTangent))
 					return placeError(PlaceError.TooSharp().noOverlay())
 			}
 		} else {
@@ -483,7 +484,7 @@ object FlexiTrackPlacement {
 			else if(j == inv.selected) continue
 			
 			val stackInSlot = (if(offhand) inv.offhand else inv.items)[i]
-			val isTrack = CreateItemTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
+			val isTrack = CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
 			if(!isTrack) {
 				val item = stackInSlot.item as? BlockItem
 				if(item != null && pavementBlock != item.block) continue
@@ -519,14 +520,19 @@ object FlexiTrackPlacement {
 		requiredTracks = 0
 		
 		fun placeTrack(pos: BlockPos, end: FlexiPlacementInfo.TrackEnd, state: BlockState = end.state): BlockState? {
+			var state = state
+			end.toCreateShape()?.let {
+				state = state.trySetValue(TrackBlock.SHAPE, it)
+			}
+			
 			val stateAtPos = level.getBlockState(pos)
 			val blockAtPos = stateAtPos.block
 			return when {
 				blockAtPos is FlexiTrackBlock -> null
 				
 				blockAtPos is ITrackBlock -> {
-					if(stateAtPos.block !is FlexiTrackBlock) end.toCreateShape()?.let {
-						blockAtPos.overlay(level, pos, stateAtPos, state.trySetValue(TrackBlock.SHAPE, it))
+					if(stateAtPos.block !is FlexiTrackBlock) {
+						blockAtPos.overlay(level, pos, stateAtPos, state)
 							.let { ProperWaterloggedBlock.withWater(level, it, pos) }
 					} else null
 				}

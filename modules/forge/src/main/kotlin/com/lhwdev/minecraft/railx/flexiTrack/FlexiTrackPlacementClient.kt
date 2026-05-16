@@ -90,7 +90,7 @@ object FlexiTrackPlacementClient {
 			AllKeys.FlexiblePlacement.isKeyDown
 		) {
 			val player = Minecraft.getInstance().player
-			if(player != null && CreateTags.AllItemTags.TRACKS.matches(player.mainHandItem)) {
+			if(player != null && CreateTags.AllBlockTags.TRACKS.matches(player.mainHandItem)) {
 				flexibleSelectionToggle = !flexibleSelectionToggle
 			}
 		}
@@ -105,10 +105,10 @@ object FlexiTrackPlacementClient {
 		if(!stack.hasFoil()) return
 		
 		var hand = InteractionHand.MAIN_HAND
-		if(!CreateTags.AllItemTags.TRACKS.matches(stack)) {
+		if(!CreateTags.AllBlockTags.TRACKS.matches(stack)) {
 			stack = player.offhandItem
 			hand = InteractionHand.OFF_HAND
-			if(!CreateTags.AllItemTags.TRACKS.matches(stack)) return
+			if(!CreateTags.AllBlockTags.TRACKS.matches(stack)) return
 		}
 		
 		val blockItem = stack.item as? TrackBlockItem ?: return

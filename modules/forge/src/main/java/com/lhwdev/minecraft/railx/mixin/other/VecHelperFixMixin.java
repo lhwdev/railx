@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
-@Mixin(VecHelper.class)
+@Mixin(value = VecHelper.class, remap = false)
 public abstract class VecHelperFixMixin {
 	@Shadow(remap = false)
 	public static Vec3 lerp(float p, Vec3 from, Vec3 to) {return null;}

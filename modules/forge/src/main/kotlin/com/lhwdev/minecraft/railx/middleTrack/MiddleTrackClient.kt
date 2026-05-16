@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.middleTrack.visual.MiddleTrackVisuals
 import com.lhwdev.minecraft.railx.utils.getOrNull
 import com.simibubi.create.content.trains.track.TrackBlockEntity
+import net.createmod.catnip.data.WorldAttached
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -13,8 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 
 @OnlyIn(Dist.CLIENT)
 object MiddleTrackClient {
-	var LoadedTracks: Set<BlockPos> = emptySet()
-		private set
+	val LoadedTracks: WorldAttached<Set<BlockPos>> = WorldAttached { emptySet() }
 	
 	
 	/**
@@ -24,10 +24,12 @@ object MiddleTrackClient {
 		val minecraft = Minecraft.getInstance()
 		val level = minecraft.level ?: return
 		
+		val loaded = LoadedTracks[level]
+		
 		if(RailXConfig.Server.middleTrack.enabled.getOrNull() != true) {
-			if(LoadedTracks.isEmpty()) return
+			if(loaded.isEmpty()) return
 			
-			LoadedTracks = emptySet()
+			LoadedTracks.put(level, emptySet())
 			MiddleTrackVisuals.tickDisable(level)
 			return
 		}
@@ -53,7 +55,7 @@ object MiddleTrackClient {
 			// IDK reason but this happens (despite rarely), do nothing
 		}
 		
-		LoadedTracks = tracks
+		LoadedTracks.put(level, tracks)
 		MiddleTrackVisuals.tick(level)
 	}
 }

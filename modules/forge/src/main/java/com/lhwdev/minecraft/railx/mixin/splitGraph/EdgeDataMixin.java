@@ -15,7 +15,8 @@ import java.util.UUID;
 @Mixin(EdgeData.class)
 public class EdgeDataMixin {
 	@ModifyExpressionValue(method = "getEffectiveEdgeGroupId", at = @At(value = "FIELD", target = "Lcom/simibubi" +
-		"/create/content/trains/graph/TrackGraph;id:Ljava/util/UUID;", opcode = Opcodes.GETFIELD, remap = false), remap = false)
+		"/create/content/trains/graph/TrackGraph;id:Ljava/util/UUID;", opcode = Opcodes.GETFIELD, remap = false),
+		remap = false)
 	UUID getGraphPassiveId(UUID original, @Local(argsOnly = true, index = 1) TrackGraph graph) {
 		var id = TrackGraphForSplitUtils.getConnectedId(graph);
 		if(id != null) return id;

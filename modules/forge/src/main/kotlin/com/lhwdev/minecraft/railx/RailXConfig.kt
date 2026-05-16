@@ -111,8 +111,24 @@ object RailXConfig {
 				.define("common.fake_tracks.no_fake_tracks", false)
 			
 			val fixTrackBezierAsymmetry: BooleanValue = builder
-				.comment("Fixes vanilla Create behavior where, if track is placed strange enough, curve, train, signal overlay goes brurr")
+				.comment(
+					"Fixes vanilla Create behavior where, if track is placed strange enough, curve, train, signal " +
+						"overlay goes brurr. Enabling this option on existing world might break your existing world, " +
+						"as every curve is affected. Position of track, edge points (station, signals) could change."
+				)
 				.define("common.fix_track_bezier_asymmetry", false)
+			
+			val fixTrackBezierSegment: BooleanValue = builder
+				.comment(
+					"Fix vanilla Create glitch where, track segments are generated wrong, so track rendering and edge " +
+						"points (station, signal, ...) are located on wrong place. Enabling this option on existing " +
+						"world might break your existing world, as these edge points are moved."
+				)
+				.define("common.fix_track_bezier_glitch", false)
+			
+			val fixBrokenGraphs: BooleanValue = builder
+				.comment("Originally created to fix his own world by developer. Do not enable unless required.")
+				.define("common.fix_broken_graphs", false)
 		}
 		
 		

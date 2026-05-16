@@ -7,6 +7,7 @@
   "plugin": "com.lhwdev.minecraft.railx.mixin.MixinPlugin",
   "mixins": [
     "ccAdvanced.CarriageMixin",
+    "common.BezierConnection$BezieratorMixin",
     "common.BezierConnection$RuntimeMixin",
     "common.BezierConnectionMixin",
     "common.BlockEntityTypeAccessor",
@@ -15,6 +16,7 @@
     "common.fakeTracks.BezierConnectionMixin",
     "common.fakeTracks.FakeTrackBlockEntityMixin",
     "common.fakeTracks.TrackBlockEntityMixin",
+    "common.fixBrokenGraphs.TrackBlockEntityMixin",
     "common.longPlacement.CTrainsMixin",
     "common.manualStation.CarriageContraptionEntityMixin",
     "common.manualStation.TrainMixin",

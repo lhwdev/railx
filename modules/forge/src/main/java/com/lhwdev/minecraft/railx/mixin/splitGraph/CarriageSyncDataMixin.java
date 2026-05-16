@@ -22,7 +22,8 @@ public class CarriageSyncDataMixin implements CarriageSyncDataForSplit {
 	}
 	
 	@Redirect(method = {"apply", "approach"}, at = @At(value = "FIELD", target = "Lcom/simibubi/create/content" +
-		"/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", opcode = Opcodes.GETFIELD, remap = false), remap = false)
+		"/trains/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", opcode = Opcodes.GETFIELD,
+		remap = false), remap = false)
 	TrackGraph getGraphForApproach(Train train) {
 		return railx$connectedGraph;
 	}

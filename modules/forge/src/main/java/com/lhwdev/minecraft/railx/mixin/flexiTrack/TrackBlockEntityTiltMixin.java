@@ -30,7 +30,8 @@ public class TrackBlockEntityTiltMixin {
 	}
 	
 	@ModifyExpressionValue(method = "restoreToOriginalCurve", at = @At(value = "NEW", target = "(Lnet/minecraft" +
-		"/world/phys/Vec3;)Lcom/simibubi/create/content/trains/graph/TrackNodeLocation;", remap = false), remap = false)
+		"/world/phys/Vec3;)Lcom/simibubi/create/content/trains/graph/TrackNodeLocation;", remap = false), remap =
+		false)
 	TrackNodeLocation restoreToOriginalStart(TrackNodeLocation original) {
 		TrackNodeLocationUtils.restoreToOriginal(original);
 		return original;

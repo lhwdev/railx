@@ -42,7 +42,8 @@ public class TrackGraphHelperMixin {
 		"/content" +
 		"/trains/track/ITrackBlock;getConnected(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;" +
 		"Lnet/minecraft/world/level/block/state/BlockState;" +
-		"ZLcom/simibubi/create/content/trains/graph/TrackNodeLocation;)Ljava/util/Collection;", remap = false), remap = false)
+		"ZLcom/simibubi/create/content/trains/graph/TrackNodeLocation;)Ljava/util/Collection;", remap = false), remap
+		= false)
 	private static Collection<TrackNodeLocation.DiscoveredLocation> getConnectedForTargetLoc(
 		ITrackBlock instance,
 		BlockGetter worldIn,

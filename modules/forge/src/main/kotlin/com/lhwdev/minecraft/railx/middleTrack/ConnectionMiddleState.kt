@@ -28,7 +28,7 @@ class ConnectionMiddleState(
 	
 	val isActive: Boolean
 		get() = if(DIST == Dist.CLIENT) {
-			isValid && from !in MiddleTrackClient.LoadedTracks
+			isValid && from !in MiddleTrackClient.LoadedTracks[level]
 		} else {
 			true
 		}
@@ -51,7 +51,7 @@ class ConnectionMiddleState(
 	fun isValid(): Boolean {
 		// maybe curve was removed; check the curve is still there, by TrackGraph
 		val edge = curve.toTrackEdge(level)?.edge
-		val valid = edge != null && curve.isSameCurve(edge.turn)
+		val valid = edge != null && edge.turn != null && curve.isSameCurve(edge.turn)
 		this.isValid = valid
 		return valid
 	}
