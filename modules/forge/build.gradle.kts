@@ -116,6 +116,8 @@ dependencies {
 	implementation(projects.utils)
 	implementation(projects.ccAsm)
 	
+	add(modDevPlatform.modDevRuntimeStandalone.get().implementationConfigurationName, projects.minecraft)
+	
 	implementation("thedarkcolour:kotlinforforge-neoforge:${libs.versions.kotlinForForge.get()}")
 	
 	implementation("com.simibubi.create:create-${v.minecraft.get()}:${v.create.get()}") {
@@ -128,8 +130,8 @@ dependencies {
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+67")
 	
 	// for mod compatibility
-	optionalModDependency("maven.modrinth:framedblocks:10.4.0")
-	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_NeoForge_1.21")
+	optionalModDependency("maven.modrinth:framedblocks:10.5.3")
+	optionalModDependency("maven.modrinth:xaeros-world-map:neoforge-1.21.1-1.40.16")
 	optionalModDependency("maven.modrinth:copycats:3.0.4+mc.1.21.1-neoforge")
 	
 	// optional mod dependencies
