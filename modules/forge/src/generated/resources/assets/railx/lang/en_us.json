@@ -2,6 +2,7 @@
   "block.railx.advanced_track_observer": "Advanced Track Observer",
   "block.railx.flexi_split_graph_track": "Flexible Split Graph Train Track",
   "block.railx.flexi_track": "Flexi Train Track",
+  "block.railx.gravel_layer": "Gravel Layer",
   "block.railx.middle_track": "Middle Track Block",
   "block.railx.split_graph_track": "Split Graph Train Track",
   "item.railx.track_plan": "Track Plan"

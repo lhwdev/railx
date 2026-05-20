@@ -38,6 +38,54 @@ object AllBlocks {
 	
 	fun register() {}
 	
+	
+	val GravelLayer = Registry.block("gravel_layer", ::GravelLayerBlock) {
+		initialProperties(Blocks::GRAVEL)
+		blockstate { c, p ->
+			val gravel = p.mcLoc("block/gravel")
+			
+			p.getVariantBuilder(c.entry).forAllStates { state ->
+				val layers = state.getValue(GravelLayerBlock.Layers)
+				if(layers == GravelLayerBlock.MaxLayer) {
+					ConfiguredModel.builder()
+						.modelFile(p.models().getExistingFile(gravel))
+						.build()
+				} else {
+					val modelFile = p.models().getBuilder("block/gravel_height${layers * 2}").apply {
+						texture("particle", gravel)
+						texture("texture", gravel)
+						element().apply {
+							val y = (layers * 2).toFloat()
+							
+							from(0f, 0f, 0f)
+							to(16f, y, 16f)
+							
+							allFaces { direction, builder ->
+								builder.texture("#texture")
+								if(direction.axis == Direction.Axis.Y) {
+									builder.uvs(0f, 0f, 16f, 16f)
+								} else {
+									builder.uvs(0f, 16f - y, 16f, 16f)
+								}
+								if(direction != Direction.DOWN) {
+									builder.cullface(direction)
+								}
+							}
+						}
+					}
+					
+					ConfiguredModel.builder()
+						.modelFile(modelFile)
+						.build()
+				}
+			}
+		}
+		item()
+			.model { c, p -> p.withExistingParent(c.name, p.modLoc("block/gravel_height2")) }
+			.build()
+	}
+	
+	
 	val AdvancedTrackObserver = Registry.block("advanced_track_observer", ::AdvancedTrackObserverBlock) {
 		initialProperties(SharedProperties::softMetal)
 		properties {
