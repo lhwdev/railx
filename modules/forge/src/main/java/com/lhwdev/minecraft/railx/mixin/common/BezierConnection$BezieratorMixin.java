@@ -24,7 +24,7 @@ public class BezierConnection$BezieratorMixin {
 		"Ljava/lang/Object;", ordinal = 1), remap = false)
 	Object getSecondAsNormalized(Couple<Vec3> instance) {
 		if(!ConfigKt.getOrFalse(RailXConfig.Server.Value.getCommon().getFixTrackBezierSegment()))
-			return instance.getFirst();
+			return instance.getSecond();
 		
 		return instance.getSecond().normalize();
 	}
