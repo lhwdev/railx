@@ -73,11 +73,11 @@ open class FlexiTrackVoxelShapes {
 	
 	fun createShape(direction: FlexiDirection, cache: FlexiState.AxisCache? = null): VoxelShape {
 		val rotation = cache?.rotationValueDouble ?: direction.rotationValue()
-		// return if(direction is FlexiDirection.Flat) {
-		// 	createFlatShape(rotation)
-		// } else {
-		return createNormalShape(rotation)
-		// }
+		return if(direction is FlexiDirection.Flat) {
+			createFlatShape(rotation)
+		} else {
+			return createNormalShape(rotation)
+		}
 	}
 	
 	protected open fun createFlatShape(rotation: Quaterniondc): VoxelShape {
