@@ -79,10 +79,7 @@ public abstract class VisualizationManagerImpl$LateInitMixin {
 			.ifFalse(update)
 			.plan()
 			.then(SimplePlan.of(() -> {
-				if(
-					railx$m().map(VisualManagerImpl::areGpuLightSectionsDirty)
-						.reduce(false, (a, b) -> a || b)
-				) {
+				if(railx$m().anyMatch(VisualManagerImpl::areGpuLightSectionsDirty)) {
 					var out = new LongOpenHashSet();
 					railx$m().forEach(manager -> out.addAll(manager.gpuLightSections()));
 					engine.lightSections(out);
