@@ -135,6 +135,7 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 		
 		// TODO: train migration
 		
+		TrackPropagator.onRailAdded(level, blockPos, blockState)
 		notifyUpdate()
 	}
 	
