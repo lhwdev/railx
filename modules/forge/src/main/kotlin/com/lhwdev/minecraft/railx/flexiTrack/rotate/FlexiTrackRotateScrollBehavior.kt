@@ -121,7 +121,6 @@ abstract class FlexiTrackRotateScrollBehavior(
 			)
 			be.updateState(newState)
 			
-			val center = track.getTrackBase(level, be.blockPos, be.blockState)
 			val ends = mutableListOf<Vec3>()
 			
 			for(axis in be.shape.axes) {
@@ -131,17 +130,17 @@ abstract class FlexiTrackRotateScrollBehavior(
 			
 			forEachConnections { connection ->
 				val axis = rotation.transformUnit(connection.axes.first).optimize()
-				var maxDistance = Double.POSITIVE_INFINITY
+				var maxDot = Double.NEGATIVE_INFINITY
 				var maxAxis = ends[0]
 				for(end in ends) {
 					val distance = end.dot(axis)
-					if(distance < maxDistance) {
-						maxDistance = distance
+					if(distance > maxDot) {
+						maxDot = distance
 						maxAxis = end
 					}
 				}
 				
-				if(maxDistance > 0.005) {
+				if(maxDot < 0.99) {
 					println("why so far? breakpoint here")
 				}
 				
