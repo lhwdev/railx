@@ -8,6 +8,8 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.flexiBlock.FlexiSplitGraphTrackBlock
+import com.railwayteam.railways.registry.CRTags
+import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.AllDisplaySources
 import com.simibubi.create.Create
 import com.simibubi.create.api.behaviour.display.DisplaySource
@@ -171,25 +173,26 @@ inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	tag(BlockTags.MINEABLE_WITH_PICKAXE)
 	tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED)
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
-	// if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL)
-	tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
+	if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL) // issue with cinit
+		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 	
 	if(createItem) item(factory = ::TrackBlockItem) {
 		tag(CreateTags.AllItemTags.TRACKS.tag)
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
-		// if(
-		// 	CompatMods.railways && (
-		// 		material == CRTrackMaterials.PHANTOM ||
-		// 			material == CRTrackMaterials.getWide(CRTrackMaterials.PHANTOM) ||
-		// 			material == CRTrackMaterials.getNarrow(CRTrackMaterials.PHANTOM)
-		// 		)
-		// ) tag(CRTags.AllItemTags.PHANTOM_TRACK_REVEALING.tag)
+		
+		if(
+			CompatMods.railways && (
+				material == CRTrackMaterials.PHANTOM ||
+					material == CRTrackMaterials.getWide(CRTrackMaterials.PHANTOM) ||
+					material == CRTrackMaterials.getNarrow(CRTrackMaterials.PHANTOM)
+				)
+		) tag(CRTags.AllItemTags.PHANTOM_TRACK_REVEALING.tag)
 	}
 	
 	builder()
 }
 
-private inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
+inline fun <Track : FlexiTrackBlock> RailXRegistrate.flexiTrackBlock(
 	name: String,
 	material: TrackMaterial,
 	normalBlock: DeferredHolder<Block, out TrackBlock>,

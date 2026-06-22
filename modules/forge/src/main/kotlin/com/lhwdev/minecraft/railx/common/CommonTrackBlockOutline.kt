@@ -1,7 +1,10 @@
 package com.lhwdev.minecraft.railx.common
 
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
+import com.railwayteam.railways.registry.CRShapes
+import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
@@ -164,13 +167,13 @@ object CommonTrackBlockOutline {
 		}
 	}
 	
-	private fun getShape(material: TrackMaterial, direction: Direction): VoxelShape {
+	fun getShape(material: TrackMaterial, direction: Direction): VoxelShape {
 		var shape = CreateShapes.TRACK_ORTHO[direction]
-		// if(CompatMods.railways) shape = when(material.trackType) {
-		// 	CRTrackMaterials.CRTrackType.MONORAIL -> CRShapes.MONORAIL_TRACK_ORTHO[direction]
-		// 	CRTrackMaterials.CRTrackType.NARROW_GAUGE -> CRShapes.NARROW_TRACK_ORTHO[direction]
-		// 	else -> shape
-		// }
+		if(CompatMods.railways) shape = when(material.trackType) {
+			CRTrackMaterials.CRTrackType.MONORAIL -> CRShapes.MONORAIL_TRACK_ORTHO[direction]
+			CRTrackMaterials.CRTrackType.NARROW_GAUGE -> CRShapes.NARROW_TRACK_ORTHO[direction]
+			else -> shape
+		}
 		return shape
 	}
 }

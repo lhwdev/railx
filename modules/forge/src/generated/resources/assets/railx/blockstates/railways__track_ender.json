@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/track/ender/x_ortho"
+    }
+  }
+}

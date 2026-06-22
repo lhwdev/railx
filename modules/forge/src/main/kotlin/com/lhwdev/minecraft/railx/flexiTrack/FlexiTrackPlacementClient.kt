@@ -2,11 +2,13 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.minRadius
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
 import com.lhwdev.minecraft.railx.utils.ColorsArgb
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
+import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer
 import com.simibubi.create.content.trains.track.ITrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
@@ -276,12 +278,12 @@ object FlexiTrackPlacementClient {
 		val railColor = ColorsArgb.lerp(0xEA5C2B, 0x95CD41, animation.getValue())
 		val up = Vec3(0.0, (4 / 16f).toDouble(), 0.0)
 		
-		val railWidth = when(info.material.trackType) {
-			// CRTrackMaterials.CRTrackType.WIDE_GAUGE -> 23 / 16.0
-			// CRTrackMaterials.CRTrackType.NARROW_GAUGE -> 8 / 16.0
-			// CRTrackMaterials.CRTrackType.MONORAIL -> 8 / 16.0
+		val railWidth = if(CompatMods.railways) when(info.material.trackType) {
+			CRTrackMaterials.CRTrackType.WIDE_GAUGE -> 23 / 16.0
+			CRTrackMaterials.CRTrackType.NARROW_GAUGE -> 8 / 16.0
+			CRTrackMaterials.CRTrackType.MONORAIL -> 8 / 16.0
 			else -> 15 / 16.0
-		}
+		} else 15 / 16.0
 		
 		if(!info.valid) {
 			info.fromExtent = 0

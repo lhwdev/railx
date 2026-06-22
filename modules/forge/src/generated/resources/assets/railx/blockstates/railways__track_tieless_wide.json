@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/track/tieless_wide/x_ortho"
+    }
+  }
+}

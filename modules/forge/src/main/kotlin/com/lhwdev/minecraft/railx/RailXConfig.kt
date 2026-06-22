@@ -9,6 +9,8 @@ object RailXConfig {
 	sealed class Client(private val builder: Builder) {
 		val common = Common()
 		
+		val compat = Compat()
+		
 		val flexiTrak = FlexiTrak()
 		
 		
@@ -16,6 +18,15 @@ object RailXConfig {
 			val preciseOverlay: BooleanValue = builder
 				.comment("Displays precise information about track blocks, curves, and track placement.")
 				.define("common.precise_overlay", true)
+		}
+		
+		inner class Compat {
+			val pantographsAndWiresAutoCantilever = builder
+				.comment(
+					"(Experimental) For Pantographs and Wires mod, add feature to adjust cantilever" +
+						"width/yOffset consistently."
+				)
+				.define("compat.pantographs_and_wires__auto_cantilever", false)
 		}
 		
 		inner class FlexiTrak {

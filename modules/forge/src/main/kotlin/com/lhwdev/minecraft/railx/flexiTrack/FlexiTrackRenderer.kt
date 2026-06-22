@@ -1,5 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
+import com.lhwdev.minecraft.railx.compat.CompatMods
+import com.lhwdev.minecraft.railx.compat.railways.flexiTrack.FlexiTrackCasingRenderer
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.content.trains.track.TrackBlock
@@ -24,6 +26,10 @@ class FlexiTrackRenderer(context: BlockEntityRendererProvider.Context) : TrackRe
 		overlay: Int,
 	) {
 		be as FlexiTrackBlockEntity
+		
+		if(CompatMods.railways)
+			FlexiTrackCasingRenderer.renderCasing(be, ms, buffer, light)
+		
 		super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 		
 		val level = be.level!!

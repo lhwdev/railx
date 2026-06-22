@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/track/create_andesite_wide/x_ortho"
+    }
+  }
+}

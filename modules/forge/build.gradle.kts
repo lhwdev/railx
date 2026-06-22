@@ -46,7 +46,7 @@ neoForge {
 		register("client") {
 			client()
 			systemProperty("neoforge.enabledGameTestNamespaces", modId)
-			systemProperty("mixin.debug", "true")
+			systemProperty("mixin.debug.export", "true")
 		}
 		
 		register("server") {
@@ -88,6 +88,7 @@ neoForge {
 			// "REGISTRYDUMP": For getting the contents of all registries.
 			systemProperty("forge.logging.markers", "SCAN")
 			systemProperty("railx_mixin_bypass", "true")
+			systemProperty("mixin.debug.countInjections", "false")
 			systemProperties.put(
 				"railx.project_dependencies_file",
 				modDevPlatform.projectDependenciesFile.map { it.asFile.absolutePath }
@@ -110,6 +111,12 @@ dependencies {
 	fun optionalModDependency(dependencyNotation: Any): Dependency? {
 		val dependency = compileOnly(dependencyNotation) ?: return null
 		return modDevRuntimeMods(dependency)
+	fun optionalModDependency(
+		dependencyNotation: String,
+		dependencyConfiguration: Action<ExternalModuleDependency> = Action {},
+	): Dependency? {
+		val dependency = compileOnly(dependencyNotation, dependencyConfiguration)
+		return modDevRuntimeMods(dependency, dependencyConfiguration)
 	}
 	
 	implementation(projects.minecraft)
@@ -130,8 +137,17 @@ dependencies {
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+67")
 	
 	// for mod compatibility
+	optionalModDependency("maven.modrinth:create-steam-n-rails-1.21.1:0.2.1+neoforge-mc1.21.1")
+	
+	compileOnly("de.mrjulsen.mcdragonlib:dragonlib-neoforge:1.21.1-beta-3.0.24")
+	compileOnly("de.mrjulsen.paw:pantographsandwires-neoforge:1.21.1-beta-0.2.2-C6")
+	modDevRuntimeMods("maven.modrinth:dragonlib:1.21.1-beta-3.0.26")
+	modDevRuntimeMods("maven.modrinth:create-pantographs-and-wires:1.21.1-beta-0.2.2-C6")
+	
 	optionalModDependency("maven.modrinth:framedblocks:10.5.3")
+	
 	optionalModDependency("maven.modrinth:xaeros-world-map:neoforge-1.21.1-1.40.16")
+	
 	optionalModDependency("maven.modrinth:copycats:3.0.4+mc.1.21.1-neoforge")
 	
 	// optional mod dependencies

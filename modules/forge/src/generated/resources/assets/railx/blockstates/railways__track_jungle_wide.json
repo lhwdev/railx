@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/track/jungle_wide/x_ortho"
+    }
+  }
+}

@@ -28,7 +28,7 @@ dependencyResolutionManagement {
 		
 		exclusiveContent {
 			forRepository {
-				maven(url = "https://api.modrinth.com/maven") { name = "Modrinth Maven" }
+				maven(url = "https://api.modrinth.com/maven/") { name = "Modrinth Maven" }
 			}
 			filter { includeGroup("maven.modrinth") }
 		}
@@ -53,14 +53,38 @@ dependencyResolutionManagement {
 			content { includeGroup("fuzs.forgeconfigapiport") }
 		}
 		
-		maven(url = "https://mvn.devos.one/snapshots") {
+		maven(url = "https://mvn.devos.one/snapshots/") {
 			name = "Maven for Registrate"
 			content {
 				includeGroup("com.tterrag.registrate")
 			}
 		}
 		
-		maven(url = "https://maven.squiddev.cc") {
+		maven(url = "https://maven.architectury.dev/") {
+			name = "Architectury required for MrJulsen"
+		}
+		
+		maven(url = "https://maven.blamejared.com/") {
+			name = "Blamejared required for MrJulsen"
+			content {
+				includeGroup("mezz.jei")
+			}
+		}
+		
+		maven(url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/") {
+			name = "GeckoLib required for MrJulsen"
+			content {
+				includeGroup("software.bernie.geckolib")
+				includeGroup("com.eliotlash.mclib")
+			}
+		}
+		
+		maven(url = "https://maven.mrjulsen.net/") {
+			name = "DragonLib + Pantographs and Wires by MrJulsen"
+			content { includeGroupAndSubgroups("de.mrjulsen") }
+		}
+		
+		maven(url = "https://maven.squiddev.cc/") {
 			name = "SquidDev Maven for CC: Tweaked"
 			content {
 				includeGroup("cc.tweaked")

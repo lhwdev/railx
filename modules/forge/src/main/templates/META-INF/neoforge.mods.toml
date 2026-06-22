@@ -45,6 +45,20 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
+modId = "railways"
+type = "optional"
+versionRange = "[1.21.1-beta-0.2.2-C6,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "pantographsandwires"
+type = "optional"
+versionRange = "[1.21.1-beta-0.2.2-C6,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
 modId = "framedblocks"
 type = "optional"
 versionRange = "[10.4.0,)"

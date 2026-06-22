@@ -8,7 +8,6 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.BezierTrackPointLocation
 import com.simibubi.create.content.trains.track.TrackBlockOutline
-import com.simibubi.create.content.trains.track.TrackMaterial
 import com.simibubi.create.foundation.utility.RaycastHelper
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import io.netty.buffer.ByteBuf
@@ -27,13 +26,11 @@ import net.minecraft.world.level.GameType
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.shapes.VoxelShape
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import kotlin.math.PI
 import kotlin.math.min
 import kotlin.math.sqrt
-import com.simibubi.create.AllShapes as CreateShapes
 import com.simibubi.create.AllTags as CreateTags
 
 
@@ -144,19 +141,9 @@ object MiddleTrackOutline {
 			.translate(-.5, -.125, -.5)
 		
 		val holdingTrack = CreateTags.AllBlockTags.TRACKS.matches(Minecraft.getInstance().player!!.mainHandItem)
-		val shape = getShape(result.curve.material, direction = Direction.EAST)
+		val shape = CommonTrackBlockOutline.getShape(result.curve.material, direction = Direction.EAST)
 		TrackBlockOutline.renderShape(shape, ms, vb, if(holdingTrack) false else null)
 		
 		ms.popPose()
-	}
-	
-	private fun getShape(material: TrackMaterial, direction: Direction): VoxelShape {
-		var shape = CreateShapes.TRACK_ORTHO[direction]
-		// if(CompatMods.railways) shape = when(material.trackType) {
-		// 	CRTrackMaterials.CRTrackType.MONORAIL -> CRShapes.MONORAIL_TRACK_ORTHO[direction]
-		// 	CRTrackMaterials.CRTrackType.NARROW_GAUGE -> CRShapes.NARROW_TRACK_ORTHO[direction]
-		// 	else -> shape
-		// }
-		return shape
 	}
 }

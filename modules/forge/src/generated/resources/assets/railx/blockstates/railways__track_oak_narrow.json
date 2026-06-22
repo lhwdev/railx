@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/track/oak_narrow/x_ortho"
+    }
+  }
+}

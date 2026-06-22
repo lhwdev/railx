@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/monorail/monorail/static_blocks/x_ortho"
+    }
+  }
+}

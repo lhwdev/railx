@@ -2,6 +2,7 @@
 
 package com.lhwdev.minecraft.utils.vectors
 
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
 
 
@@ -10,5 +11,11 @@ import net.minecraft.core.Vec3i
 inline operator fun Vec3i.plus(other: Vec3i): Vec3i =
 	offset(other)
 
+inline operator fun BlockPos.plus(other: BlockPos): BlockPos =
+	offset(other)
+
 inline operator fun Vec3i.minus(other: Vec3i): Vec3i =
+	subtract(other)
+
+inline operator fun BlockPos.minus(other: BlockPos): BlockPos =
 	subtract(other)

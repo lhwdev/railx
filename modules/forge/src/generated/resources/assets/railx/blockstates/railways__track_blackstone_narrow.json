@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/track/blackstone_narrow/x_ortho"
+    }
+  }
+}

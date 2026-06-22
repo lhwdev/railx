@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "railways:block/track/acacia_narrow/x_ortho"
+    }
+  }
+}

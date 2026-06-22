@@ -1,10 +1,17 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.common.addIfConnected
+import com.lhwdev.minecraft.railx.common.from
+import com.lhwdev.minecraft.railx.common.to
 import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.mojang.blaze3d.vertex.PoseStack
+import com.railwayteam.railways.content.custom_tracks.CustomTrackBlock
+import com.railwayteam.railways.content.custom_tracks.phantom.PhantomSpriteManager
+import com.railwayteam.railways.mixin_interfaces.IHasTrackCasing
+import com.railwayteam.railways.registry.CRBlockPartials
+import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.Create
 import com.simibubi.create.content.decoration.girder.GirderBlock
@@ -262,9 +269,19 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 		pos: BlockPos,
 		player: Player,
 		hand: InteractionHand,
-		hitResult: BlockHitResult,
-	): ItemInteractionResult =
-		ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
+		hit: BlockHitResult,
+	): ItemInteractionResult {
+		if(CompatMods.railways) {
+			CustomTrackBlock.casingUse(state, level, pos, player, hand, hit)
+				?.let {
+					if(it == InteractionResult.FAIL) return ItemInteractionResult.FAIL
+					if(it.consumesAction()) return ItemInteractionResult.sidedSuccess(level.isClientSide)
+				}
+		}
+		
+		if(level.isClientSide) return ItemInteractionResult.SUCCESS
+		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
+	}
 	
 	private fun updateGirders(pState: BlockState, pLevel: Level, pPos: BlockPos, blockTicks: LevelTickAccess<Block?>) {
 		for(axis in getTrackAxes(pLevel, pPos, pState)) {
@@ -389,8 +406,8 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 		if(be !is FlexiTrackBlockEntity) return null
 		if(bezierPoint != null) {
 			val bc = be.connections[bezierPoint.curveTarget] ?: return null
-			// if(CompatMods.railways && bc.material == CRTrackMaterials.PHANTOM && !PhantomSpriteManager.isVisible())
-			// 	return null
+			if(CompatMods.railways && bc.material == CRTrackMaterials.PHANTOM && !PhantomSpriteManager.isVisible())
+				return null
 			
 			val t = bc.getSegmentT(bezierPoint.segment + 1).toDouble()
 			val tPre = bc.getSegmentT(bezierPoint.segment).toDouble()
@@ -407,15 +424,15 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 			affine.translate(0f, -4 / 16f, 0f)
 			
 			if(CompatMods.railways) {
-				// if(bc.material.trackType == CRTrackMaterials.CRTrackType.MONORAIL) {
-				// 	affine.translate(0f, 14 / 16f, 0f)
-				// } else {
-				// 	val casing = bc as IHasTrackCasing
-				// 	if(casing.trackCasing != null) {
-				// 		if(bc.from.y == bc.to.y) affine.translate(0f, 1 / 16f, 0f)
-				// 		else if(!casing.isAlternate) affine.translate(0f, 4 / 16f, 0f)
-				// 	}
-				// }
+				if(bc.material.trackType == CRTrackMaterials.CRTrackType.MONORAIL) {
+					affine.translate(0f, 14 / 16f, 0f)
+				} else {
+					val casing = bc as IHasTrackCasing
+					if(casing.trackCasing != null) {
+						if(bc.from.y == bc.to.y) affine.translate(0f, 1 / 16f, 0f)
+						else if(!casing.isAlternate) affine.translate(0f, 4 / 16f, 0f)
+					}
+				}
 			}
 		} else {
 			axis = be.shape.axis1.tangent
@@ -424,20 +441,20 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 			
 			val block = state.block
 			if(CompatMods.railways && block is TrackBlock) {
-				// if(block.material.trackType == CRTrackMaterials.CRTrackType.MONORAIL) {
-				// 	affine.translate(0f, 14 / 16f, 0f)
-				// } else {
-				// 	val be = world.getBlockEntity(pos)
-				// 	if(be is TrackBlockEntity && be is IHasTrackCasing && be.trackCasing != null) {
-				// 		val spec = CRBlockPartials.TRACK_CASINGS[TrackShape.XO]
-				// 		val trackType = block.material.trackType
-				// 		if(spec != null) affine.translate(
-				// 			0f, // no x,z shift, as there is nothing like AE
-				// 			(spec.getTopSurfacePixelHeight(trackType, be.isAlternate) - 2) / 16f,
-				// 			0f
-				// 		)
-				// 	}
-				// }
+				if(block.material.trackType == CRTrackMaterials.CRTrackType.MONORAIL) {
+					affine.translate(0f, 14 / 16f, 0f)
+				} else {
+					val be = world.getBlockEntity(pos)
+					if(be is TrackBlockEntity && be is IHasTrackCasing && be.trackCasing != null) {
+						val spec = CRBlockPartials.TRACK_CASINGS[TrackShape.XO]
+						val trackType = block.material.trackType
+						if(spec != null) affine.translate(
+							0f, // no x,z shift, as there is nothing like AE
+							(spec.getTopSurfacePixelHeight(trackType, be.isAlternate) - 2) / 16f,
+							0f
+						)
+					}
+				}
 			}
 		}
 		
