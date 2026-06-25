@@ -70,6 +70,7 @@
     "common.ScrollValueRendererMixin",
     "common.TrackPlacementOverlayMixin",
     "common.ValueSettingsClientMixin",
+    "common.noTrackOutline.TrackBlockOutlineMixin",
     "common.reservedSignal.NixieTubeRendererMixin",
     "flexiTrack.TrackPlacementMixin",
     "middleTrack.LevelRendererMixin",

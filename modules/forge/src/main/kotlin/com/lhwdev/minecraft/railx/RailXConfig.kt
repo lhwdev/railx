@@ -18,6 +18,10 @@ object RailXConfig {
 			val preciseOverlay: BooleanValue = builder
 				.comment("Displays precise information about track blocks, curves, and track placement.")
 				.define("common.precise_overlay", true)
+			
+			val noTrackOutline: BooleanValue = builder
+				.comment("Disables hitbox(outline) of track curves.")
+				.define("common.no_track_overlay", false)
 		}
 		
 		inner class Compat {
