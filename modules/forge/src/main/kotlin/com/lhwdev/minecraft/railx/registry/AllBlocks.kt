@@ -3,6 +3,8 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
+import com.lhwdev.minecraft.railx.common.gravelLayer.GravelLayerBlock
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
@@ -22,11 +24,14 @@ import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import net.minecraft.client.renderer.RenderType
+import net.minecraft.core.Direction
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.material.MapColor
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel
 import net.neoforged.neoforge.common.Tags
 import net.neoforged.neoforge.registries.DeferredHolder
 import java.util.function.Supplier
