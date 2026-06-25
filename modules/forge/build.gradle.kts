@@ -108,9 +108,6 @@ dependencies {
 	val v = libs.versions
 	val modDevRuntimeMods = modDevPlatform.modDevRuntimeMods
 	
-	fun optionalModDependency(dependencyNotation: Any): Dependency? {
-		val dependency = compileOnly(dependencyNotation) ?: return null
-		return modDevRuntimeMods(dependency)
 	fun optionalModDependency(
 		dependencyNotation: String,
 		dependencyConfiguration: Action<ExternalModuleDependency> = Action {},
@@ -137,7 +134,7 @@ dependencies {
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+67")
 	
 	// for mod compatibility
-	optionalModDependency("maven.modrinth:create-steam-n-rails-1.21.1:0.2.1+neoforge-mc1.21.1")
+	optionalModDependency("maven.modrinth:create-steam-n-rails-1.21.1:0.3.0-alpha.2+neoforge-mc1.21.1")
 	
 	compileOnly("de.mrjulsen.mcdragonlib:dragonlib-neoforge:1.21.1-beta-3.0.24")
 	compileOnly("de.mrjulsen.paw:pantographsandwires-neoforge:1.21.1-beta-0.2.2-C6")

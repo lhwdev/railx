@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.compat.railways
 import com.railwayteam.railways.mixin_interfaces.IHasTrackCasing
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.TrackBlockEntity
-import net.minecraft.world.level.block.SlabBlock
+import net.minecraft.world.level.block.Block
 
 
 object RailwaysCasingExtension {
@@ -15,7 +15,7 @@ object RailwaysCasingExtension {
 		}
 	
 	@JvmStatic
-	var TrackBlockEntity.trackCasing: SlabBlock?
+	var TrackBlockEntity.trackCasing: Block?
 		get() = (this as IHasTrackCasing).trackCasing
 		set(value) {
 			(this as IHasTrackCasing).trackCasing = value
@@ -30,7 +30,7 @@ object RailwaysCasingExtension {
 		}
 	
 	@JvmStatic
-	var BezierConnection.trackCasing: SlabBlock?
+	var BezierConnection.trackCasing: Block?
 		get() = (this as IHasTrackCasing).trackCasing
 		set(value) {
 			(this as IHasTrackCasing).trackCasing = value
