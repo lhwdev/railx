@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.List;
 
 
-@Mixin(ScrollValueRenderer.class)
+@Mixin(value = ScrollValueRenderer.class, priority = 5000)
 public class ScrollValueRendererMixin {
 	@WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/blockEntity" +
 		"/behaviour/ValueSettingsClient;showHoverTip(Ljava/util/List;)V"), require = 0)

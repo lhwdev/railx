@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.Random;
 
 
-@Mixin(TrackGraphVisualizer.class)
+@Mixin(value = TrackGraphVisualizer.class, priority = 10000)
 public class TrackGraphVisualizerMixin {
 	@Redirect(method = "debugViewGraph", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
 		"/graph/TrackGraph;color:Lnet/createmod/catnip/theme/Color;", ordinal = 2, opcode = Opcodes.GETFIELD),
