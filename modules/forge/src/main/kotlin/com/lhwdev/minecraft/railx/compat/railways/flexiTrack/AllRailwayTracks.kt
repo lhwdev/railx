@@ -11,6 +11,8 @@ import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.tterrag.registrate.util.entry.BlockEntry
 import net.minecraft.core.registries.Registries
+import net.minecraftforge.fml.ModList
+import net.minecraftforge.fml.ModLoadingContext
 
 
 object AllRailwayTracks : CompatRailwayTracks() {
@@ -30,7 +32,14 @@ object AllRailwayTracks : CompatRailwayTracks() {
 	
 	
 	init {
-		CRBlocks.NARROW_GAUGE_TRACKS // does nothing but <cinit>
+		val previousModContainer = ModLoadingContext.get().activeContainer
+		val railwaysModContainer = ModList.get().getModContainerById("railways").get()
+		ModLoadingContext.get().activeContainer = railwaysModContainer
+		try {
+			CRBlocks.NARROW_GAUGE_TRACKS // does nothing but <cinit>
+		} finally {
+			ModLoadingContext.get().activeContainer = previousModContainer
+		}
 		
 		fun blockStateModelOf(material: TrackMaterial) =
 			Railways.asResource("${OutputPrefixer.DEFAULT.getOutputPrefix(material)}x_ortho")

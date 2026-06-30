@@ -139,8 +139,9 @@ dependencies {
 	
 	modCompileOnly("de.mrjulsen.mcdragonlib:dragonlib-forge:1.20.1-beta-3.0.28")
 	modCompileOnly("de.mrjulsen.paw:pantographsandwires-forge:1.20.1-beta-0.2.3-C6")
-	modDevRuntimeMods("maven.modrinth:dragonlib:1.20.1-beta-3.0.26")
-	modDevRuntimeMods("maven.modrinth:create-pantographs-and-wires:1.20.1-beta-0.2.3-C6")
+	modDevRuntimeMods("maven.modrinth:dragonlib:1.20.1-beta-3.0.28")
+	// modDevRuntimeMods("maven.modrinth:create-pantographs-and-wires:1.20.1-beta-0.2.3-C6")
+	modDevRuntimeMods("maven.modrinth:architectury-api:9.2.14+forge")
 	
 	optionalModDependency("maven.modrinth:framedblocks:9.4.2")
 	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_Forge_1.20")
