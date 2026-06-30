@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 
-@Mixin(NixieTubeRenderer.class)
+@Mixin(value = NixieTubeRenderer.class, priority = 3000)
 public class NixieTubeRendererMixin {
 	@Redirect(method = "renderAsSignal", at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/render" +
 		"/CachedBuffers;partial(Ldev/engine_room/flywheel/lib/model/baked/PartialModel;" +

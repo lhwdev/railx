@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.ObserverEditPacket
+import com.lhwdev.minecraft.railx.compat.pantographsandwires.UpdateCantileverAutoPacket
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiblePlacementPacket
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
 import com.lhwdev.minecraft.railx.realisticSpeed.control.UpdateRealisticPacket
@@ -24,6 +25,8 @@ import net.minecraftforge.network.simple.SimpleChannel
 enum class AllPackets(val base: RailXPacketType<*>) {
 	/// client -> server
 	FlexiblePlacement(FlexiblePlacementPacket),
+	
+	UpdateCantileverAuto(UpdateCantileverAutoPacket),
 	
 	UpdateRealistic(UpdateRealisticPacket),
 	

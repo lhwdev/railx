@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
-@Mixin(TrackPlacement.class)
+@Mixin(value = TrackPlacement.class, priority = 3000)
 public class TrackPlacementMixin {
 	@Inject(method = "clientTick", at = @At("HEAD"), remap = false)
 	private static void beforeClientTick(CallbackInfo ci) {

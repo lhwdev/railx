@@ -240,11 +240,7 @@ public abstract class TrainMixin implements TrainForSplit {
 		ci.cancel();
 	}
 	
-	/**
-	 * @author lhwdev
-	 * @reason whole overhaul
-	 */
-	@Inject(method = "reattachToTracks", at = @At("HEAD"), remap = false)
+	@Inject(method = "reattachToTracks", at = @At("HEAD"), cancellable = true, remap = false)
 	public void onReattachToTracks(Level level, CallbackInfo ci) {
 		if(migrationCooldown > 0) {
 			migrationCooldown--;

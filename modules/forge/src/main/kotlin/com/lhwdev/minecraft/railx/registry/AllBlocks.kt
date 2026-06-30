@@ -3,6 +3,7 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
+import com.lhwdev.minecraft.railx.common.gravelLayer.GravelLayerBlock
 import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
@@ -24,11 +25,14 @@ import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.entry.RegistryEntry
 import net.minecraft.client.renderer.RenderType
+import net.minecraft.core.Direction
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.material.MapColor
+import net.minecraftforge.client.model.generators.ConfiguredModel
 import java.util.function.Supplier
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserver as AdvancedTrackObserverPoint
 import com.simibubi.create.AllBlocks as CreateBlocks
@@ -39,6 +43,54 @@ object AllBlocks {
 	private val Registry = RailXRegistry
 	
 	fun register() {}
+	
+	
+	val GravelLayer = Registry.block("gravel_layer", ::GravelLayerBlock) {
+		initialProperties(Blocks::GRAVEL)
+		blockstate { c, p ->
+			val gravel = p.mcLoc("block/gravel")
+			
+			p.getVariantBuilder(c.entry).forAllStates { state ->
+				val layers = state.getValue(GravelLayerBlock.Layers)
+				if(layers == GravelLayerBlock.MaxLayer) {
+					ConfiguredModel.builder()
+						.modelFile(p.models().getExistingFile(gravel))
+						.build()
+				} else {
+					val modelFile = p.models().getBuilder("block/gravel_height${layers * 2}").apply {
+						texture("particle", gravel)
+						texture("texture", gravel)
+						element().apply {
+							val y = (layers * 2).toFloat()
+							
+							from(0f, 0f, 0f)
+							to(16f, y, 16f)
+							
+							allFaces { direction, builder ->
+								builder.texture("#texture")
+								if(direction.axis == Direction.Axis.Y) {
+									builder.uvs(0f, 0f, 16f, 16f)
+								} else {
+									builder.uvs(0f, 16f - y, 16f, 16f)
+								}
+								if(direction != Direction.DOWN) {
+									builder.cullface(direction)
+								}
+							}
+						}
+					}
+					
+					ConfiguredModel.builder()
+						.modelFile(modelFile)
+						.build()
+				}
+			}
+		}
+		item()
+			.model { c, p -> p.withExistingParent(c.name, p.modLoc("block/gravel_height2")) }
+			.build()
+	}
+	
 	
 	val AdvancedTrackObserver = Registry.block("advanced_track_observer", ::AdvancedTrackObserverBlock) {
 		initialProperties(SharedProperties::softMetal)
@@ -125,12 +177,13 @@ inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	tag(BlockTags.MINEABLE_WITH_PICKAXE)
 	tag(CreateTags.AllBlockTags.RELOCATION_NOT_SUPPORTED.tag)
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
-	if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL)
+	if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL) // issue with cinit
 		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 	
 	if(createItem) item(factory = ::TrackBlockItem) {
 		tag(CreateTags.AllItemTags.TRACKS.tag)
 		model { c, p -> p.generated(c, Create.asResource("item/track")) }
+		
 		if(
 			CompatMods.railways && (
 				material == CRTrackMaterials.PHANTOM ||

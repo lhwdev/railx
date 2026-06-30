@@ -52,6 +52,20 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
+modId = "railways"
+type = "optional"
+versionRange = "[0.3.0-alpha.2+neoforge-mc1.21.1,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "pantographsandwires"
+type = "optional"
+versionRange = "[1.21.1-beta-0.2.2-C6,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
 modId = "framedblocks"
 mandatory = false
 versionRange = "[9.4.2,)"

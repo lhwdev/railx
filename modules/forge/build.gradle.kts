@@ -46,7 +46,7 @@ neoForge {
 		register("client") {
 			client()
 			systemProperty("neoforge.enabledGameTestNamespaces", modId)
-			systemProperty("mixin.debug", "true")
+			systemProperty("mixin.debug.export", "true")
 		}
 		
 		register("server") {
@@ -88,6 +88,7 @@ neoForge {
 			// "REGISTRYDUMP": For getting the contents of all registries.
 			systemProperty("forge.logging.markers", "SCAN")
 			systemProperty("railx_mixin_bypass", "true")
+			systemProperty("mixin.debug.countInjections", "false")
 			systemProperties.put(
 				"railx.project_dependencies_file",
 				modDevPlatform.projectDependenciesFile.map { it.asFile.absolutePath }
@@ -135,6 +136,12 @@ dependencies {
 	
 	// for mod compatibility
 	optionalModDependency("com.railwayteam.railways:Steam_Rails-forge-1.20.1:1.7.1+forge-mc1.20.1")
+	
+	modCompileOnly("de.mrjulsen.mcdragonlib:dragonlib-forge:1.20.1-beta-3.0.28")
+	modCompileOnly("de.mrjulsen.paw:pantographsandwires-forge:1.20.1-beta-0.2.3-C6")
+	modDevRuntimeMods("maven.modrinth:dragonlib:1.20.1-beta-3.0.26")
+	modDevRuntimeMods("maven.modrinth:create-pantographs-and-wires:1.20.1-beta-0.2.3-C6")
+	
 	optionalModDependency("maven.modrinth:framedblocks:9.4.2")
 	optionalModDependency("maven.modrinth:xaeros-world-map:1.39.12_Forge_1.20")
 	optionalModDependency("maven.modrinth:copycats:3.0.4+mc.1.20.1-forge")

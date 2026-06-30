@@ -41,10 +41,17 @@ public class TrackTargetingBlockItemMixin {
 			return;
 		
 		ci.cancel();
-		var NOT_STRAIGHT = TrackTargetingBlockItem.OverlapResult.valueOf("NOT_STRAIGHT");
+		TrackTargetingBlockItem.OverlapResult NOT_STRAIGHT = null;
+		try {
+			NOT_STRAIGHT = TrackTargetingBlockItem.OverlapResult.valueOf("NOT_STRAIGHT");
+		} catch(IllegalArgumentException ignored) {
+		}
 		
 		if(targetBezier != null) {
-			callback.accept(NOT_STRAIGHT, null);
+			callback.accept(
+				NOT_STRAIGHT == null ? TrackTargetingBlockItem.OverlapResult.NO_TRACK : NOT_STRAIGHT,
+				null
+			);
 			return;
 		}
 		var shape = track.flexiShape(level, pos);
