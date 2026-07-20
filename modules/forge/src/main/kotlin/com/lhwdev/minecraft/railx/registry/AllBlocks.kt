@@ -2,6 +2,8 @@
 
 package com.lhwdev.minecraft.railx.registry
 
+import com.lhwdev.minecraft.railx.advancedRoller.AdvancedRollerBlock
+import com.lhwdev.minecraft.railx.advancedRoller.AdvancedRollerMovementBehavior
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
 import com.lhwdev.minecraft.railx.common.gravelLayer.GravelLayerBlock
 import com.lhwdev.minecraft.railx.compat.CompatMods
@@ -15,6 +17,8 @@ import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.AllDisplaySources
 import com.simibubi.create.Create
 import com.simibubi.create.api.behaviour.display.DisplaySource
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour
+import com.simibubi.create.content.contraptions.actors.roller.RollerBlockItem
 import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.data.AssetLookup
 import com.simibubi.create.foundation.data.BlockStateGen
@@ -92,6 +96,33 @@ object AllBlocks {
 			.build()
 	}
 	
+	
+	val AdvancedMechanicalRoller = Registry.block("advanced_mechanical_roller", ::AdvancedRollerBlock) {
+		initialProperties(SharedProperties::stone)
+		properties {
+			it.mapColor(MapColor.COLOR_GRAY)
+				.noOcclusion()
+		}
+		
+		tag(BlockTags.MINEABLE_WITH_AXE)
+		tag(BlockTags.MINEABLE_WITH_PICKAXE)
+		
+		blockstate { c, p ->
+			p.horizontalBlock(c.entry) {
+				p.models().getExistingFile(Create.asResource("block/mechanical_roller/block"))
+			}
+		}
+		
+		@Suppress("removal", "DEPRECATION")
+		addLayer { Supplier(RenderType::cutoutMipped) }
+		
+		item(::RollerBlockItem)
+			.tag(CreateTags.AllItemTags.CONTRAPTION_CONTROLLED.tag)
+			.model { c, p -> p.withExistingParent(c.name, Create.asResource("block/mechanical_roller/item")) }
+			.build()
+		
+		onRegister(MovementBehaviour.movementBehaviour(AdvancedRollerMovementBehavior()))
+	}
 	
 	val AdvancedTrackObserver = Registry.block("advanced_track_observer", ::AdvancedTrackObserverBlock) {
 		initialProperties(SharedProperties::softMetal)

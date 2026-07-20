@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "railx:advanced_mechanical_roller"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "railx:blocks/advanced_mechanical_roller"
+}

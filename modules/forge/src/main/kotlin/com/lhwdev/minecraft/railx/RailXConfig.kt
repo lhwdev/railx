@@ -89,6 +89,14 @@ object RailXConfig {
 		
 		
 		inner class Common {
+			val awaitDepartureForSignalDistance: DoubleValue = builder
+				.comment(
+					"Overwrites the maximum distance between station marking and signal. " +
+						"If signals ahead of station inside given distance is red, the train won't departure. " +
+						"To use default value, (currently 4.5 in Create) set to 0."
+				)
+				.defineInRange("common.await_departure_for_signal_distance", 0.0, 0.0, 64.0)
+			
 			val manualStation: BooleanValue = builder
 				.comment(
 					"Makes approaching to station manual. Cannot use space to approach station, and when train " +
