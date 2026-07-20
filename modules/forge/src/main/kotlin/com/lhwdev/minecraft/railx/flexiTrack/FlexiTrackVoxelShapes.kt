@@ -76,7 +76,7 @@ open class FlexiTrackVoxelShapes {
 		return if(direction is FlexiDirection.Flat) {
 			createFlatShape(rotation)
 		} else {
-			return createNormalShape(rotation)
+			createNormalShape(rotation)
 		}
 	}
 	

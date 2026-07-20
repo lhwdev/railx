@@ -37,7 +37,7 @@ data class FlexiState(
 		shape.axes.map { AxisCache(it) }
 	}
 	
-	class AxisCache(direction: FlexiDirection) {
+	class AxisCache(val direction: FlexiDirection) {
 		val rotationValueDouble: Quaterniondc = direction.rotationValue()
 		val rotationValue: Quaternionfc = Quaternionf(rotationValueDouble)
 	}

@@ -2,11 +2,8 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
 import com.lhwdev.minecraft.railx.common.ScrollValueBehaviorExtension
 import com.lhwdev.minecraft.railx.common.ValueSettingsBehaviourExtra
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiShape
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockBehavior
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.utils.transformUnit
+import com.lhwdev.minecraft.railx.flexiTrack.*
+import com.lhwdev.minecraft.utils.vectors.toVec3
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
@@ -29,8 +26,7 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
-import org.joml.Quaternionf
-import org.joml.Quaternionfc
+import org.joml.Vector3d
 import java.util.function.Consumer
 import kotlin.math.PI
 
@@ -49,6 +45,16 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	
 	companion object {
 		var currentKind: Kind = Kind.Direction
+		
+		const val ClipboardKey = "FlexiTrackDirection"
+		
+		fun writeToClipboard(axis: FlexiDirection, tag: CompoundTag) {
+			tag.put("railx:FlexiTrackDirection", axis.write())
+		}
+		
+		fun readFromClipboard(tag: CompoundTag): FlexiDirection? =
+			(tag.get("railx:FlexiTrackDirection") as? CompoundTag)
+				?.let { FlexiDirection.read(it) }
 	}
 	
 	init {
@@ -142,7 +148,7 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	
 	override fun writeToClipboard(registries: HolderLookup.Provider, tag: CompoundTag, side: Direction): Boolean {
 		val axis = be.shape.axes.singleOrNull() ?: return false
-		tag.put("railx:FlexiTrackDirection", axis.write())
+		writeToClipboard(axis, tag)
 		return true
 	}
 	
@@ -155,56 +161,49 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	): Boolean {
 		val state = be.state
 		if(state.shape.axes.size != 1) return false
-		val direction = tag.get("railx:FlexiTrackDirection") as? CompoundTag ?: return false
+		val direction = readFromClipboard(tag) ?: return false
 		if(simulate) return true
 		
-		be.updateState(state.copy(baseShape = FlexiShape.Single(axis = FlexiDirection.read(direction))))
+		be.updateState(state.copy(baseShape = FlexiShape.Single(axis = direction)))
 		return true
 	}
 	
 	override fun getClipboardKey(): String =
-		"FlexiTrackDirection"
+		ClipboardKey
 }
 
 private object FlexiRotationValueBox : ValueBoxTransform.Sided() {
-	override fun getSouthLocation(): Vec3 = Vec3.ZERO
+	override fun getSouthLocation(): Vec3? = null // will directly implement getLocalOffset()
+	
+	override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3? {
+		val block = state.block as? FlexiTrackBlock ?: return null
+		val blockEntity = level.getBlockEntity(pos) as? FlexiTrackBlockEntity ?: return null
+		
+		val height = block.voxelShapes.base.let { it.max(Direction.Axis.Y) - it.min(Direction.Axis.Y) }
+		val shape = blockEntity.state.shapeCache.firstOrNull() ?: return null
+		
+		return Vector3d(0.5, height, 0.5)
+			.sub(blockEntity.center)
+			.rotate(shape.rotationValueDouble)
+			.add(blockEntity.center)
+			.toVec3()
+	}
+	
+	override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+		val block = state.block as? FlexiTrackBlock ?: return
+		val blockEntity = level.getBlockEntity(pos) as? FlexiTrackBlockEntity ?: return
+		val player = Minecraft.getInstance().player ?: return
+		
+		val shape = blockEntity.state.shapeCache.firstOrNull() ?: return
+		val sign = player.lookAngle.dot(shape.direction.tangent)
+		
+		val halfPi = PI.toFloat() * 0.5f
+		TransformStack.of(ms)
+			.rotate(shape.rotationValue)
+			.rotateX(halfPi)
+			.rotateZ(if(sign < 0) halfPi else halfPi * 3)
+	}
 	
 	override fun isSideActive(state: BlockState, direction: Direction): Boolean =
 		direction == Direction.UP
-	
-	fun getRotation(level: LevelAccessor, pos: BlockPos): Quaternionf? {
-		val blockEntity = level.getBlockEntity(pos) as? FlexiTrackBlockEntity ?: return null
-		val direction = blockEntity.state.shape.axis1
-		val directionCache = blockEntity.state.shapeCache.firstOrNull() ?: return null
-		val player = Minecraft.getInstance().player ?: return null
-		val sign = player.lookAngle.dot(direction.tangent)
-		
-		val halfPi = PI.toFloat() * 0.5f
-		return Quaternionf(directionCache.rotationValue)
-			.rotateY(if(sign < 0) halfPi * 3 else halfPi)
-	}
-	
-	fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState, rotation: Quaternionfc): Vec3? {
-		val shape = state.getShape(level, pos)
-		val height = shape.max(Direction.Axis.Y) - shape.min(Direction.Axis.Y)
-		
-		return rotation.transformUnit(Vec3(0.0, height, 0.0))
-			.add(0.5, 0.0, 0.5)
-	}
-	
-	override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3? {
-		val rotation = getRotation(level, pos) ?: return null
-		return getLocalOffset(level, pos, state, rotation)
-	}
-	
-	override fun transform(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
-		val rotation = getRotation(level, pos) ?: return
-		val localOffset = getLocalOffset(level, pos, state, rotation)
-		
-		TransformStack.of(ms)
-			.rotateAround(rotation, 0.5f, 0.0f, 0.5f)
-			.translate(localOffset)
-			.rotateXDegrees(90f)
-			.scale(scale, scale, scale)
-	}
 }

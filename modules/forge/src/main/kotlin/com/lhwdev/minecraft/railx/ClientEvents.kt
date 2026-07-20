@@ -36,7 +36,6 @@ object ClientEvents {
 		var result = event.isCanceled
 		
 		if(!result) result = CurvedMiddleTrackInteraction.onClickInput(event)
-		
 		if(!result) result = CurvedFlexiTrackInteraction.onClickInput(event)
 		
 		if(result) event.isCanceled = true

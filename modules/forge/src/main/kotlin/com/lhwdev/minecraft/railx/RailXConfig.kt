@@ -34,6 +34,10 @@ object RailXConfig {
 		}
 		
 		inner class FlexiTrak {
+			val rightClickCurveToCopy: BooleanValue = builder
+				.comment("Enable right-clicking any track curves with clipboard to copy rotation values.")
+				.define("flexi_trak.right_click_curve_to_copy", false)
+			
 			val overlayWidth: IntValue = builder
 				.comment("Specify how wide placement overlays are shown.")
 				.defineInRange("flexi_trak.overlay_width", 3, 0, 7)
