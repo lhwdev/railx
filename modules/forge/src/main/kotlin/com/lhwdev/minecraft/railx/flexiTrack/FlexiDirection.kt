@@ -7,6 +7,8 @@ import com.simibubi.create.content.trains.track.TrackShape
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.Direction
 import net.minecraft.nbt.*
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
@@ -52,6 +54,8 @@ interface FlexiDirection {
 	
 	fun write(): CompoundTag
 	
+	fun write(buffer: FriendlyByteBuf)
+	
 	
 	interface Signed : FlexiDirection {
 		override fun unaryMinus(): FlexiDirection = Two(-tangent, normal)
@@ -76,6 +80,10 @@ interface FlexiDirection {
 		
 		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x0)
+		}
+		
+		override fun write(buffer: FriendlyByteBuf) {
+			buffer.writeByte(0x0)
 		}
 		
 		override fun toString(): String = "FlexiDirection.Zero"
@@ -225,6 +233,9 @@ interface FlexiDirection {
 			fun read(tag: CompoundTag): Known =
 				fromIndex(tag.getInt("Index"))
 			
+			fun read(buffer: FriendlyByteBuf): Known =
+				fromIndex(buffer.readInt())
+			
 			fun readInt(tag: NumericTag): Known =
 				fromIndex(tag.asInt)
 		}
@@ -299,6 +310,11 @@ interface FlexiDirection {
 			tag.putInt("Index", index)
 		}
 		
+		override fun write(buffer: FriendlyByteBuf) {
+			buffer.writeByte(0x1)
+			buffer.writeInt(index)
+		}
+		
 		fun writeInt(): Tag = IntTag.valueOf(index)
 		
 		fun format(): String = "K$ordinal"
@@ -344,6 +360,7 @@ interface FlexiDirection {
 			get() = known.tangent2!!
 		
 		override fun write(): CompoundTag = error("not meant to be written")
+		override fun write(buffer: FriendlyByteBuf) = error("not meant to be written")
 	}
 	
 	class KnownVec3(override val known: Known) : UnsignedKnownVec3(
@@ -363,6 +380,11 @@ interface FlexiDirection {
 			fun read(tag: CompoundTag): SignedKnown = SignedKnown(
 				from = Known.fromIndex(tag.getInt("From")),
 				sign = if(tag.getBoolean("Sign")) Direction.AxisDirection.POSITIVE else Direction.AxisDirection.NEGATIVE,
+			)
+			
+			fun read(buffer: FriendlyByteBuf): SignedKnown = SignedKnown(
+				from = Known.fromIndex(buffer.readInt()),
+				sign = if(buffer.readBoolean()) Direction.AxisDirection.POSITIVE else Direction.AxisDirection.NEGATIVE,
 			)
 		}
 		
@@ -388,6 +410,12 @@ interface FlexiDirection {
 			tag.putInt("From", from.index)
 			tag.putBoolean("Sign", sign == Direction.AxisDirection.POSITIVE)
 		}
+		
+		override fun write(buffer: FriendlyByteBuf) {
+			buffer.writeByte(0x2)
+			buffer.writeInt(from.index)
+			buffer.writeBoolean(sign == Direction.AxisDirection.POSITIVE)
+		}
 	}
 	
 	class OppositeKnownVec3(override val known: SignedKnown, tangent: Vec3) :
@@ -404,6 +432,9 @@ interface FlexiDirection {
 		companion object {
 			fun read(tag: CompoundTag): FlatImpl =
 				FlatImpl(VecHelper.readNBT(tag.get("Tangent") as ListTag))
+			
+			fun read(buffer: FriendlyByteBuf): FlatImpl =
+				FlatImpl(buffer.readVec3())
 		}
 		
 		override fun mirror(by: Mirror): FlatImpl = FlatImpl(by.mirror(tangent))
@@ -425,6 +456,11 @@ interface FlexiDirection {
 		override fun write(): CompoundTag = CompoundTag { tag ->
 			tag.putByte("Type", 0x8)
 			tag.put("Tangent", VecHelper.writeNBT(tangent))
+		}
+		
+		override fun write(buffer: FriendlyByteBuf) {
+			buffer.writeByte(0x8)
+			buffer.writeVec3(tangent)
 		}
 		
 		override fun toString(): String = "FlexiDirection.FlatImpl(tangent=$tangent)"
@@ -472,7 +508,15 @@ interface FlexiDirection {
 					if(base is NumericTag) Known.readInt(base)
 					else FlexiDirection.read(base as CompoundTag) as Flat
 				},
-				normal = VecHelper.readNBT(tag.getList("Normal", Tag.TAG_DOUBLE.toInt()))
+				normal = VecHelper.readNBT(tag.getList("Normal", Tag.TAG_DOUBLE.toInt())),
+			)
+			
+			fun read(buffer: FriendlyByteBuf): NormalizedImpl = NormalizedImpl(
+				base = buffer.readByte().let { base ->
+					if(base == Byte.MAX_VALUE) Known.read(buffer)
+					else readByType(buffer, type = base.toInt()) as Flat
+				},
+				normal = buffer.readVec3(),
 			)
 		}
 		
@@ -513,6 +557,15 @@ interface FlexiDirection {
 			tag.put("Normal", VecHelper.writeNBT(normal))
 		}
 		
+		override fun write(buffer: FriendlyByteBuf) {
+			buffer.writeByte(0x10)
+			if(base is Known)
+				buffer.writeByte(Byte.MAX_VALUE)
+			base.write(buffer)
+			
+			buffer.writeVec3(normal)
+		}
+		
 		override fun toString(): String = "FlexiDirection.NormalizedImpl(base=$base, normal=$normal)"
 	}
 	
@@ -521,6 +574,11 @@ interface FlexiDirection {
 			fun read(tag: CompoundTag): Two = Two(
 				tangent = VecHelper.readNBT(tag.get("Tangent") as ListTag),
 				normal = VecHelper.readNBT(tag.get("Normal") as ListTag),
+			)
+			
+			fun read(buffer: FriendlyByteBuf): Two = Two(
+				tangent = buffer.readVec3(),
+				normal = buffer.readVec3(),
 			)
 		}
 		
@@ -558,7 +616,7 @@ interface FlexiDirection {
 					val d = b + 1
 					val x = tangent.x - tangent.y * a / d
 					val y = (-tangent.x * d + (d - a * a) * x) / (a * c)
-					return NormalizedImpl(base = FlatImpl(Vec3(x, 0.0, y).normalize()), normal, tangent)
+					NormalizedImpl(base = FlatImpl(Vec3(x, 0.0, y).normalize()), normal, tangent)
 				}
 			}
 		}
@@ -591,11 +649,20 @@ interface FlexiDirection {
 			tag.put("Normal", VecHelper.writeNBT(normal))
 		}
 		
+		override fun write(buffer: FriendlyByteBuf) {
+			buffer.writeByte(0x20)
+			buffer.writeVec3(tangent)
+			buffer.writeVec3(normal)
+		}
+		
 		override fun toString(): String = "FlexiDirection.Two(tangent=$tangent, normal=$normal)"
 	}
 	
 	
 	companion object {
+		val STREAM_CODEC: StreamCodec<FriendlyByteBuf, FlexiDirection> =
+			StreamCodec.ofMember(FlexiDirection::write, FlexiDirection::read)
+		
 		fun read(tag: CompoundTag): FlexiDirection = when(tag.getByte("Type").toInt()) {
 			0x0 -> Zero
 			0x1 -> Known.read(tag)
@@ -604,6 +671,19 @@ interface FlexiDirection {
 			0x10 -> NormalizedImpl.read(tag)
 			0x20 -> Two.read(tag)
 			else -> error("unexpected type ${tag.getByte("Type")}")
+		}
+		
+		fun read(buffer: FriendlyByteBuf): FlexiDirection =
+			readByType(buffer, type = buffer.readByte().toInt())
+		
+		fun readByType(buffer: FriendlyByteBuf, type: Int): FlexiDirection = when(type) {
+			0x0 -> Zero
+			0x1 -> Known.read(buffer)
+			0x2 -> SignedKnown.read(buffer)
+			0x8 -> FlatImpl.read(buffer)
+			0x10 -> NormalizedImpl.read(buffer)
+			0x20 -> Two.read(buffer)
+			else -> error("unexpected type $type")
 		}
 	}
 }
