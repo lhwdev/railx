@@ -18,10 +18,10 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 
-class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
-	FlexiTrackRotateScrollBehavior(kind = FlexiTrackRotateScrollBehaviors.Kind.Tilt, be, slot) {
+class FlexiCantScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
+	FlexiTrackRotateScrollBehavior(kind = FlexiTrackRotateScrollBehaviors.Kind.Cant, be, slot) {
 	
-	val maxTilt = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.get()), 80)
+	val maxCant = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.get()), 80)
 	
 	override fun formatValue(): String {
 		val mc = Minecraft.getInstance()
@@ -33,7 +33,7 @@ class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 			level.getBlockState(be.blockPos),
 			mc.player!!.lookAngle
 		)?.signedAxis ?: return "?"
-		val value = (direction.tilt * maxTilt / PI).roundToInt()
+		val value = (direction.cant * maxCant / PI).roundToInt()
 		return when {
 			value == 0 -> "0‰"
 			value > 0 -> "R$value‰"
@@ -52,13 +52,13 @@ class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 			Component.literal("Cannot rotate empty track"), 0, 0, emptyList(),
 			ValueSettingsFormatter { Component.empty() })
 		
-		value = maxTilt + (direction.tilt * maxTilt / PI).roundToInt()
+		value = maxCant + (direction.cant * maxCant / PI).roundToInt()
 		
 		return createBoard(
-			maxValue = 2 * maxTilt - 1,
-			title = "Tilt",
+			maxValue = 2 * maxCant - 1,
+			title = "Cant",
 			formatter = { v ->
-				val value = v - maxTilt
+				val value = v - maxCant
 				when {
 					value == 0 -> "0‰"
 					value > 0 -> "R${value}‰"
@@ -69,7 +69,7 @@ class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 	}
 	
 	override fun formatPreciseDelta(delta: Float): String {
-		val value = round(delta / maxTilt, 1000)
+		val value = round(delta / maxCant, 1000)
 		return when {
 			value == 0f -> "0‰"
 			value > 0f -> "R${value}‰"
@@ -85,12 +85,12 @@ class FlexiTiltScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 			?.signedAxis ?: return false
 		val delta = when(value) {
 			is Rotation.Steps -> {
-				val initialValue = maxTilt + (direction.tilt * maxTilt / PI).roundToInt()
+				val initialValue = maxCant + (direction.cant * maxCant / PI).roundToInt()
 				if(value.step == initialValue) return false
-				(value.step - initialValue) * PI / maxTilt
+				(value.step - initialValue) * PI / maxCant
 			}
 			
-			is Rotation.Precise -> value.delta * PI / maxTilt
+			is Rotation.Precise -> value.delta * PI / maxCant
 		}
 		
 		val axis = direction.tangent

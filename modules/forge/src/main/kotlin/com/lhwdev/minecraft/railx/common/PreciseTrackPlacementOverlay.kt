@@ -425,7 +425,12 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 				?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}" }
 		
 		if(abs(normal.x) > 1e-5 || abs(normal.z) > 1e-5) { // lesser than similarTo
-			val info = "Grad=${tangent.gradient()}, Tilt=${round(rot.tilt * radToDeg, 100)}"
+			val cant = round(rot.cant * radToDeg, 100)
+			val info = if(cant == 0.0) {
+				"G=${tangent.gradient()}"
+			} else {
+				"G=${tangent.gradient()}, C=$cant"
+			}
 			return if(known != null) "$known($angle, $info)" else "$angle($info)"
 		} else {
 			return if(known != null) "$known($angle)" else angle

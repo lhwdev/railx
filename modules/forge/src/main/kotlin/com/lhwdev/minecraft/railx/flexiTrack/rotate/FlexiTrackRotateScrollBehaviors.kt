@@ -38,7 +38,7 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	enum class Kind(val title: String) {
 		Direction(title = "Direction"),
 		Gradient(title = "Gradient"),
-		Tilt(title = "Tilt");
+		Cant(title = "Cant");
 		
 		fun next(): Kind = entries[(ordinal + 1) % entries.size]
 	}
@@ -77,7 +77,7 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 			?: FlexiRotationScrollBehavior(be, slotPositioning)
 		
 		Kind.Gradient -> FlexiGradientScrollBehavior(be, slotPositioning)
-		Kind.Tilt -> FlexiTiltScrollBehavior(be, slotPositioning)
+		Kind.Cant -> FlexiCantScrollBehavior(be, slotPositioning)
 	}
 	
 	override fun onFlexiStateUpdate(level: LevelReader, pos: BlockPos) {
@@ -139,7 +139,7 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 			.append(", ")
 			.append(kindText(Kind.Gradient))
 			.append(", and ")
-			.append(kindText(Kind.Tilt))
+			.append(kindText(Kind.Cant))
 			.append(".")
 	}
 	
