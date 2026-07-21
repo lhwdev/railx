@@ -1,21 +1,26 @@
 package com.lhwdev.minecraft.railx.mixin.throttle;
 
 import com.lhwdev.minecraft.railx.RailXConfig;
-import com.lhwdev.minecraft.railx.realisticSpeed.RealisticTrainSpeedKt;
-import com.lhwdev.minecraft.railx.throttle.TrainThrottleUtils;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.simibubi.create.content.trains.entity.Carriage;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.trains.entity.Train;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 
 @Mixin(CarriageContraptionEntity.class)
 public class CarriageContraptionEntityMixin {
-	@Shadow private Carriage carriage;
+	@ModifyVariable(method = "control", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
+		"/entity/Train;getCurrentStation()Lcom/simibubi/create/content/trains/station/GlobalStation;"), index = 9,
+		expect = 0, order = 2000)
+	boolean overwriteSlow(boolean slow) {
+		if(RailXConfig.Server.Value.getThrottle().getEnabled().isTrue())
+			return false;
+		
+		return slow;
+	}
 	
 	@WrapOperation(method = "control", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains" +
 		"/entity/Train;approachTargetSpeed(F)V"))
@@ -24,26 +29,9 @@ public class CarriageContraptionEntityMixin {
 		float accelerationMod,
 		Operation<Void> original
 	) {
-		if(RailXConfig.Server.Value.getThrottle().getEnabled().isFalse()) {
-			original.call(instance, accelerationMod);
+		if(!RailXConfig.Server.Value.getThrottle().getEnabled().isFalse() && instance.navigation.destination == null)
 			return;
-		}
 		
-		var train = carriage.train;
-		var throttle = TrainThrottleUtils.getAbsoluteThrottle(train);
-		if(RailXConfig.Server.Value.getRealisticSpeed().getEnabled().isTrue() && train.navigation.destination == null) {
-			var realisticSpeed = RealisticTrainSpeedKt.getRealisticSpeed(train);
-			if(realisticSpeed != null) {
-				realisticSpeed.handleManualThrottle(throttle, train.targetSpeed);
-				return;
-			}
-		}
-		
-		if(train.navigation.destination == null) {
-			accelerationMod = (float) Math.abs(throttle.getAcceleration());
-		} else {
-			// throttle according to train.navigation.distanceToDestination and breaking distance
-		}
 		original.call(instance, accelerationMod);
 	}
 }

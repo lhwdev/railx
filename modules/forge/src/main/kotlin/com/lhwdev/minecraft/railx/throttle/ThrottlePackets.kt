@@ -45,7 +45,7 @@ class StartControllingPacket(
 class UpdateThrottlePacket(val contraptionEntityId: Int, val throttle: Throttle) : ClientboundPacketPayload {
 	constructor(context: ServerThrottleControl) : this(
 		contraptionEntityId = context.entity.id,
-		throttle = context.throttle
+		throttle = context.relativeThrottle
 	)
 	
 	companion object : RailXPacketType<UpdateThrottlePacket>() {
@@ -106,12 +106,12 @@ class ThrottlePacket(
 		}
 		
 		if(entity.toGlobalVector(controlsPos.center, 0f).closerThan(player.position(), 16.0)) {
-			ThrottlesServer.receiveThrottle(
+			ThrottlesServer.receiveControl(
 				world,
 				entity,
 				controlsPos,
 				playerId = player.uuid,
-				throttle = throttle,
+				relativeThrottle = throttle,
 				keys = keys,
 			)
 		}

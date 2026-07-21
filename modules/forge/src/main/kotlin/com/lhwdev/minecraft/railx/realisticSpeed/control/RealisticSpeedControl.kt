@@ -41,7 +41,7 @@ object RealisticSpeedControl {
 		
 		val players = mutableSetOf<UUID>()
 		
-		for((playerId, throttle) in ThrottlesServer.receivedThrottles[world].byPlayer) {
+		for((playerId, throttle) in ThrottlesServer.receivedControls[world].byPlayer) {
 			players += playerId
 			val control = controls.getOrPut(world, playerId, trainId = throttle.trainId)
 			updateForPlayer(control)

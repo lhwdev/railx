@@ -46,7 +46,15 @@ object Throttles {
 		}
 	}
 	
-	enum class Steering { Left, Neutral, Right }
+	enum class Steering {
+		Left, Neutral, Right;
+		
+		fun reverse(): Steering = when(this) {
+			Left -> Right
+			Neutral -> Neutral
+			Right -> Right
+		}
+	}
 	
 	data class Throttle(val reverser: Reverser, val steering: Steering, val gear: Int) {
 		val acceleration: Double
@@ -57,7 +65,7 @@ object Throttles {
 				else -> -breakAccelerations.getOrElse(-gear - 1) { 1.0 }
 			}
 		
-		fun reverse(): Throttle = Throttle(reverser = reverser.reverse(), steering, gear)
+		fun reverse(): Throttle = Throttle(reverser = reverser.reverse(), steering.reverse(), gear)
 		
 		fun reverseIf(forward: Boolean): Throttle = if(forward) this else reverse()
 		
