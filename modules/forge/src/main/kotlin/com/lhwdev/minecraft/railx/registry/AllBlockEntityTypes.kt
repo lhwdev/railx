@@ -1,10 +1,12 @@
 package com.lhwdev.minecraft.railx.registry
 
+import com.lhwdev.minecraft.railx.advancedRoller.AdvancedRollerBlockEntity
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackRenderer
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVisual
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlockEntity
+import com.simibubi.create.content.contraptions.actors.roller.RollerRenderer
 import com.simibubi.create.content.trains.observer.TrackObserverRenderer
 import com.simibubi.create.content.trains.observer.TrackObserverVisual
 import com.tterrag.registrate.util.nullness.NonNullFunction
@@ -15,6 +17,14 @@ object AllBlockEntityTypes {
 	fun register() {}
 	
 	val Registry = RailXRegistry
+	
+	val AdvancedMechanicalRoller: RailXBlockEntityEntry<AdvancedRollerBlockEntity> = RailXRegistry.blockEntity(
+		name = "advanced_mechanical_roller",
+		factory = ::AdvancedRollerBlockEntity
+	) {
+		renderer { NonNullFunction(::RollerRenderer) }
+		validBlocks(AllBlocks.AdvancedMechanicalRoller)
+	}
 	
 	val AdvancedTrackObserver: RailXBlockEntityEntry<AdvancedTrackObserverBlockEntity> = Registry.blockEntity(
 		name = "advanced_track_observer",
