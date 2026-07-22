@@ -485,7 +485,7 @@ object FlexiTrackPlacement {
 			val isTrack = CreateTags.AllBlockTags.TRACKS.matches(stackInSlot) && stackInSlot.`is`(trackItem.item)
 			if(!isTrack) {
 				val item = stackInSlot.item as? BlockItem
-				if(item != null && pavementBlock != item.block) continue
+				if(item == null || pavementBlock != item.block) continue
 			}
 			if(if(isTrack) tracks >= requiredTracks else pavements >= requiredPavement) continue
 			
