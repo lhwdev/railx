@@ -10,4 +10,7 @@ object CompatMods {
 	
 	val railways: Boolean
 		get() = "railways" in loaded
+	
+	val copycats: Boolean
+		get() = "copycats" in loaded
 }

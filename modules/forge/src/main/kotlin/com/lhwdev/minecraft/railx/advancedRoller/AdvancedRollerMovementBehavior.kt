@@ -30,9 +30,11 @@ import kotlin.math.abs
 import kotlin.math.floor
 
 class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
+	fun advancedMode(context: MovementContext): AdvancedRollerBlockEntity.AdvancedRollingMode =
+		AdvancedRollerBlockEntity.AdvancedRollingMode.Options[context.blockEntityData.getInt("ScrollValue")]
+	
 	override fun getPositionsToBreak(context: MovementContext, visitedPos: BlockPos): List<BlockPos> {
-		// if(mode != RollingMode.TUNNEL_PAVE) return positions
-		if(context.blockEntityData.getInt("ScrollValue") != 0) return emptyList()
+		if(advancedMode(context) != AdvancedRollerBlockEntity.AdvancedRollingMode.TunnelPave) return emptyList()
 		
 		val positions = ArrayList<BlockPos>()
 		
@@ -154,8 +156,8 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 	
 	override fun triggerPaver(context: MovementContext, basePos: BlockPos) {
 		val stateToPaveWith = getStateToPaveWith(context)
-		val mode = context.blockEntityData.getInt("ScrollValue")
-		if(mode != 0 /* RollingMode.TUNNEL_PAVE */ && stateToPaveWith.isAir) return
+		val mode = advancedMode(context)
+		if(mode != AdvancedRollerBlockEntity.AdvancedRollingMode.TunnelPave && stateToPaveWith.isAir) return
 		
 		var paveResult = PaveResult.PASS
 		var yOffset = 0
@@ -195,14 +197,14 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 			
 			val currentLayer = LongObjectHashMap<Pave>()
 			
-			if(mode == 2 /* RollingMode.WIDE_FILL */) {
+			/**
+			 * @param slope 1 block lower on distance `slope`
+			 */
+			fun fillWide(slope: Int) {
 				for(anchor in paveSet) {
-					val slope = 8 // 1 block lower on distance `slope`
-					
 					val anchorHeight = anchor.height
 					val radius = (yOffset * 16 + anchorHeight) * slope / 16
 					
-					// 3 1 / 15 13 .. or 2 / 16 14 12
 					for(i in -radius..radius) for(j in -radius..radius) {
 						val distance = abs(i) + abs(j)
 						if(distance > radius) continue
@@ -217,8 +219,14 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 						currentLayer[key] = if(previous == null) current else current.maxOf(previous)
 					}
 				}
-			} else {
-				for(anchor in paveSet) {
+			}
+			
+			when(mode) {
+				AdvancedRollerBlockEntity.AdvancedRollingMode.WideFill -> fillWide(slope = 1)
+				
+				AdvancedRollerBlockEntity.AdvancedRollingMode.SmoothWideFill -> fillWide(slope = 8)
+				
+				else -> for(anchor in paveSet) {
 					val pos = anchor.pos.below(yOffset)
 					currentLayer[keyOf(pos)] = Pave(pos, anchor.height)
 				}
@@ -241,7 +249,7 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 					topLayer += key
 				}
 				
-				var fullState = applyHeightToState(stateToPaveWith, height = 16)
+				val fullState = applyHeightToState(stateToPaveWith, height = 16)
 				
 				// if(fullState.block == AllBlocks.GravelLayer)
 				// 	fullState = Blocks.GRAVEL.defaultBlockState()
@@ -257,7 +265,7 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 			if(paveResult == PaveResult.SUCCESS && stateToPaveWith.block is FallingBlock)
 				paveResult = PaveResult.PASS
 			if(paveResult != PaveResult.PASS) break
-			if(mode == 0 /* RollingMode.TUNNEL_PAVE */) break
+			if(mode == AdvancedRollerBlockEntity.AdvancedRollingMode.TunnelPave) break
 			
 			yOffset++
 		}
