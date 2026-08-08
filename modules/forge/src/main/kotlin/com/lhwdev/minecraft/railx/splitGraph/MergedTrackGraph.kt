@@ -228,6 +228,14 @@ abstract class MergedTrackGraphBase(graphId: UUID) : TrackGraph(graphId), TrackG
 	
 	override fun putConnection(node1: TrackNode, node2: TrackNode, edge: TrackEdge): Boolean =
 		base.putConnection(node1, node2, edge)
+	
+	override fun deferIntersectionUpdate(edge: TrackEdge) {
+		val owner = graphs.firstOrNull { graph ->
+			graph.getConnectionsFrom(edge.node1)?.get(edge.node2) === edge
+		}
+		
+		(owner ?: base).deferIntersectionUpdate(edge)
+	}
 }
 
 
