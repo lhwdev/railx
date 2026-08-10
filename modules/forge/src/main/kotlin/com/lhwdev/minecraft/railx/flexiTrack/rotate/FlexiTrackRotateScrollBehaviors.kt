@@ -46,14 +46,14 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	companion object {
 		var currentKind: Kind = Kind.Direction
 		
-		const val ClipboardKey = "FlexiTrackDirection"
+		const val ClipboardKey = "railx:FlexiTrackRotation"
 		
 		fun writeToClipboard(axis: FlexiDirection, tag: CompoundTag) {
-			tag.put("railx:FlexiTrackDirection", axis.write())
+			tag.put("Direction", axis.write())
 		}
 		
 		fun readFromClipboard(tag: CompoundTag): FlexiDirection? =
-			(tag.get("railx:FlexiTrackDirection") as? CompoundTag)
+			(tag.get("Direction") as? CompoundTag)
 				?.let { FlexiDirection.read(it) }
 	}
 	
