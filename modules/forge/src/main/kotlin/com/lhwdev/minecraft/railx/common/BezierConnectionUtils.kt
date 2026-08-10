@@ -39,7 +39,8 @@ internal interface IBezierConnectionExtension {
 }
 
 
-private fun Vec3.toFlat(): Vector3d = Vector3d(x, 0.0, z)
+@Suppress("NOTHING_TO_INLINE")
+private inline fun Vec3.toFlat(): Vector3d = Vector3d(x, 0.0, z)
 
 fun BezierConnection.radiusAt(t: Double): Double {
 	val p1 = starts.first.toFlat()
@@ -67,7 +68,15 @@ fun BezierConnection.radiusAt(t: Double): Double {
 	return derivativeLength / denominator
 }
 
+private val MaxSamples = 1000
+
 internal fun BezierConnection.calculateMinRadius(): Double {
+	val segmentCount = segmentCount
+	if(segmentCount > MaxSamples) {
+		val step = segmentCount.toFloat() / MaxSamples
+		return calculateMinRadiusSampled(step)
+	}
+	
 	var minRadius = Double.POSITIVE_INFINITY
 	val p1 = starts.first.toFlat()
 	val p2 = starts.second.toFlat()
@@ -101,6 +110,50 @@ internal fun BezierConnection.calculateMinRadius(): Double {
 		if(radius < minRadius) {
 			minRadius = radius
 		}
+	}
+	return minRadius
+}
+
+internal fun BezierConnection.calculateMinRadiusSampled(step: Float): Double {
+	var minRadius = Double.POSITIVE_INFINITY
+	val p1 = starts.first.toFlat()
+	val p2 = starts.second.toFlat()
+	val q1 = axes.first.toFlat().mul(handleLength).add(p1)
+	val q2 = axes.second.toFlat().mul(handleLength).add(p2)
+	
+	val derivative = Vector3d()
+	val derivative2 = Vector3d()
+	
+	var segment = 0f
+	val segmentCount = segmentCount
+	
+	while(segment < segmentCount) {
+		val t = getSegmentT(segment.toInt()).toDouble()
+		
+		derivative.set(0.0)
+		derivative.fma(-3 * t * t + 6 * t - 3, p1)
+		derivative.fma(9 * t * t - 12 * t + 3, q1)
+		derivative.fma(-9 * t * t + 6 * t, q2)
+		derivative.fma(3 * t * t, p2)
+		
+		derivative2.set(0.0)
+		derivative2.fma(-6 * t + 6, p1)
+		derivative2.fma(18 * t - 12, q1)
+		derivative2.fma(-18 * t + 6, q2)
+		derivative2.fma(6 * t, p2)
+		
+		val derivativeLength = derivative.length().pow3()
+		
+		derivative.cross(derivative2)
+		val denominator = derivative.length()
+		if(denominator >= 1e-6) {
+			val radius = derivativeLength / denominator
+			if(radius < minRadius) {
+				minRadius = radius
+			}
+		}
+		
+		segment += step
 	}
 	return minRadius
 }
