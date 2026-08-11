@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.mixin.splitGraph;
 
-import com.lhwdev.minecraft.railx.splitGraph.MergedTrackGraph;
 import com.lhwdev.minecraft.railx.splitGraph.PropagatingTrackGraph;
+import com.lhwdev.minecraft.railx.splitGraph.TrackGraphConnectedIdUtils;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
@@ -37,9 +37,7 @@ public class SignalPropagatorMixin {
 		@Local(index = 7) Train train,
 		@Local(index = 0, argsOnly = true) TrackGraph graph
 	) {
-		if(train.graph instanceof MergedTrackGraph merged) {
-			return !MergedTrackGraph.contains(merged, graph);
-		}
-		return original;
+		if(!original) return false;
+		return !TrackGraphConnectedIdUtils.isReachableTo(train.graph, graph);
 	}
 }

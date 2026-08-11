@@ -133,11 +133,9 @@ public abstract class TrackGraphMixin implements TrackGraphForSplit {
 		"graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;")
 	@Expression("train.graph != this")
 	@ModifyExpressionValue(method = "removeNode", at = @At(value = "MIXINEXTRAS:EXPRESSION"), require = 0)
-	boolean isTrainReachableForRemoveNode(boolean original, @Local(index = 7) Train train) {
-		if(train.graph instanceof MergedTrackGraph merged) {
-			return !MergedTrackGraph.contains(merged, (TrackGraph) (Object) this);
-		}
-		return original;
+	boolean isTrainUnreachableForRemoveNode(boolean original, @Local(index = 7) Train train) {
+		if(!original) return false;
+		return !TrackGraphConnectedIdUtils.isReachableTo(train.graph, (TrackGraph) (Object) this);
 	}
 	
 	@Inject(method = "transfer", at = @At("RETURN"))
