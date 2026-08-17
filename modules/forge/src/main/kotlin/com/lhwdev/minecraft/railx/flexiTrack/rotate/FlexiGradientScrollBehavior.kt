@@ -1,100 +1,113 @@
 package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
 import com.lhwdev.minecraft.railx.RailXConfig
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.utils.round
 import com.lhwdev.minecraft.railx.utils.transformUnit
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter
-import net.minecraft.client.Minecraft
-import net.minecraft.network.chat.Component
-import net.minecraft.util.Mth
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
-import kotlin.math.PI
-import kotlin.math.min
+import kotlin.math.atan
 import kotlin.math.roundToInt
 
 
 class FlexiGradientScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform) :
 	FlexiTrackRotateScrollBehavior(kind = FlexiTrackRotateScrollBehaviors.Kind.Gradient, be, slot) {
 	
-	val maxGradient = min(Mth.floor(RailXConfig.Server.flexiTrak.maxGradient.get()), 80)
+	companion object {
+		const val MaxNormalValue = 100.0
+		
+		const val MinCoarseStepWidth = 4.0
+		const val MinCoarseSteps = 4
+		const val MaxCoarseSteps = 100
+	}
+	
+	override fun getValue(player: Player): Double {
+		val level = be.level ?: return 0.0
+		val lookAngle = player.lookAngle
+		val direction = be.block
+			.getNearestTrackDirection(level, be.blockPos, be.blockState, lookAngle)
+			?.signedAxis ?: return 0.0
+		return direction.gradientSlope * 1000.0
+	}
+	
+	override val normalRange: ClosedFloatingPointRange<Double>
+		get() = RailXConfig.Server.flexiTrak.maxGradient.get()
+			.coerceAtMost(MaxNormalValue)
+			.let { -it..it }
+	
+	override val coarseRange: ClosedFloatingPointRange<Double>
+		get() = RailXConfig.Server.flexiTrak.maxGradient.get()
+			.coerceAtMost(MaxNormalValue * MaxCoarseSteps / 2) // MaxCoarseStepWidth == MaxNormalValue
+			.let { -it..it }
+	
+	override val normalStep: Double get() = 1.0
+	
+	override val coarseStep: Double?
+		get() {
+			val width = coarseRange.width
+			return (width / MaxCoarseSteps).coerceAtLeast(MinCoarseStepWidth)
+				.takeIf { width / it >= MinCoarseSteps }
+		}
+	
+	override fun formatRotation(value: Double, precise: Boolean): String {
+		return if(precise) {
+			val rounded = round(value, 100)
+			when {
+				rounded == 0.0 -> "0.00‰"
+				rounded > 0.0 -> "+${rounded}‰"
+				else -> "-${-rounded}‰"
+			}
+		} else {
+			val intVal = value.roundToInt()
+			when {
+				intVal == 0 -> "0‰"
+				intVal > 0 -> "+$intVal‰"
+				else -> "-${-intVal}‰"
+			}
+		}
+	}
 	
 	override fun formatValue(): String {
-		val mc = Minecraft.getInstance()
-		val level = be.level!!
-		val hitResult = mc.hitResult as? BlockHitResult ?: return "?"
-		val direction = be.block.getNearestTrackDirection(
-			level,
-			hitResult.blockPos,
-			level.getBlockState(be.blockPos),
-			mc.player!!.lookAngle
-		)?.signedAxis ?: return "?"
-		val value = (direction.gradient * maxGradient / PI).roundToInt()
+		val rounded = round(valueClient, 10)
+		val integer = rounded.toInt()
+		if(rounded == integer.toDouble()) return when {
+			integer == 0 -> "0‰"
+			integer > 0 -> "+${integer}‰"
+			else -> "-${-integer}‰"
+		}
+		
 		return when {
-			value == 0 -> "0‰"
-			value > 0 -> "+$value‰"
-			else -> "-${-value}‰"
+			rounded == 0.0 -> "0.0‰"
+			rounded > 0.0 -> "+${rounded}‰"
+			else -> "-${-rounded}‰"
 		}
 	}
 	
-	
-	override fun createRotationBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard {
-		val level = player.level()
-		val direction = be.block.getNearestTrackDirection(
-			level,
-			hitResult.blockPos,
-			level.getBlockState(hitResult.blockPos),
-			player.lookAngle
-		)?.signedAxis ?: return ValueSettingsBoard(
-			Component.literal("Cannot rotate empty track"), 0, 0, emptyList(),
-			ValueSettingsFormatter { Component.empty() })
+	override fun applyRotation(player: Player, targetValue: Double): Boolean {
+		val level = be.level ?: return false
+		val direction = be.block.getNearestTrackDirection(level, be.blockPos, be.blockState, player.lookAngle)
+			?.signedAxis ?: return false
 		
-		value = maxGradient + (direction.gradient * maxGradient / PI).roundToInt()
-		
-		return createBoard(
-			maxValue = 2 * maxGradient - 1,
-			title = "Gradient",
-			formatter = { v ->
-				val value = v - maxGradient
-				when {
-					value == 0 -> "0‰"
-					value > 0 -> "+${value}‰"
-					else -> "-${-value}‰"
-				}
-			},
-		)
-	}
-	
-	override fun formatPreciseDelta(delta: Float): String =
-		"${round(delta, 1000)}‰"
-	
-	
-	override fun rotateTrack(player: Player, value: Rotation): Boolean {
-		val be = be
-		val level = be.level!!
-		
-		val directionAxis = be.block.getNearestTrackDirection(level, be.blockPos, be.blockState, player.lookAngle)
-			?: return false
-		val direction = directionAxis.signedAxis
-		val delta = when(value) {
-			is Rotation.Steps -> {
-				val initialValue = maxGradient + (direction.gradient * maxGradient / PI).roundToInt()
-				if(value.step == initialValue) return false
-				(value.step - initialValue) * PI / maxGradient
-			}
-			
-			is Rotation.Precise -> value.delta * PI / maxGradient
-		}
-		
+		val targetSlope = targetValue / 1000.0
 		val axis = direction.tangent.cross(direction.normal)
+		val delta = atan(targetSlope) - direction.gradient
 		val rotation = Quaterniond().rotationAxis(delta, axis.x, axis.y, axis.z)
 		
+		val tangent = direction.tangent
+		val horizontalDist = tangent.horizontalDistance()
+		val newTangent = Vec3(tangent.x, horizontalDist * targetSlope, tangent.z).normalize()
+		val newNormal = rotation.transformUnit(direction.normal)
+		
 		applyRotation(
-			mapDirection = { it.applyNormal(rotation.transformUnit(it.normal)).optimize() },
+			mapDirection = {
+				FlexiDirection.Two(
+					tangent = newTangent,
+					normal = newNormal,
+				).optimize()
+			},
 			rotation = rotation,
 		)
 		return true

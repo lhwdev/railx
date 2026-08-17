@@ -12,24 +12,23 @@ import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import net.minecraft.ChatFormatting
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniondc
+import kotlin.math.roundToInt
 
 
 private fun FlexiTrackRotateScrollBehaviors.Kind.createLabel() =
 	Component.literal("Rotate Flexi Track ")
 		.append(Component.literal(title))
 
-private fun FlexiTrackRotateScrollBehaviors.Kind.createScreenLabel(precise: Boolean) =
-	Component.literal(if(precise) "Rotate Flexi Track " else "Set Flexi Track ")
+private fun FlexiTrackRotateScrollBehaviors.Kind.createScreenLabel() =
+	Component.literal("Set Flexi Track ")
 		.append(Component.literal(title).withStyle(ChatFormatting.YELLOW))
-
-
-private const val Steps = 32
 
 abstract class FlexiTrackRotateScrollBehavior(
 	val kind: FlexiTrackRotateScrollBehaviors.Kind,
@@ -37,73 +36,158 @@ abstract class FlexiTrackRotateScrollBehavior(
 	slot: ValueBoxTransform,
 ) : ScrollValueBehaviour(kind.createLabel(), be, slot) {
 	
-	sealed class Rotation {
-		class Steps(val step: Int) : Rotation()
-		class Precise(val delta: Float) : Rotation()
+	companion object {
+		const val PreciseStepCount = 100
 	}
 	
+	enum class RotateStepMode {
+		Normal,
+		Precise,
+		Coarse;
+		
+		companion object {
+			fun client(): RotateStepMode = when {
+				Screen.hasControlDown() -> Precise
+				Screen.hasAltDown() -> Coarse
+				else -> Normal
+			}
+		}
+	}
+	
+	enum class ScrollDirection { Ascending, Descending }
 	
 	protected val be: FlexiTrackBlockEntity
 		get() = blockEntity as FlexiTrackBlockEntity
 	
-	protected val isPrecise: Boolean
-		get() = Screen.hasControlDown()
+	abstract fun getValue(player: Player): Double
+	
+	val valueClient: Double
+		get() = getValue(player = Minecraft.getInstance().player!!)
+	
+	open val modeClient: RotateStepMode
+		get() = RotateStepMode.client()
+	
+	open val scrollDirection: ScrollDirection
+		get() = ScrollDirection.Ascending
+	
+	abstract val normalRange: ClosedFloatingPointRange<Double>
+	
+	open val coarseRange: ClosedFloatingPointRange<Double>
+		get() = normalRange
+	
+	open val endInclusive: Boolean
+		get() = true
+	
+	abstract val normalStep: Double
+	
+	open val coarseStep: Double?
+		get() = (coarseRange.width / 10.0).coerceAtLeast(normalStep)
+	
+	val preciseStep: Double
+		get() = normalStep / PreciseStepCount
+	
+	abstract fun formatRotation(value: Double, precise: Boolean): String
+	
+	abstract fun applyRotation(player: Player, targetValue: Double): Boolean
 	
 	
-	final override fun createBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard {
-		val board = createRotationBoard(player, hitResult)
-		
-		if(isPrecise) {
-			value = Steps
-			return ValueSettingsBoard(
-				board.title,
-				Steps * 2,
-				8,
-				board.rows,
-				ValueSettingsFormatter { Component.literal(formatPreciseDelta((it.value - Steps) / Steps.toFloat())) },
-			)
-		}
-		return board
+	private fun getPreciseMinValue(value: Double): Double {
+		val currentStep = getValueStep(value, stepWidth = preciseStep) / PreciseStepCount
+		return normalRange.start + currentStep * normalStep
 	}
 	
+	private fun getValueStep(value: Double, minValue: Double, stepWidth: Double, steps: Int = Int.MAX_VALUE): Int =
+		((value - minValue) / stepWidth)
+			.roundToInt()
+			.coerceIn(0, steps)
 	
-	protected abstract fun createRotationBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard
+	private fun getValueStep(
+		value: Double,
+		range: ClosedFloatingPointRange<Double> = normalRange,
+		stepWidth: Double,
+	): Int {
+		val steps = (range.width / stepWidth).roundToInt()
+		return getValueStep(value = value, minValue = range.start, stepWidth = stepWidth, steps = steps)
+	}
 	
-	protected abstract fun formatPreciseDelta(delta: Float): String
+	fun createBoard(player: Player, hitResult: BlockHitResult, mode: RotateStepMode): ValueSettingsBoard {
+		val current = getValue(player)
+		if(mode == RotateStepMode.Precise) {
+			val preciseMinValue = getPreciseMinValue(current)
+			value = getValueStep(
+				value = current,
+				minValue = preciseMinValue,
+				stepWidth = preciseStep,
+				steps = PreciseStepCount
+			)
+			
+			return ValueSettingsBoard(
+				kind.createScreenLabel(),
+				PreciseStepCount,
+				10,
+				listOf(Component.literal(kind.title).withStyle(ChatFormatting.BOLD)),
+				ValueSettingsFormatter { valueSettings ->
+					val v = preciseMinValue + valueSettings.value * preciseStep
+					Component.literal(formatRotation(v, precise = true))
+				}
+			)
+		}
+		
+		val coarseStep = coarseStep
+		val coarse = mode == RotateStepMode.Coarse && coarseStep != null
+		val range = if(coarse) coarseRange else normalRange
+		val step = if(coarse) coarseStep else normalStep
+		val steps = (range.width / step).roundToInt() // assuming valueWidth is multiplier of step (mathematically)
+		
+		value = getValueStep(value = current, minValue = range.start, stepWidth = step, steps = steps)
+		
+		return ValueSettingsBoard(
+			kind.createScreenLabel(),
+			if(endInclusive) steps else steps - 1,
+			8,
+			listOf(Component.literal(kind.title).withStyle(ChatFormatting.BOLD)),
+			ValueSettingsFormatter { valueSettings ->
+				val v = range.start + valueSettings.value * step
+				Component.literal(formatRotation(v, precise = false))
+			}
+		)
+		
+	}
 	
-	protected fun createBoard(
-		maxValue: Int,
-		title: String,
-		formatter: (Int) -> String,
-	): ValueSettingsBoard = ValueSettingsBoard(
-		kind.createScreenLabel(precise = isPrecise),
-		maxValue,
-		8,
-		listOf(Component.literal(title).withStyle(ChatFormatting.BOLD)),
-		ValueSettingsFormatter { Component.literal(formatter(it.value)) },
-	)
+	override fun createBoard(player: Player, hitResult: BlockHitResult): ValueSettingsBoard =
+		createBoard(player, hitResult, mode = modeClient)
 	
-	final override fun setValueSettings(
+	override fun formatValue(): String =
+		formatRotation(valueClient, precise = false)
+	
+	fun setValueSettings(player: Player, value: Int, mode: RotateStepMode): Boolean {
+		val targetValue = when(mode) {
+			RotateStepMode.Precise -> {
+				val preciseMinValue = getPreciseMinValue(getValue(player))
+				preciseMinValue + value * preciseStep
+			}
+			
+			RotateStepMode.Normal -> normalRange.start + value * normalStep
+			RotateStepMode.Coarse -> coarseRange.start + value * (coarseStep ?: normalStep)
+		}
+		
+		val handled = applyRotation(player, targetValue)
+		return handled
+	}
+	
+	override fun setValueSettings(
 		player: Player,
 		valueSetting: ValueSettingsBehaviour.ValueSettings,
 		ctrlDown: Boolean,
 	) {
-		val step = valueSetting.value
-		val value = if(isPrecise) {
-			val delta = step - Steps
-			if(delta == 0) return
-			Rotation.Precise(delta = delta / Steps.toFloat())
-		} else {
-			Rotation.Steps(step = step)
-		}
+		val handled = setValueSettings(
+			player,
+			value = valueSetting.value,
+			mode = if(ctrlDown) RotateStepMode.Precise else RotateStepMode.Normal
+		)
 		
-		val handled = rotateTrack(player, value)
-		if(handled) {
-			super.setValueSettings(player, valueSetting, ctrlDown)
-		}
+		if(handled) super.setValueSettings(player, valueSetting, ctrlDown)
 	}
-	
-	abstract fun rotateTrack(player: Player, value: Rotation): Boolean
 	
 	protected fun applyRotation(
 		mapDirection: (FlexiDirection) -> FlexiDirection,
@@ -141,7 +225,7 @@ abstract class FlexiTrackRotateScrollBehavior(
 				}
 				
 				if(maxDot < 0.99) {
-					println("why so far? breakpoint here")
+					println("Expected matching axis in previous connection")
 				}
 				
 				connection.axes.first = maxAxis
@@ -151,3 +235,7 @@ abstract class FlexiTrackRotateScrollBehavior(
 		}
 	}
 }
+
+
+internal val ClosedFloatingPointRange<Double>.width: Double
+	get() = endInclusive - start

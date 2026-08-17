@@ -4,7 +4,6 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.direction
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.rotationValue
-import com.lhwdev.minecraft.railx.utils.similarTo
 import com.lhwdev.minecraft.utils.vectors.toVec3
 import com.lhwdev.minecraft.utils.vectors.toVector3d
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
@@ -185,14 +184,19 @@ open class FlexiTrackVoxelShapes {
 			val dxScaled = Vector3d(dx).mul(spec.halfSizeX)
 			val dyScaled = Vector3d(dy).mul(spec.halfSizeY)
 			val dzScaled = Vector3d(dz).mul(spec.halfSizeZ)
+			
 			val buffer = Vector3d()
-			var range = buffer.set(dxScaled).add(dyScaled).add(dzScaled).toVec3().let { AABB(it, -it) }
+			var range = buffer.set(dxScaled).add(dyScaled).add(dzScaled)
+				.toVec3().let { AABB(it, -it) }
+			
 			buffer.set(dyScaled).sub(dxScaled).add(dzScaled)
 			range = range.growToInclude(buffer)
 			range = range.growToInclude(buffer.mul(-1.0))
+			
 			buffer.set(dxScaled).sub(dyScaled).add(dzScaled)
 			range = range.growToInclude(buffer)
 			range = range.growToInclude(buffer.mul(-1.0))
+			
 			buffer.set(dxScaled).add(dyScaled).sub(dzScaled)
 			range = range.growToInclude(buffer)
 			range = range.growToInclude(buffer.mul(-1.0))
@@ -255,15 +259,16 @@ open class FlexiTrackVoxelShapes {
 			var bestNormal = dx
 			var bestNormalSign = 1
 			
-			val deltaOnX = delta.dot(dx)
-			if(!(deltaOnX similarTo 0.0)) { // TODO: does not take care of edge-cases (literally)
+			var deltaOn = delta.dot(dx)
+			val threshold = delta.lengthSquared() * 0.01
+			if(abs(deltaOn) > threshold) { // TODO: does not take care of edge-cases (literally)
 				val fromOnX = from.dot(dx)
 				
 				// 1. on -x face
-				var t = (-sizeX - fromOnX) / deltaOnX
+				var t = (-sizeX - fromOnX) / deltaOn
 				if(t < bestT && t in 0.0..1.0) {
-					val pos = buffer.set(delta).mul(t).add(from)
-					if(abs(pos.dot(dy)) <= sizeY && abs(pos.dot(dz)) <= sizeZ) {
+					buffer.set(delta).mulAdd(t, from)
+					if(abs(buffer.dot(dy)) <= sizeY && abs(buffer.dot(dz)) <= sizeZ) {
 						bestT = t
 						bestNormal = dx
 						bestNormalSign = -1
@@ -271,10 +276,10 @@ open class FlexiTrackVoxelShapes {
 				}
 				
 				// 2. on +x face
-				t = (sizeX - fromOnX) / deltaOnX
+				t = (sizeX - fromOnX) / deltaOn
 				if(t < bestT && t in 0.0..1.0) {
-					val pos = buffer.set(delta).mul(t).add(from)
-					if(abs(pos.dot(dy)) <= sizeY && abs(pos.dot(dz)) <= sizeZ) {
+					buffer.set(delta).mulAdd(t, from)
+					if(abs(buffer.dot(dy)) <= sizeY && abs(buffer.dot(dz)) <= sizeZ) {
 						bestT = t
 						bestNormal = dx
 						bestNormalSign = 1
@@ -282,41 +287,42 @@ open class FlexiTrackVoxelShapes {
 				}
 			}
 			
-			val deltaOnY = delta.dot(dy)
-			if(!(deltaOnY similarTo 0.0)) {
+			deltaOn = delta.dot(dy)
+			if(abs(deltaOn) > threshold) {
 				val fromOnY = from.dot(dy)
 				
-				// 3. on -y face
-				var t = (-sizeY - fromOnY) / deltaOnY
+				// 3. on +y face
+				var t = (sizeY - fromOnY) / deltaOn
 				if(t < bestT && t in 0.0..1.0) {
-					val pos = buffer.set(delta).mul(t).add(from)
-					if(abs(pos.dot(dx)) <= sizeX && abs(pos.dot(dz)) <= sizeZ) {
-						bestT = t
-						bestNormal = dy
-						bestNormalSign = -1
-					}
-				}
-				
-				// 4. on +y face
-				t = (sizeY - fromOnY) / deltaOnY
-				if(t < bestT && t in 0.0..1.0) {
-					val pos = buffer.set(delta).mul(t).add(from)
-					if(abs(pos.dot(dx)) <= sizeX && abs(pos.dot(dz)) <= sizeZ) {
+					buffer.set(delta).mulAdd(t, from)
+					if(abs(buffer.dot(dx)) <= sizeX && abs(buffer.dot(dz)) <= sizeZ) {
 						bestT = t
 						bestNormal = dy
 						bestNormalSign = 1
 					}
 				}
+				
+				// 4. on -y face
+				t = (-sizeY - fromOnY) / deltaOn
+				if(t < bestT && t in 0.0..1.0) {
+					buffer.set(delta).mulAdd(t, from)
+					if(abs(buffer.dot(dx)) <= sizeX && abs(buffer.dot(dz)) <= sizeZ) {
+						bestT = t
+						bestNormal = dy
+						bestNormalSign = -1
+					}
+				}
 			}
-			val deltaOnZ = delta.dot(dz)
-			if(!(deltaOnZ similarTo 0.0)) {
+			
+			deltaOn = delta.dot(dz)
+			if(abs(deltaOn) > threshold) {
 				val fromOnZ = from.dot(dz)
 				
 				// 5. on -z face
-				var t = (-sizeZ - fromOnZ) / deltaOnZ
+				var t = (-sizeZ - fromOnZ) / deltaOn
 				if(t < bestT && t in 0.0..1.0) {
-					val pos = buffer.set(delta).mul(t).add(from)
-					if(abs(pos.dot(dx)) <= sizeX && abs(pos.dot(dy)) <= sizeY) {
+					buffer.set(delta).mulAdd(t, from)
+					if(abs(buffer.dot(dx)) <= sizeX && abs(buffer.dot(dy)) <= sizeY) {
 						bestT = t
 						bestNormal = dz
 						bestNormalSign = -1
@@ -324,10 +330,10 @@ open class FlexiTrackVoxelShapes {
 				}
 				
 				// 6. on +z face
-				t = (sizeZ - fromOnZ) / deltaOnZ
+				t = (sizeZ - fromOnZ) / deltaOn
 				if(t < bestT && t in 0.0..1.0) {
-					val pos = buffer.set(delta).mul(t).add(from)
-					if(abs(pos.dot(dx)) <= sizeX && abs(pos.dot(dy)) <= sizeY) {
+					buffer.set(delta).mulAdd(t, from)
+					if(abs(buffer.dot(dx)) <= sizeX && abs(buffer.dot(dy)) <= sizeY) {
 						bestT = t
 						bestNormal = dz
 						bestNormalSign = 1

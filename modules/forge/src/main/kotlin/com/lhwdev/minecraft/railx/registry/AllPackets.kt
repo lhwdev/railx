@@ -4,6 +4,7 @@ import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.ObserverEditPacket
 import com.lhwdev.minecraft.railx.compat.pantographsandwires.UpdateCantileverAutoPacket
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiblePlacementPacket
+import com.lhwdev.minecraft.railx.flexiTrack.rotate.ConfigureFlexiTrackRotatePacket
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.CopyFlexiTrackRotationPacket
 import com.lhwdev.minecraft.railx.middleTrack.CurvedMiddleTrackSelectionPacket
 import com.lhwdev.minecraft.railx.realisticSpeed.control.UpdateRealisticPacket
@@ -23,6 +24,7 @@ enum class AllPackets(val base: RailXPacketType<*>) : BasePacketPayload.PacketTy
 	/// client -> server
 	FlexiblePlacement(FlexiblePlacementPacket),
 	CopyFlexiTrackRotation(CopyFlexiTrackRotationPacket),
+	ConfigureFlexiTrackRotate(ConfigureFlexiTrackRotatePacket),
 	
 	UpdateCantileverAuto(UpdateCantileverAutoPacket),
 	

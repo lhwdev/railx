@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
+import com.lhwdev.minecraft.railx.flexiTrack.rotate.direction
 import com.lhwdev.minecraft.railx.utils.*
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.content.trains.track.TrackShape
@@ -21,7 +22,7 @@ interface FlexiDirection {
 	* 2d integer representation of tangent, if available.
 	* Uses same coordinate system as minecraft; as y increases, it moves to south.
 	*/
-	class Tangent2(val x: Int, val y: Int)
+	class Tangent2(val x: Int, val z: Int)
 	
 	val tangent: Vec3
 	val tangent2: Tangent2?
@@ -215,8 +216,17 @@ interface FlexiDirection {
 				return DivisionsByOrdinal[index.roundToInt() % DivisionCount]
 			}
 			
-			fun roundFrom(vector: Vec3): Known =
-				roundFrom(radian = Mth.atan2(-vector.z, vector.x))
+			fun roundFrom(tangent: Vec3): Known =
+				roundFrom(radian = Mth.atan2(-tangent.z, tangent.x))
+			
+			fun fromOrNull(radian: Double): Known? {
+				val known = roundFrom(radian = radian)
+				val knownDifference = abs(radian - known.direction)
+				return known.takeIf { knownDifference < 1e-8 || abs(knownDifference - PI) < 1e-8 }
+			}
+			
+			fun fromOrNull(tangent: Vec3): Known? =
+				fromOrNull(radian = Mth.atan2(-tangent.z, tangent.x))
 			
 			fun fromIndex(index: Int): Known {
 				check(index >= 0) { "index < 0" }
@@ -397,7 +407,7 @@ interface FlexiDirection {
 		override val tangent: UnsignedKnownVec3 =
 			if(sign == Direction.AxisDirection.POSITIVE) from.tangent else OppositeKnownVec3(this, from.tangent)
 		override val tangent2: Tangent2?
-			get() = from.tangent2?.let { if(sign == Direction.AxisDirection.POSITIVE) it else Tangent2(-it.x, -it.y) }
+			get() = from.tangent2?.let { if(sign == Direction.AxisDirection.POSITIVE) it else Tangent2(-it.x, -it.z) }
 		
 		override fun mirror(by: Mirror): SignedKnown = TODO()
 		override fun rotate(by: Rotation): SignedKnown = TODO()
@@ -424,6 +434,72 @@ interface FlexiDirection {
 			1.0 -> this
 			-1.0 -> known.from.tangent
 			else -> super.scale(factor)
+		}
+	}
+	
+	
+	class Delta(val x: Int, val y: Int, val z: Int) : Signed {
+		override val tangent: Vec3 = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
+			.normalize()
+		
+		// NOTE: 1. l=1  //  2. t_x n_z = t_z n_x  //  3. t dot n = 0
+		override val normal: Vec3 = Vec3((-x * y).toDouble(), (x * x + z * z).toDouble(), (-y * z).toDouble())
+			.normalize()
+		
+		override val tangent2: Tangent2?
+			get() = if(y != 0) null else Tangent2(x, z)
+		
+		override fun mirror(by: Mirror): FlexiDirection = when(by) {
+			Mirror.NONE -> this
+			Mirror.LEFT_RIGHT -> Delta(-x, y, z)
+			Mirror.FRONT_BACK -> Delta(x, y, -z)
+		}
+		
+		override fun rotate(by: Rotation): FlexiDirection = when(by) {
+			Rotation.NONE -> this
+			Rotation.CLOCKWISE_90 -> Delta(z, y, -x)
+			Rotation.CLOCKWISE_180 -> Delta(-x, y, -z)
+			Rotation.COUNTERCLOCKWISE_90 -> Delta(-z, y, x)
+		}
+		
+		override fun rotateKnown(by: Int): FlexiDirection =
+			Two(tangent, normal).rotateKnown(by)
+		
+		override fun applyNormal(normal: Vec3): FlexiDirection {
+			if(this.normal closeTo normal) return this
+			return Two(this.tangent, this.normal).applyNormal(normal)
+		}
+		
+		override fun toNormalized(): Normalized =
+			Two(tangent, normal).toNormalized()
+		
+		override fun write(): CompoundTag = CompoundTag { tag ->
+			tag.putByte("Type", 0xA)
+			tag.putInt("X", x)
+			tag.putInt("Y", y)
+			tag.putInt("Z", z)
+		}
+		
+		override fun write(buffer: FriendlyByteBuf) {
+			buffer.writeByte(0xA)
+			buffer.writeVarInt(x)
+			buffer.writeVarInt(y)
+			buffer.writeVarInt(z)
+		}
+		
+		
+		companion object {
+			fun read(tag: CompoundTag): Delta = Delta(
+				x = tag.getInt("X"),
+				y = tag.getInt("Y"),
+				z = tag.getInt("Z"),
+			)
+			
+			fun read(buffer: FriendlyByteBuf): Delta = Delta(
+				x = buffer.readVarInt(),
+				y = buffer.readVarInt(),
+				z = buffer.readVarInt(),
+			)
 		}
 	}
 	
@@ -668,6 +744,7 @@ interface FlexiDirection {
 			0x1 -> Known.read(tag)
 			0x2 -> SignedKnown.read(tag)
 			0x8 -> FlatImpl.read(tag)
+			0xA -> Delta.read(tag)
 			0x10 -> NormalizedImpl.read(tag)
 			0x20 -> Two.read(tag)
 			else -> error("unexpected type ${tag.getByte("Type")}")
@@ -681,6 +758,7 @@ interface FlexiDirection {
 			0x1 -> Known.read(buffer)
 			0x2 -> SignedKnown.read(buffer)
 			0x8 -> FlatImpl.read(buffer)
+			0xA -> Delta.read(buffer)
 			0x10 -> NormalizedImpl.read(buffer)
 			0x20 -> Two.read(buffer)
 			else -> error("unexpected type $type")
