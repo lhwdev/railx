@@ -17,6 +17,7 @@
     "common.fakeTracks.TrackBlockEntityMixin",
     "common.fixBrokenGraphs.TrackBlockEntityMixin",
     "common.longPlacement.CTrainsMixin",
+    "common.longWaitLookahead.NavigationMixin",
     "common.manualStation.CarriageContraptionEntityMixin",
     "common.manualStation.TrainMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
