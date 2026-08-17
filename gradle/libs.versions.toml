@@ -6,6 +6,6 @@ neoForge = "21.1.233"
 mixinExtras = "0.5.0"
 kotlinForForge = "5.10.0"
 
-create = "6.0.11-291"
+create = "6.0.11-282" # last version that contains source.jar
 ponder = "1.0.82"
 flywheel = "1.0.6"

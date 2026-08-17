@@ -97,6 +97,62 @@ object AllBlocks {
 	}
 	
 	
+	/* val GravelLayerByte = Registry.block("gravel_layer_byte", ::GravelLayerByteBlock) {
+		initialProperties(Blocks::GRAVEL)
+		blockstate { c, p ->
+			val gravel = p.mcLoc("block/gravel")
+			
+			p.getVariantBuilder(c.entry).forAllStates { state ->
+				val modelFile = p.models().getBuilder(
+					"block/gravel_byte" +
+						"_" + state.getValue(GravelLayerByteBlock.LayersA) +
+						"_" + state.getValue(GravelLayerByteBlock.LayersB) +
+						"_" + state.getValue(GravelLayerByteBlock.LayersC) +
+						"_" + state.getValue(GravelLayerByteBlock.LayersD)
+				).apply {
+					texture("particle", gravel)
+					texture("texture", gravel)
+					
+					fun layerElement(x: Float, y: Float, z: Float) {
+						if(y == 0f) return
+						
+						element().apply {
+							val delta = 8f
+							
+							from(x, 0f, z)
+							to(x + delta, y, z + delta)
+							
+							allFaces { direction, builder ->
+								builder.texture("#texture")
+								if(direction.axis == Direction.Axis.Y) {
+									builder.uvs(x, z, x + delta, z + delta)
+								} else {
+									builder.uvs(x, 16f - y, x + delta, 16f)
+								}
+								if(direction != Direction.DOWN) {
+									builder.cullface(direction)
+								}
+							}
+						}
+					}
+					
+					val multiplier = 16f / GravelLayerByteBlock.MaxLayer
+					layerElement(0f, 0f, multiplier * state.getValue(GravelLayerByteBlock.LayersA))
+					layerElement(8f, 0f, multiplier * state.getValue(GravelLayerByteBlock.LayersB))
+					layerElement(0f, 8f, multiplier * state.getValue(GravelLayerByteBlock.LayersC))
+					layerElement(8f, 8f, multiplier * state.getValue(GravelLayerByteBlock.LayersD))
+				}
+				
+				ConfiguredModel.builder()
+					.modelFile(modelFile)
+					.build()
+			}
+		}
+		item()
+			.model { c, p -> p.withExistingParent(c.name, p.modLoc("block/gravel_byte_1_0_0_0")) }
+			.build()
+	} */
+	
 	val AdvancedMechanicalRoller = Registry.block("advanced_mechanical_roller", ::AdvancedRollerBlock) {
 		initialProperties(SharedProperties::stone)
 		properties {
