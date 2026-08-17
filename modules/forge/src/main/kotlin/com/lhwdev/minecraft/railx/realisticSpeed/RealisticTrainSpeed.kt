@@ -128,13 +128,15 @@ class RealisticTrainSpeed(private val train: Train) {
 			}
 		} else {
 			targetSpeed = target
-			val direction = sign(target - currentSpeed)
-			if(direction == 0.0) {
+			val diff = target - currentSpeed
+			val direction = sign(diff)
+			if(abs(diff) < 1e-4) {
 				targetThrottle = 0.0
 				targetBreak = 0.0
 			} else {
 				if(currentSpeed * direction >= 0) { // throttle
-					targetThrottle = force * direction
+					val ratio = (abs(diff) / (train.acceleration().toDouble() * 2)).coerceIn(0.0, 1.0)
+					targetThrottle = force * direction * ratio
 					targetBreak = 0.0
 				} else { // break
 					targetThrottle = 0.0
@@ -147,12 +149,17 @@ class RealisticTrainSpeed(private val train: Train) {
 	private fun handleDefaultTargetSpeed() {
 		targetSpeedHandled = true
 		
-		val isIdle = !manualControl && train.navigation.destination == null
-		if(isIdle) {
-			if(targetThrottle != 0.0 || targetBreak != 0.0) targetUpdated = true
+		if(!manualControl) {
+			if(train.navigation.destination == null) {
+				if(targetThrottle != 0.0 || targetBreak != 0.0) targetUpdated = true
+				targetBreak = 0.0
+			} else {
+				val force = 400 * train.acceleration().toDouble()
+				if(targetThrottle != 0.0 || targetBreak != force) targetUpdated = true
+				targetBreak = force
+			}
 			targetSpeed = 0.0
 			targetThrottle = 0.0
-			targetBreak = 0.0
 		}
 	}
 	
@@ -238,9 +245,11 @@ class RealisticTrainSpeed(private val train: Train) {
 		} else {
 			speed = applySlowdown(speed)
 		}
-		train.currentStation?.let { station ->
-			if(abs(speed) < 0.01) return@let
-			train.leaveStation()
+		if(train.navigation.destination == null && manualControl) {
+			train.currentStation?.let { station ->
+				if(abs(speed) < 0.01) return@let
+				train.leaveStation()
+			}
 		}
 		
 		if(skipCount != Int.MAX_VALUE) skipCount++

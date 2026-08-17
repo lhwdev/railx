@@ -86,23 +86,29 @@ object ThrottlesServer {
 			context.entity.carriage.train.absoluteThrottle = throttle
 			
 			val controlled = context.entity.control(context.controlsPos, actualKeys, player)
-			if(!controlled) context.entity.stopControlling(context.controlsPos)
+			if(!controlled) {
+				context.entity.stopControlling(context.controlsPos)
+				playerThrottlesToRemove += context
+				continue
+			}
 		}
 		for(toRemove in playerThrottlesToRemove)
 			worldThrottles.removeControl(toRemove)
 	}
 	
 	fun tickTrain(train: Train) {
-		if(train.navigation.destination != null) return
-		
 		val throttle = train.absoluteThrottle
 		if(RailXConfig.Server.realisticSpeed.enabled.isTrue) {
 			val realisticSpeed = train.realisticSpeed
 			if(realisticSpeed != null) {
+				if(train.navigation.destination != null) return
+				
 				realisticSpeed.handleManualThrottle(throttle, train.targetSpeed)
 				return
 			}
 		}
+		
+		if(train.navigation.destination != null) return
 		
 		// NOTE: should be identical with CarriageContraptionEntity.control logic
 		// - Patched `slow` to be always false, as we cannot determine controlPos here
