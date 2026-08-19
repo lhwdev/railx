@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.RailXConfig
+import com.lhwdev.minecraft.railx.common.BezierConnectionRuntimeStub
 import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.similarTo
@@ -94,15 +95,22 @@ class FlexiPlacementInfo(
 		return info
 	}
 	
-	fun createCurve(): BezierConnection = BezierConnection(
-		Couple.create(curveFrom.pos, curveTo.pos),
-		Couple.create(curveFrom.end, curveTo.end),
-		Couple.create(curveFrom.tangent, curveTo.tangent),
-		Couple.create(curveFrom.normal, curveTo.normal),
-		true,
-		hasGirder,
-		material,
-	)
+	fun createCurve(): BezierConnection? {
+		val curve = BezierConnection(
+			Couple.create(curveFrom.pos, curveTo.pos),
+			Couple.create(curveFrom.end, curveTo.end),
+			Couple.create(curveFrom.tangent, curveTo.tangent),
+			Couple.create(curveFrom.normal, curveTo.normal),
+			true,
+			hasGirder,
+			material,
+		)
+		
+		val stub = BezierConnectionRuntimeStub(curve)
+		if(stub.length > 10000.0) return null
+		
+		return curve
+	}
 	
 	fun placeError(text: String) = placeError(Component.literal(text))
 	fun placeErrorCreate(key: String) = placeError(CreateLang.translateDirect("track.$key"))

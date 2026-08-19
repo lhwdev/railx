@@ -206,7 +206,9 @@ object FlexiTrackPlacement {
 		val shouldPave = offhandItem is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
 		if(shouldPave) info.pavementBlock = offhandItem.block
 		
-		info.curve = if(info.curveFrom.pos != info.curveTo.pos) info.createCurve() else null
+		info.curve = if(info.curveFrom.pos != info.curveTo.pos) {
+			info.createCurve() ?: return PlaceError("curve too long")
+		} else null
 		
 		info = prepareConnect(info, level, player)
 		cacheStorage?.store(info, pos = toPos, angle = lookAngle.known, lastItem = item)

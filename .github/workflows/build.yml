@@ -57,7 +57,7 @@ jobs:
           release_name: RailX {{version}} for NeoForge 1.21.1
           body: |
             Automatic build release.
-            This mod is **under development**, so be sure to backup before joining. Might have plenty of bugs.
+            This mod is **under development**, so be sure to backup before joining the world. Might have plenty of bugs.
             
             For Minecraft `1.21.1`, NeoForge `21.1.219+`, Create `6.0.10+`. **Requires [Kotlin for Forge](https://modrinth.com/mod/kotlin-for-forge) mod dependency.**
 
