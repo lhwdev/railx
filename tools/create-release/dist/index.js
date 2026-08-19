@@ -34421,16 +34421,16 @@ function wrappy (fn, cb) {
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(1635);
-const { getExecOutput } = __nccwpck_require__(4154);
+const {getExecOutput} = __nccwpck_require__(4154);
 const github = __nccwpck_require__(4903);
 
 const context = github.context;
-const { owner, repo } = context.repo;
+const {owner, repo} = context.repo;
 const semver = __nccwpck_require__(7498);
 const process = __nccwpck_require__(932);
 const fs = __nccwpck_require__(9896);
 const Mustache = __nccwpck_require__(5827);
-const { glob } = __nccwpck_require__(122);
+const {glob} = __nccwpck_require__(122);
 
 const octokit = github.getOctokit(core.getInput("github_token"));
 const Scheme = {
@@ -34444,6 +34444,7 @@ const Semantic = {
   Premajor: "premajor",
   Prerelease: "prerelease",
 };
+
 // Check string is null
 function isNullString(string) {
   return (
@@ -34464,15 +34465,15 @@ function orNullString(string) {
 
 const previousTagFormat = new RegExp(
   (
-    core.getInput("previous_tag_format", { required: false }) ?? "$1"
+    core.getInput("previous_tag_format", {required: false}) ?? "$1"
   ).replaceAll("$1", "(?<version>.+)"),
 );
 
 /** @type {string} */
-const tagFormat = core.getInput("tag_format", { required: false }) ?? "$1";
+const tagFormat = core.getInput("tag_format", {required: false}) ?? "$1";
 const tagFormatRegex = new RegExp(tagFormat.replaceAll("$1", "(?<version>.+)"));
 
-const prerelease = core.getInput("prerelease", { required: false }) === "true";
+const prerelease = core.getInput("prerelease", {required: false}) === "true";
 
 // If there is no previous tag, Then the initial tag will be used
 function initialTag(tag) {
@@ -34511,7 +34512,7 @@ function asLastTag(ref) {
   }
 
   // Try to parse as semantic versions
-  const version = semver.coerce(tagVersion, { includePrerelease: true });
+  const version = semver.coerce(tagVersion, {includePrerelease: true});
   if (!version) return null;
   result.version = version;
 
@@ -34520,14 +34521,25 @@ function asLastTag(ref) {
   return result;
 }
 
+/**
+ * @return {LastTag}
+ */
+function deserializeLastTag(tag) {
+  return {
+    ...tag,
+    version: semver.coerce(tag.tagVersion, {includePrerelease: true}),
+  }
+}
+
 async function existingTags() {
-  const { data: refs } = await octokit.rest.git.listMatchingRefs({
+  const {data: refs} = await octokit.rest.git.listMatchingRefs({
     owner,
     repo,
     ref: "tags",
   });
 
   // Sort tags by semantic version in descending order (highest first)
+  /** @type {Tag[]} */
   const tags = refs
     .map((ref) => asLastTag(ref.ref))
     .filter((tag) => tag !== null);
@@ -34588,6 +34600,10 @@ function computeNextSemantic(semTag) {
   }
   return null;
 }
+
+/**
+ * @return {Promise<LastTag>}
+ */
 async function computeLastTag() {
   const recentTags = await existingTags();
   core.info(
@@ -34599,7 +34615,7 @@ async function computeLastTag() {
 
   const current = recentTags.find((tag) => tag.current);
   const latest = recentTags[0];
-  return { current, latest };
+  return {current, latest};
 }
 
 /**
@@ -34665,16 +34681,26 @@ function processTemplate(str, ctx) {
   return Mustache.render(str, context);
 }
 
+/**
+ * @param {LastTag} lastTag
+ * @param {string} currentTag
+ * @param {string} currentRef
+ * @returns {Promise<string>}
+ */
 async function getDiff(lastTag, currentTag, currentRef) {
+  const base = lastTag.current.tag;
+
   let result = "";
   const raw = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,
     repo,
-    basehead: `${lastTag}...${currentRef}`,
+    basehead: `${base}...${currentRef}`,
   });
 
   const commits = raw.data.commits;
   commits.reverse();
+
+  core.info(`getDiff(${base}...${currentRef}) =>\n${commits.map(commit => "  - " + commit.commit.message.slice(0, 20)).join("\n")}`)
 
   const template =
     orNullString(core.getInput("diff_template")) ??
@@ -34700,13 +34726,13 @@ async function getDiff(lastTag, currentTag, currentRef) {
     };
     result += "\n- " + Mustache.render(template, context);
   }
-  result += `\n\n**Full Changelog**: https://github.com/${owner}/${repo}/compare/${lastTag}...${currentTag}`;
+  result += `\n\n**Full Changelog**: https://github.com/${owner}/${repo}/compare/${base}...${currentTag}`;
   return result;
 }
 
 async function run() {
-  const tagName = core.getInput("tag_name", { required: false });
-  const scheme = core.getInput("tag_schema", { required: false });
+  const tagName = core.getInput("tag_name", {required: false});
+  const scheme = core.getInput("tag_schema", {required: false});
   if (scheme !== Scheme.Continuous && scheme !== Scheme.Semantic) {
     core.setFailed(`Unsupported version scheme: ${scheme}`);
     return;
@@ -34717,7 +34743,10 @@ async function run() {
       ? JSON.parse(process.env["lhwdev_create_release_info"])
       : null;
 
-  const lastTag = releaseInfo ? null : await computeLastTag();
+  const lastTag = releaseInfo ? {
+    current: deserializeLastTag(releaseInfo.lastTag.current),
+    latest: deserializeLastTag(releaseInfo.lastTag.latest),
+  } : await computeLastTag();
   let version, tag;
 
   if (releaseInfo != null) {
@@ -34739,10 +34768,14 @@ async function run() {
     core.info(`Computed the next tag: ${tag}`);
   }
 
+  const serializeLastTag = (tag) => {
+    return {tag: tag.tag, tagVersion: tag.tagVersion, current: tag.current, latest: tag.latest};
+  }
   const ctx = {
-    lastTag: releaseInfo
-      ? null
-      : { current: lastTag.current.tag, latest: lastTag.latest.tag },
+    lastTag: {
+      current: lastTag.current && serializeLastTag(lastTag.current),
+      latest: serializeLastTag(lastTag.latest),
+    },
     version,
     tag,
   };
@@ -34753,13 +34786,13 @@ async function run() {
     return;
   }
 
-  const releaseName = core.getInput("release_name", { required: false });
+  const releaseName = core.getInput("release_name", {required: false});
   const release = isNullString(releaseName)
     ? tag
     : processTemplate(releaseName.replace("refs/tags/", ""), ctx);
   ctx.release = release;
 
-  const draft = core.getInput("draft", { required: false }) === "true";
+  const draft = core.getInput("draft", {required: false}) === "true";
   ctx.draft = draft;
 
   let ref = core.getInput("ref");
@@ -34773,7 +34806,7 @@ async function run() {
     core.info(`Defaulting to ref ${ref}`);
   }
 
-  const bodyInput = core.getInput("body", { required: false });
+  const bodyInput = core.getInput("body", {required: false});
   ctx.diff =
     bodyInput.includes("diff") && lastTag
       ? await getDiff(lastTag, tag, ref)
@@ -34801,7 +34834,7 @@ async function run() {
 
   // Get the ID, html_url, and upload URL for the created Release from the response
   const {
-    data: { id: releaseId, html_url: htmlUrl, upload_url: uploadUrl },
+    data: {id: releaseId, html_url: htmlUrl, upload_url: uploadUrl},
   } = createReleaseResponse;
 
   // Set the output variables for use by other actions: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
@@ -34811,9 +34844,9 @@ async function run() {
   core.setOutput("html_url", htmlUrl);
   core.setOutput("upload_url", uploadUrl);
 
-  const artifacts = core.getMultilineInput("artifacts", { required: false });
+  const artifacts = core.getMultilineInput("artifacts", {required: false});
   if (artifacts.length != 0 && artifacts[0].length != 0) {
-    const files = await glob(artifacts, { absolute: false });
+    const files = await glob(artifacts, {absolute: false});
     for (const path of files) {
       const uploadReleaseResult = await octokit.rest.repos.uploadReleaseAsset({
         owner,
