@@ -1,9 +1,12 @@
 package com.lhwdev.minecraft.railx.advancedRoller
 
+import com.copycatsplus.copycats.foundation.copycat.ICopycatBlock
+import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.simibubi.create.content.contraptions.actors.roller.PaveTask
 import com.simibubi.create.content.contraptions.actors.roller.RollerBlock
 import com.simibubi.create.content.contraptions.actors.roller.RollerMovementBehaviour
 import com.simibubi.create.content.contraptions.behaviour.MovementContext
+import com.simibubi.create.content.logistics.filter.FilterItemStack
 import com.simibubi.create.content.trains.bogey.StandardBogeyBlock
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import com.simibubi.create.content.trains.entity.TravellingPoint
@@ -16,9 +19,15 @@ import io.netty.util.collection.LongObjectHashMap
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.component.DataComponents
 import net.minecraft.nbt.NbtUtils
 import net.minecraft.tags.BlockTags
 import net.minecraft.util.Mth
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.FallingBlock
 import net.minecraft.world.level.block.SlabBlock
@@ -26,6 +35,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.SlabType
 import net.minecraft.world.phys.Vec3
+import java.lang.invoke.MethodHandles
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -89,13 +99,28 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		if(startingY == 0 && ceilState.`is`(stateToPaveWith.block)) startingY = 1
 		if(startingY == 1 && getExpectedHeight(y, stateToPaveWith) == previousCeilHeight) startingY = 2
 		
+		val height = getExpectedHeight(y, stateToPaveWith)
 		for(offsetY in startingY..if(previousCeilHeight == 0) 2 else 3) {
 			val pos = ceilPos.above(offsetY)
-			val stateAbove = level.getBlockState(pos)
-			if(canBreak(level, pos, stateAbove)) {
+			val paveState = applyHeightToState(stateToPaveWith, height)
+			if(testBreakerTarget(context, pos, paveState, height)) {
 				into += pos
 			}
 		}
+	}
+	
+	private fun testBreakerTarget(
+		context: MovementContext,
+		pos: BlockPos,
+		paveState: BlockState,
+		height: Int,
+	): Boolean {
+		val level = context.world
+		val stateAtPos = level.getBlockState(pos)
+		
+		if(stateAtPos != paveState) return false
+		
+		return canBreak(level, pos, stateAtPos)
 	}
 	
 	private val rollerScout = RollerTravelingPoint()
@@ -292,7 +317,9 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		val existing = level.getBlockState(targetPos)
 		if(existing == toPlace) return PaveResult.PASS
 		
-		if(existing.`is`(toPlace.block)) {
+		
+		val block = toPlace.block
+		if(existing.`is`(block)) {
 			val previous = getExistingHeight(existing)
 			if(height <= previous) return PaveResult.PASS
 		} else if(
@@ -302,16 +329,79 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		) return PaveResult.FAIL
 		
 		val filter = context.getFilterFromBE()
+		if(!consumeItem(context, filter, simulate = true))
+			return PaveResult.FAIL
+		
+		if(!consumeItem(context, filter, simulate = false))
+			return PaveResult.FAIL
+		
+		val success = level.setBlockAndUpdate(targetPos, toPlace)
+		
+		val stack = filter.item()
+		val item = stack.item
+		val state = level.getBlockState(targetPos)
+		if(success && item is BlockItem && state.`is`(block)) {
+			// emulate BlockItem.place
+			// do not apply updateBlockStateFromTag
+			PaveReflection.BlockItem_updateCustomBlockEntityTag(item, targetPos, level, player = null, stack, state)
+			
+			// -> emulate updateBlockEntityComponents()
+			val blockEntity = level.getBlockEntity(targetPos)
+			if(blockEntity != null) {
+				blockEntity.applyComponentsFromItemStack(stack)
+				blockEntity.setChanged()
+			}
+		}
+		
+		return PaveResult.SUCCESS
+	}
+	
+	protected fun consumeItem(context: MovementContext, filter: FilterItemStack, simulate: Boolean): Boolean {
+		context.contraption.storage.allItems
+		
 		val held = ItemHelper.extract(
-			context.contraption.getStorage().getAllItems(),
+			context.contraption.storage.allItems,
 			{ stack -> filter.test(context.world, stack) },
 			1,
-			false
+			simulate
 		)
-		if(held.isEmpty) return PaveResult.FAIL
+		if(held.isEmpty) return false
+		val stack = filter.item()
+		val item = stack.item as? BlockItem ?: return false
+		val block = item.block
+		if(CompatMods.copycats) {
+			if(block is ICopycatBlock) {
+				val customData = stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY)
+				if(!customData.isEmpty) {
+					val tag = customData.copyTag()
+					if(!CopycatPaver.consumeCopycatMaterials(context, stack, tag, simulate))
+						return false
+				}
+			}
+		}
 		
-		level.setBlockAndUpdate(targetPos, toPlace)
-		return PaveResult.SUCCESS
+		return true
+	}
+	
+	
+	private object PaveReflection {
+		val BlockItem_updateCustomBlockEntityTag = BlockItem::class.java
+			.getDeclaredMethod(
+				"updateCustomBlockEntityTag",
+				BlockPos::class.java, Level::class.java, Player::class.java,
+				ItemStack::class.java, BlockState::class.java
+			)
+			.also { it.isAccessible = true }
+			.let { MethodHandles.lookup().unreflect(it) }
+		
+		fun BlockItem_updateCustomBlockEntityTag(
+			self: BlockItem,
+			pos: BlockPos,
+			level: Level,
+			player: Player?,
+			stack: ItemStack,
+			state: BlockState,
+		): Boolean = BlockItem_updateCustomBlockEntityTag.invokeExact(self, pos, level, player, stack, state) as Boolean
 	}
 	
 	

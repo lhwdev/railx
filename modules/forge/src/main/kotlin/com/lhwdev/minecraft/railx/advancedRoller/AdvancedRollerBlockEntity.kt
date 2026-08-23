@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.advancedRoller
 
 import com.copycatsplus.copycats.content.copycat.layer.CopycatLayerBlock
+import com.copycatsplus.copycats.foundation.copycat.ICopycatBlock
 import com.lhwdev.minecraft.railx.common.ScrollValueBehaviorExtension
 import com.lhwdev.minecraft.railx.common.gravelLayer.GravelLayerBlock
 import com.lhwdev.minecraft.railx.compat.CompatMods
@@ -112,6 +113,21 @@ class AdvancedRollerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 	}
 	
 	override fun isValidMaterial(newFilter: ItemStack): Boolean {
+		val current = filtering.filter
+		val currentItem = current.item
+		if(currentItem is BlockItem) {
+			val currentBlock = currentItem.block
+			if(CompatMods.copycats) {
+				if(currentBlock is ICopycatBlock) {
+					val material = CopycatPaver.applyMaterialToItem(level!!, current, newFilter)
+					if(material != null) {
+						filtering.setFilter(material)
+						return false
+					}
+				}
+			}
+		}
+		
 		val item = newFilter.item
 		if(item is BlockItem) {
 			val block = item.block
