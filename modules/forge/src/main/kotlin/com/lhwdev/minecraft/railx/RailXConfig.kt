@@ -308,7 +308,7 @@ object RailXConfig {
 			
 			val maxCant: DoubleValue = builder
 				.comment("Maximum cant of flexi tracks. Defined as percent (%).")
-				.defineInRange("flexi_trak.max_gradient", 45.0, 0.0, 90.0)
+				.defineInRange("flexi_trak.max_cant", 45.0, 0.0, 90.0)
 		}
 		
 		inner class BuildTrak {
