@@ -1,6 +1,8 @@
 package com.lhwdev.minecraft.railx.advancedRoller
 
 import com.copycatsplus.copycats.foundation.copycat.ICopycatBlock
+import com.copycatsplus.copycats.foundation.copycat.ICopycatBlockEntity
+import com.copycatsplus.copycats.foundation.copycat.multistate.IMultiStateCopycatBlockEntity
 import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.simibubi.create.content.contraptions.actors.roller.PaveTask
 import com.simibubi.create.content.contraptions.actors.roller.RollerBlock
@@ -26,7 +28,6 @@ import net.minecraft.util.Mth
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.component.CustomData
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.FallingBlock
@@ -40,19 +41,23 @@ import kotlin.math.abs
 import kotlin.math.floor
 
 class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
+	
 	fun advancedMode(context: MovementContext): AdvancedRollerBlockEntity.AdvancedRollingMode =
 		AdvancedRollerBlockEntity.AdvancedRollingMode.Options[context.blockEntityData.getInt("ScrollValue")]
+	
+	fun filterStack(context: MovementContext): ItemStack =
+		ItemStack.parseOptional(context.world.registryAccess(), context.blockEntityData.getCompound("Filter"))
 	
 	override fun getPositionsToBreak(context: MovementContext, visitedPos: BlockPos): List<BlockPos> {
 		if(advancedMode(context) != AdvancedRollerBlockEntity.AdvancedRollingMode.TunnelPave) return emptyList()
 		
+		val filter = context.filterFromBE
 		val positions = ArrayList<BlockPos>()
 		
 		var startingY = 1
 		if(!getStateToPaveWith(context).isAir) {
-			val filter = context.getFilterFromBE()
 			if(!ItemHelper.extract(
-					context.contraption.getStorage().getAllItems(),
+					context.contraption.storage.allItems,
 					{ stack -> filter.test(context.world, stack) },
 					1,
 					true
@@ -74,9 +79,11 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 			return positions
 		}
 		
-		// Otherwise; will not happen, probably?
+		val stateToPaveWith = getStateToPaveWith(filter.item())
 		for(i in startingY..2) {
-			if(testBreakerTarget(context, visitedPos.above(i), i)) positions.add(visitedPos.above(i))
+			val paveState = applyHeightToState(stateToPaveWith, height = if(i == 0) 16 else 0)
+			val willBreak = testBreakerTarget(context, visitedPos.above(i), paveState, filter.item())
+			if(willBreak) positions.add(visitedPos.above(i))
 		}
 		
 		return positions
@@ -89,22 +96,25 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		into: MutableList<BlockPos>,
 	) {
 		val level = context.world
-		val stateToPaveWith = getStateToPaveWith(context)
+		val stack = context.filterFromBE.item()
+		val stateToPaveWith = getStateToPaveWith(stack)
 		
 		val ceilPos = BlockPos.containing(x.toDouble(), y.toDouble(), z.toDouble());
 		val ceilState = level.getBlockState(ceilPos)
 		val previousCeilHeight = getExistingHeight(ceilState)
 		
-		var startingY = startingY
-		if(startingY == 0 && ceilState.`is`(stateToPaveWith.block)) startingY = 1
-		if(startingY == 1 && getExpectedHeight(y, stateToPaveWith) == previousCeilHeight) startingY = 2
-		
-		val height = getExpectedHeight(y, stateToPaveWith)
-		for(offsetY in startingY..if(previousCeilHeight == 0) 2 else 3) {
+		val height = getExpectedHeight(y - floor(y), stateToPaveWith)
+		for(offsetY in (if(previousCeilHeight == 0) 2 else 3) downTo startingY) {
 			val pos = ceilPos.above(offsetY)
-			val paveState = applyHeightToState(stateToPaveWith, height)
-			if(testBreakerTarget(context, pos, paveState, height)) {
+			val paveHeight = when(offsetY) {
+				0 -> 16
+				1 -> height
+				else -> 0
+			}
+			val paveState = applyHeightToState(stateToPaveWith, paveHeight)
+			if(testBreakerTarget(context, pos, paveState, stack)) {
 				into += pos
+				if(paveHeight > 0) break
 			}
 		}
 	}
@@ -113,12 +123,36 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		context: MovementContext,
 		pos: BlockPos,
 		paveState: BlockState,
-		height: Int,
+		paveStack: ItemStack,
 	): Boolean {
 		val level = context.world
 		val stateAtPos = level.getBlockState(pos)
 		
-		if(stateAtPos != paveState) return false
+		if(stateAtPos == paveState) {
+			if(CompatMods.copycats) {
+				if(paveState.block is ICopycatBlock) {
+					val copycat = CopycatItemStack.parse(level, paveStack)
+					val be = level.getBlockEntity(pos) as? ICopycatBlockEntity
+					if(be == null) {
+						if(!paveStack.has(DataComponents.BLOCK_ENTITY_DATA))
+							return false
+					} else if(copycat != null) {
+						if(be is IMultiStateCopycatBlockEntity) {
+							for((key, material) in be.materialItemStorage.materialMap) {
+								val newMaterial = copycat[key]
+								if(newMaterial.material != material) {
+									return canBreak(level, pos, stateAtPos)
+								}
+							}
+						} else {
+							if(copycat.materials.first().material != be.material)
+								return canBreak(level, pos, stateAtPos)
+						}
+					}
+				}
+			}
+			return false
+		}
 		
 		return canBreak(level, pos, stateAtPos)
 	}
@@ -169,6 +203,7 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 			TrackPaverV3.pave(heightProfile, train.graph, edge, from, to)
 		}
 		rollerScout.travel(train.graph, distanceToTravel, steering)
+		rollerScout.traversalCallback = { _, _, _ -> }
 		
 		for(entry in heightProfile.keys()) heightProfile.put(
 			entry.first,
@@ -317,7 +352,6 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		val existing = level.getBlockState(targetPos)
 		if(existing == toPlace) return PaveResult.PASS
 		
-		
 		val block = toPlace.block
 		if(existing.`is`(block)) {
 			val previous = getExistingHeight(existing)
@@ -357,8 +391,6 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 	}
 	
 	protected fun consumeItem(context: MovementContext, filter: FilterItemStack, simulate: Boolean): Boolean {
-		context.contraption.storage.allItems
-		
 		val held = ItemHelper.extract(
 			context.contraption.storage.allItems,
 			{ stack -> filter.test(context.world, stack) },
@@ -371,11 +403,17 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		val block = item.block
 		if(CompatMods.copycats) {
 			if(block is ICopycatBlock) {
-				val customData = stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY)
-				if(!customData.isEmpty) {
-					val tag = customData.copyTag()
-					if(!CopycatPaver.consumeCopycatMaterials(context, stack, tag, simulate))
-						return false
+				val copycat = CopycatItemStack.parse(context.world, stack)
+				if(copycat != null) for(material in copycat.materials) {
+					if(material.isEmpty) continue
+					
+					val consumedItem = material.consumedItem
+					ItemHelper.extract(
+						context.contraption.storage.allItems,
+						{ stack -> stack.`is`(consumedItem.item) },
+						consumedItem.count,
+						simulate,
+					)
 				}
 			}
 		}
@@ -435,8 +473,9 @@ class AdvancedRollerMovementBehavior : RollerMovementBehaviour() {
 		state.hasProperty(BlockStateProperties.LAYERS) -> when {
 			height <= 1 -> Blocks.AIR.defaultBlockState()
 			else -> state.setValue(BlockStateProperties.LAYERS, (height / 2).coerceIn(1, 8))
-			
 		}
+		
+		height < 8 -> Blocks.AIR.defaultBlockState()
 		
 		else -> state
 	}
