@@ -26,10 +26,10 @@ public class MixinPlugin implements IMixinConfigPlugin {
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 		if(!mixinClassName.startsWith(mixinPackage)) return true;
 		var index = mixinPackage.length() + 1;
-		if(targetClassName.startsWith("compat.", index)) {
+		if(mixinClassName.startsWith("compat.", index)) {
 			var index2 = index + 7;
-			var index3 = targetClassName.indexOf('.', index2);
-			var compatMod = targetClassName.substring(index2, index3);
+			var index3 = mixinClassName.indexOf('.', index2);
+			var compatMod = mixinClassName.substring(index2, index3);
 			if(!CompatMods.loaded.contains(compatMod)) return false;
 		}
 		return true;
