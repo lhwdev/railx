@@ -61,6 +61,7 @@ import net.neoforged.neoforge.common.NeoForge
 import net.neoforged.neoforge.event.level.BlockEvent
 import java.util.*
 import java.util.function.Supplier
+import kotlin.math.PI
 import com.simibubi.create.AllSoundEvents as CreateSoundEvents
 
 
@@ -464,6 +465,7 @@ open class FlexiTrackBlock(properties: Properties, material: TrackMaterial) :
 		affine.center()
 			.rotateY(angles.y.toFloat())
 			.rotateX(angles.x.toFloat())
+			.rotateZ((angles.z - PI / 2).toFloat())
 			.uncenter()
 		
 		if(axis != null) {
