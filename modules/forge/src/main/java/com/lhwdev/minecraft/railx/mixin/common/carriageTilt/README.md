@@ -32,3 +32,8 @@ Simple enough, huh?
 ### TODO: passenger location update
 
 TODO: Currently location of passenger is quite weird. Fix this
+
+### Bogey Rotation
+
+Bogey rotation is handled separately, so I handled this separately via `CarriageBogeyMixin.railx$roll` and
+`CarriageContraptionEntityRendererMixin.translateBogey()`.

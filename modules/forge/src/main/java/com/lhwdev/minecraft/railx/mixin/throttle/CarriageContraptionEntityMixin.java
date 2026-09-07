@@ -29,7 +29,7 @@ public class CarriageContraptionEntityMixin {
 		float accelerationMod,
 		Operation<Void> original
 	) {
-		if(!RailXConfig.Server.Value.getThrottle().getEnabled().isFalse() && instance.navigation.destination == null)
+		if(RailXConfig.Server.Value.getThrottle().getEnabled().isTrue() || instance.navigation.destination != null)
 			return;
 		
 		original.call(instance, accelerationMod);

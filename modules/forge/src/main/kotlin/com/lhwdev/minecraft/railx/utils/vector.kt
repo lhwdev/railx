@@ -7,7 +7,12 @@ import net.minecraft.world.phys.Vec3
 
 
 fun Vec3.isNormalized(): Boolean =
-	(length() - 1.0) < 1e-5
+	(lengthSqr() - 1.0) < 1e-6
+
+fun Vec3.normalizeIfNecessary(): Vec3 {
+	if(isNormalized()) return this
+	return normalize()
+}
 
 fun Mirror.mirror(vector: Vec3): Vec3 = when(this) {
 	Mirror.NONE -> vector

@@ -16,6 +16,7 @@
     "common.carriageTilt.CarriageBogeyMixin",
     "common.carriageTilt.CarriageMixin",
     "common.carriageTilt.OrientedContraptionEntityMixin",
+    "common.carriageTilt.TrackBlockOutlineMixin",
     "common.fakeTracks.BezierConnectionMixin",
     "common.fakeTracks.FakeTrackBlockEntityMixin",
     "common.fakeTracks.TrackBlockEntityMixin",

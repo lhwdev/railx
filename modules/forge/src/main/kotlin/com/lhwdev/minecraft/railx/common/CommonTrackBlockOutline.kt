@@ -134,6 +134,7 @@ object CommonTrackBlockOutline {
 				var localDirection = rayDirection
 				localOrigin = VecHelper.rotate(localOrigin, AngleHelper.deg(-angles.x).toDouble(), Direction.Axis.X)
 				localOrigin = VecHelper.rotate(localOrigin, AngleHelper.deg(-angles.y).toDouble(), Direction.Axis.Y)
+				
 				localDirection =
 					VecHelper.rotate(localDirection, AngleHelper.deg(-angles.x).toDouble(), Direction.Axis.X)
 				localDirection =
