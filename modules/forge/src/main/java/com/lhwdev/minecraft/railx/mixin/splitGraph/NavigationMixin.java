@@ -38,7 +38,6 @@ import java.util.UUID;
 class NavigationMixin implements SplittingNavigation {
 	@Shadow public Train train;
 	@Shadow public GlobalStation destination;
-	@Shadow List<Couple<TrackNode>> currentPath;
 	
 	
 	@Unique
@@ -52,7 +51,15 @@ class NavigationMixin implements SplittingNavigation {
 	@ModifyExpressionValue(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
 		"/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 1, opcode =
 		Opcodes.GETFIELD))
-	TrackGraph trackGraphForTick(TrackGraph original) {
+	TrackGraph trackGraphForTickGetPoint(TrackGraph original) {
+		if(railx$currentPathGraph == null) return original;
+		return railx$currentPathGraph;
+	}
+	
+	@ModifyExpressionValue(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/trains" +
+		"/entity/Train;graph:Lcom/simibubi/create/content/trains/graph/TrackGraph;", ordinal = 2, opcode =
+		Opcodes.GETFIELD))
+	TrackGraph trackGraphForTickSignalScout(TrackGraph original) {
 		if(railx$currentPathGraph == null) return original;
 		return railx$currentPathGraph;
 	}
@@ -75,6 +82,8 @@ class NavigationMixin implements SplittingNavigation {
 	void updatePathGraph(DiscoveredPath pathTo, CallbackInfoReturnable<Double> cir) {
 		if(pathTo instanceof SlotObjects.SplitDiscoveredPath splitPath) {
 			railx$currentPathGraph = new MergedTrackGraphImpl(splitPath.getGraphs());
+		} else {
+			railx$currentPathGraph = null;
 		}
 	}
 	
@@ -223,12 +232,12 @@ class NavigationMixin implements SplittingNavigation {
 	@Inject(method = "read", at = @At("HEAD"))
 	void onRead(CompoundTag tag, TrackGraph graph, DimensionPalette dimensions, CallbackInfo ci) {
 		if(tag.contains("railx:PathGraphs") && graph != null) {
-			var manager = Create.RAILWAYS;
+			var trackNetworks = railx$getGraphForRead();
 			var bytes = tag.getLongArray("railx:PathGraphs");
 			var graphs = new ArrayList<TrackGraph>();
 			for(int i = 0; i < bytes.length; i += 2) {
 				var uuid = new UUID(bytes[i], bytes[i + 1]);
-				var pathGraph = manager.trackNetworks.get(uuid);
+				var pathGraph = trackNetworks.get(uuid);
 				if(pathGraph != null) graphs.add(pathGraph);
 			}
 			if(!graphs.isEmpty()) railx$currentPathGraph = new MergedTrackGraphImpl(graphs);
@@ -244,11 +253,17 @@ class NavigationMixin implements SplittingNavigation {
 	@ModifyVariable(method = "read", at = @At(value = "INVOKE", target = "Ljava/util/List;clear()V", shift =
 		At.Shift.AFTER), index = 2, argsOnly = true)
 	TrackGraph updatePathGraphForRead(TrackGraph graph) {
-		var networks = Create.RAILWAYS.trackNetworks;
-		if(networks.isEmpty()) {
+		var trackNetworks = railx$getGraphForRead();
+		return new PropagatingTrackGraphForNavigationRead(trackNetworks, graph);
+	}
+	
+	@Unique
+	private Map<UUID, TrackGraph> railx$getGraphForRead() {
+		var trackNetworks = Create.RAILWAYS.trackNetworks;
+		if(trackNetworks.isEmpty()) {
 			var sd = RailwayServerGlobals.INSTANCE.getSavedData();
-			if(sd != null) networks = sd.getTrackNetworks();
+			if(sd != null) trackNetworks = sd.getTrackNetworks();
 		}
-		return new PropagatingTrackGraphForNavigationRead(networks, graph);
+		return trackNetworks;
 	}
 }

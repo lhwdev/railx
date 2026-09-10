@@ -568,7 +568,7 @@ object FlexiTrackPlacement {
 		curve?.let { curve ->
 			fun placeCurveEnd(end: FlexiPlacementInfo.TrackEnd) {
 				var state = placeTrack(pos = end.pos, end = end) ?: return
-				state = state.trySetValue(TrackBlock.HAS_BE, curve != null)
+				state = state.trySetValue(TrackBlock.HAS_BE, true)
 				requiredTracks++
 				
 				if(!simulate) {

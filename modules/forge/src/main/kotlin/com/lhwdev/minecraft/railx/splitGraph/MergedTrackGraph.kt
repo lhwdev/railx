@@ -292,7 +292,7 @@ internal class PropagatingTrackGraphForNavigationRead(
 	override val base: TrackGraph,
 ) : MergedTrackGraph(graphId = base.id) {
 	private val ids = hashSetOf<UUID>()
-	override val graphs = mutableListOf<TrackGraph>()
+	override val graphs: MutableList<TrackGraph> = mutableListOf(base)
 	
 	override fun locateNode(position: TrackNodeLocation): TrackNode? = super.locateNode(position)?.also { node ->
 		if(node is SplittingTrackNode) {
