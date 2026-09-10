@@ -89,6 +89,10 @@ object RailXConfig {
 		
 		
 		inner class Common {
+			val carriageTilt: BooleanValue = builder
+				.comment("Enable tilting trains according to railway track cant.")
+				.define("common.carriage_tilt__enabled", true)
+			
 			val awaitDepartureForSignalDistance: DoubleValue = builder
 				.comment(
 					"Overwrites the maximum distance between station marking and signal. " +

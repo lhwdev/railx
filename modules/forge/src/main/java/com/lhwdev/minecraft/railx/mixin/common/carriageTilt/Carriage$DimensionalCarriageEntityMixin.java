@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.mixin.common.carriageTilt;
 
+import com.lhwdev.minecraft.railx.RailXConfig;
 import com.lhwdev.minecraft.railx.common.carriageTilt.DimensionalCarriageEntityWithTilt;
 import com.lhwdev.minecraft.railx.common.carriageTilt.OrientedContraptionEntityWithRoll;
 import com.simibubi.create.content.trains.entity.Carriage;
@@ -10,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,10 +26,10 @@ import java.util.Objects;
 @Mixin(Carriage.DimensionalCarriageEntity.class)
 public class Carriage$DimensionalCarriageEntityMixin implements DimensionalCarriageEntityWithTilt {
 	@Unique
-	private Couple<Double> railx$tilt;
+	private Couple<@Nullable Double> railx$tilt;
 	
 	@Override
-	public @NotNull Couple<@NotNull Double> getRailx$tilt() {
+	public @NotNull Couple<@Nullable Double> getRailx$tilt() {
 		return railx$tilt;
 	}
 	
@@ -39,6 +41,7 @@ public class Carriage$DimensionalCarriageEntityMixin implements DimensionalCarri
 	
 	@Inject(method = "write", at = @At("RETURN"))
 	void onWrite(HolderLookup.Provider registries, CallbackInfoReturnable<CompoundTag> cir) {
+		if(RailXConfig.Server.Value.getCommon().getCarriageTilt().isFalse()) return;
 		CompoundTag tag = cir.getReturnValue();
 		
 		if(railx$tilt.both(Objects::nonNull)) {
@@ -51,6 +54,8 @@ public class Carriage$DimensionalCarriageEntityMixin implements DimensionalCarri
 	
 	@Inject(method = "read", at = @At("RETURN"))
 	void onRead(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
+		if(RailXConfig.Server.Value.getCommon().getCarriageTilt().isFalse()) return;
+		
 		if(tag.contains("railx:Tilt")) {
 			var tiltTag = tag.getList("railx:Tilt", DoubleTag.TAG_DOUBLE);
 			railx$tilt.setFirst(tiltTag.getDouble(0));
@@ -65,7 +70,14 @@ public class Carriage$DimensionalCarriageEntityMixin implements DimensionalCarri
 		entityWithRoll.setRailx$prevRoll(entityWithRoll.getRailx$roll());
 		
 		// TODO: handle leading tilt != trailing tilt case
-		float roll = (float) (railx$tilt.getFirst() + railx$tilt.getSecond()) / 2;
+		float roll;
+		if(RailXConfig.Server.Value.getCommon().getCarriageTilt().isFalse()) {
+			roll = 0f;
+		} else if(railx$tilt.both(Objects::nonNull)) {
+			roll = (float) (railx$tilt.getFirst() + railx$tilt.getSecond()) / 2;
+		} else {
+			roll = 0f;
+		}
 		entityWithRoll.setRailx$roll(roll);
 		
 		if(entity.firstPositionUpdate) {

@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.mixin.common.carriageTilt;
 
+import com.lhwdev.minecraft.railx.RailXConfig;
 import com.lhwdev.minecraft.railx.common.carriageTilt.DimensionalCarriageEntityWithTilt;
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection;
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.RotationUtils;
@@ -36,6 +37,10 @@ public abstract class CarriageMixin {
 	
 	@Inject(method = "updateContraptionAnchors", at = @At("TAIL"))
 	void onUpdateContraptionAnchors(CallbackInfo ci) {
+		if(RailXConfig.Server.Value.getCommon().getCarriageTilt().isFalse()) {
+			return;
+		}
+		
 		// all points are not null
 		for(boolean leading : Iterate.trueAndFalse) {
 			TravellingPoint point = leading ? getLeadingPoint() : getTrailingPoint();
