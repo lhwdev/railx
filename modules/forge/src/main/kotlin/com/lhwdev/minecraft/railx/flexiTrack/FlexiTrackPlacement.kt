@@ -565,22 +565,24 @@ object FlexiTrackPlacement {
 		if(fromExtent > 0) placeExtent(from, fromExtent)
 		if(toExtent > 0) placeExtent(to, toExtent)
 		
-		if(!simulate) {
+		curve?.let { curve ->
 			fun placeCurveEnd(end: FlexiPlacementInfo.TrackEnd) {
 				var state = placeTrack(pos = end.pos, end = end) ?: return
 				state = state.trySetValue(TrackBlock.HAS_BE, curve != null)
-				level.setBlock(end.pos, state, Block.UPDATE_ALL)
+				requiredTracks++
 				
-				(level.getBlockEntity(end.pos) as? FlexiTrackBlockEntity)?.let { be ->
-					be.updateState(be.overlayShape(direction = end.toKnownDirection()))
+				if(!simulate) {
+					level.setBlock(end.pos, state, Block.UPDATE_ALL)
+					
+					(level.getBlockEntity(end.pos) as? FlexiTrackBlockEntity)?.let { be ->
+						be.updateState(be.overlayShape(direction = end.toKnownDirection()))
+					}
 				}
 			}
 			
 			placeCurveEnd(curveFrom)
 			placeCurveEnd(curveTo)
-		}
-		
-		curve?.let { curve ->
+			
 			val fromBe = level.getBlockEntity(curveFrom.pos)
 			val toBe = level.getBlockEntity(curveTo.pos)
 			val turnTracks = (curve.segmentCount + 1) / 2
