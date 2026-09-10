@@ -282,7 +282,7 @@ async function getDiff(lastTag, currentTag, currentRef) {
 
   const template =
     orNullString(core.getInput("diff_template")) ??
-    "{{title}} ([{{commitHashAbbr}}]({{{commitUrl}}}))";
+    "{{title}} {{{commitUrl}}}";
   for (const entry of commits) {
     const commit = entry.commit;
     const context = {

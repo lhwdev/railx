@@ -179,6 +179,14 @@ object RailXConfig {
 				.comment("Enables trains to have realistic speed")
 				.define("realistic_speed.enabled", false)
 			
+			val enableInUnloadedChunk: BooleanValue = builder
+				.comment(
+					"Enable physical calculation for trains inside unloaded chunks. Most heavy physical " +
+						"calculation is done only once and saved with train, but if there are many trains in world then " +
+						"this might significantly impact performance."
+				)
+				.define("realistic_speed.enable_in_unloaded_chunk", false)
+			
 			val removePrevious: BooleanValue = builder
 				.comment("Removes previously saved realistic speed-related parameters/caches from train data.")
 				.define("realistic_speed.remove_previous", false)

@@ -323,14 +323,16 @@ class RealisticTrainSpeed(private val train: Train) {
 		netEnvironmentalSlowdown = 0.0
 		netWheelSlowdown = 0.0
 		
-		if(train.carriages.none { it.anyAvailableDimensionalCarriage() != null }) return
+		handleBrake()
+		if(config.enableInUnloadedChunk.isFalse) {
+			if(train.carriages.none { it.anyAvailableDimensionalCarriage() != null }) return
+		}
 		
 		ensureTrainProps()
 		updatePhysicalState()
 		
 		handleRollingResistance()
 		handleGravitationalAcceleration()
-		handleBrake()
 		handleCurvatureResistance()
 		handleAirResistance()
 		
