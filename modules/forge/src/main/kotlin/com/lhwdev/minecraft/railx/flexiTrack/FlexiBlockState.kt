@@ -52,7 +52,7 @@ sealed class FlexiBlockState(
 	
 	class Update(override val base: Base, val stateFn: (FlexiState) -> FlexiState) : FlexiBlockState(
 		block = base.block,
-		values = base.values as Reference2ObjectArrayMap<Property<*>, Comparable<*>>,
+		values = base.values.asReference2ObjectArrayMap(),
 		propertiesCodec = base.propertiesCodec,
 	) {
 		override fun mapState(previous: FlexiState): FlexiState =
@@ -93,3 +93,7 @@ sealed class FlexiBlockState(
 		else -> super.setValue(property, value)
 	} as FlexiBlockState
 }
+
+
+private fun <K, V> Map<K, V>.asReference2ObjectArrayMap(): Reference2ObjectArrayMap<K, V> =
+	this as? Reference2ObjectArrayMap<K, V> ?: Reference2ObjectArrayMap<K, V>(this)
