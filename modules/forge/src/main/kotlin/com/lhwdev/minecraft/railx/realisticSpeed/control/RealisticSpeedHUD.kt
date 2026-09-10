@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.realisticSpeed.control
 
 import com.lhwdev.minecraft.railx.RailXConfig
+import com.lhwdev.minecraft.railx.utils.orFalse
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.minecraft.client.DeltaTracker
@@ -18,7 +19,7 @@ object RealisticSpeedHUD : LayeredDraw.Layer {
 	override fun render(graphics: GuiGraphics, deltaTracker: DeltaTracker) {
 		val mc = Minecraft.getInstance()
 		if(mc.options.hideGui || mc.gameMode?.playerMode == GameType.SPECTATOR) return
-		if(RailXConfig.Server.flexiTrak.enabled.isFalse) return
+		if(!RailXConfig.Server.flexiTrak.enabled.orFalse) return
 		
 		val entity = ControlsHandler.getContraption()
 		if(entity !is CarriageContraptionEntity) return
