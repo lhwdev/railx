@@ -43,16 +43,18 @@ interface SplitGraphTrack : ITrackBlock {
 		if(!(dot * dot similarTo targetAxis.lengthSqr() * point.tangent.lengthSqr())) return null
 		
 		val center = point.center
-		return TrackGraphLocation().apply {
-			if(dot > 0) {
-				val to = point.to
-				val toGraph = Create.RAILWAYS.getGraph(level, to)
+		return if(dot > 0) {
+			val to = point.to
+			val toGraph = Create.RAILWAYS.getGraph(level, to) ?: return null
+			TrackGraphLocation().apply {
 				graph = toGraph
 				edge = Couple.create(center, to)
 				position = 0.0
-			} else {
-				val from = point.from
-				val fromGraph = Create.RAILWAYS.getGraph(level, from)
+			}
+		} else {
+			val from = point.from
+			val fromGraph = Create.RAILWAYS.getGraph(level, from) ?: return null
+			TrackGraphLocation().apply {
 				graph = fromGraph
 				edge = Couple.create(from, center)
 				position = from.location.distanceTo(center.location)
