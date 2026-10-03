@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.throttle
 
 import com.lhwdev.minecraft.railx.RailXConfig
+import com.lhwdev.minecraft.railx.utils.orFalse
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.minecraft.client.DeltaTracker
@@ -23,7 +24,7 @@ object ThrottleHUD : LayeredDraw.Layer {
 		
 		val entity = ControlsHandler.getContraption()
 		if(entity !is CarriageContraptionEntity) return
-		if(RailXConfig.Server.throttle.enabled.isFalse) return
+		if(!RailXConfig.Server.throttle.enabled.orFalse) return
 		
 		val carriage = entity.carriage ?: return
 		if(mc.cameraEntity == null) return

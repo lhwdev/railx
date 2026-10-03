@@ -23,6 +23,10 @@ Allows train tracks to be placed at any angle.
 Flexi tracks can be rotated by holding wrench then dragging the number. Short clicking the number will cycle between
 Direction, Gradient, Tilt.
 
+**Notes for addon developers**: Thank you for reaching here. I haven't ever thought this mod to have any addon/patch.
+See [API definition](modules/api/src/main/kotlin/com/lhwdev/minecraft/railx/api/flexiTrack) and
+[Implementation](modules/forge/src/main/kotlin/com/lhwdev/minecraft/railx/flexiTrack).
+
 ### `realisticSpeed`
 
 Stage: **Alpha**; most things are implemented, but not tested thoroughly.

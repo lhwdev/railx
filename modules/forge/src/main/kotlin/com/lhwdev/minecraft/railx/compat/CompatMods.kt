@@ -13,4 +13,7 @@ object CompatMods {
 	
 	val copycats: Boolean
 		get() = "copycats" in loaded
+	
+	val framedBlocks: Boolean
+		get() = "framedBlocks" in loaded
 }
