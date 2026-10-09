@@ -20,6 +20,7 @@ enum class AllKeys(val description: String, val defaultKey: Int) {
 	ThrottleAccelerate(description = "throttle.accelerate", defaultKey = GLFW.GLFW_KEY_LEFT_BRACKET),
 	ThrottleNeutral(description = "throttle.neutral", defaultKey = GLFW.GLFW_KEY_SEMICOLON),
 	ThrottleBrake(description = "throttle.brake", defaultKey = GLFW.GLFW_KEY_PERIOD),
+	ThrottleEmergencyBrake(description = "throttle.emergency_brake", defaultKey = GLFW.GLFW_KEY_COMMA),
 	ThrottleReverserForward(description = "throttle.reverser_forward", defaultKey = GLFW.GLFW_KEY_O),
 	ThrottleReverserBackward(description = "throttle.reverser_backward", defaultKey = GLFW.GLFW_KEY_K),
 	;
@@ -30,21 +31,26 @@ enum class AllKeys(val description: String, val defaultKey: Int) {
 	val key: Int
 		get() = bound?.key?.value ?: defaultKey
 	
+	/** Whether the key is held right now, regardless of when it was pressed. */
 	var isPressed: Boolean = false
 		private set
 	
+	/** True only on the tick the key was pressed. */
 	var isKeyDown: Boolean = false
 		private set
 	
+	/** True only on the tick the key was released. */
 	var isKeyUp: Boolean = false
 		private set
 	
+	/** Ticks elapsed since the key was pressed. */
 	var pressedTicks: Int = 0
 		private set
 	
 	private fun updatePressed() {
 		val previous = isPressed
 		val current = bound?.isDown ?: isKeyDown(defaultKey)
+		
 		isPressed = current
 		
 		isKeyDown = !previous && current

@@ -21,3 +21,11 @@ val ModConfigSpec.BooleanValue.orFalse: Boolean
 	} catch(_: IllegalStateException) {
 		false
 	}
+
+/** Reads a double config value, falling back to [default] when the config is not loaded yet. */
+@JvmName("orDefaultDouble")
+fun ModConfigSpec.DoubleValue.orDefault(default: Double): Double = try {
+	asDouble
+} catch(_: IllegalStateException) {
+	default
+}

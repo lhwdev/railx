@@ -13,6 +13,8 @@ object RailXConfig {
 		
 		val flexiTrak = FlexiTrak()
 		
+		val throttle = Throttle()
+		
 		
 		inner class Common {
 			val preciseOverlay: BooleanValue = builder
@@ -45,6 +47,22 @@ object RailXConfig {
 			val flexibleSelection: EnumValue<FlexiTrackPlacementClient.FlexibleSelection> = builder
 				.comment("Whether hold or toggle to enable/disable flexible placement.")
 				.defineEnum("flexi_trak.flexible_selection", FlexiTrackPlacementClient.FlexibleSelection.Hold)
+		}
+		
+		inner class Throttle {
+			val holdRepeatDelay: IntValue = builder
+				.comment(
+					"How long, in milliseconds, the accelerate/brake key must be held before it starts repeating. " +
+						"A tap shorter than this still changes the gear by exactly one level."
+				)
+				.defineInRange("throttle.hold_repeat_delay_ms", 100, 0, 5000)
+			
+			val holdRepeatInterval: IntValue = builder
+				.comment(
+					"Interval, in milliseconds, at which the gear keeps changing while the accelerate/brake key is " +
+						"held down. Lower is faster; 75 means roughly 13 levels per second."
+				)
+				.defineInRange("throttle.hold_repeat_interval_ms", 75, 1, 5000)
 		}
 		
 		
