@@ -27,20 +27,14 @@ object ThrottlesClient {
 	private val holdRepeatIntervalTicks: Int
 		get() = HoldRepeat.millisToTicks(RailXConfig.Client.throttle.holdRepeatInterval.asInt)
 	
-	/** Turns a held accelerate key into repeated presses. */
 	private val accelerateHold = HoldRepeat({ holdRepeatDelayTicks }, { holdRepeatIntervalTicks })
 	
-	/** Same, for the brake key. */
 	private val brakeHold = HoldRepeat({ holdRepeatDelayTicks }, { holdRepeatIntervalTicks })
 	
 	/** Whether the emergency-brake key was down on the previous tick, so it only wins on a fresh press. */
 	private var lastEmergencyBrakePress = false
 	
-	/**
-	 * Target the gear when the emergency brake is engaged. EB is one level beyond the last brake notch,
-	 * but only exists while the emergency brake multiplier is configured; otherwise B7 is the end of the
-	 * handle's travel.
-	 */
+	/** EB is one level past the last brake notch, but only exists while the emergency brake is configured. */
 	private val emergencyBrakeGear: Int
 		get() = if(RailXConfig.Server.throttle.emergencyBrakeMultiplier.orDefault(1.0) != 1.0)
 			-Throttles.maxBreak - 1
@@ -83,7 +77,6 @@ object ThrottlesClient {
 		val entity = ControlsHandler.getContraption() ?: return
 		val controlsPos = ControlsHandler.getControlsPos() ?: return
 		if(packetCooldown > 0) packetCooldown--
-		
 		if(entity.isRemoved || InputConstants.isKeyDown(mc.window.window, GLFW.GLFW_KEY_ESCAPE)) {
 			ControlsHandler.stopControlling()
 			PacketDistributor.sendToServer(
@@ -121,15 +114,14 @@ object ThrottlesClient {
 		val emergencyBrake = RailXConfig.Server.throttle.emergencyBrakeMultiplier.asDouble
 		val emergencyBrakeKey = AllKeys.ThrottleEmergencyBrake.isPressed
 		
-		// The emergency-brake key wins on the tick it goes down, keeping the handle at EB/B7 for as long
-		// as it is held; afterwards any other key takes the handle back, so the position is escapable.
+		// EB wins on the tick it goes down and holds the handle there while held; any other key then takes the
+		// handle back, so the position is escapable.
 		if(emergencyBrakeKey && !lastEmergencyBrakePress) {
 			gear = emergencyBrakeGear
 			accelerateHold.reset()
 			brakeHold.reset()
 		} else {
-			// A held key counts as pressed repeatedly, so the gear logic below stays exactly as it was: one
-			// press moves one notch.
+			// A held key counts as pressed repeatedly, so one press still moves one notch.
 			val acceleratePressed = accelerateHold.isPressedDown(AllKeys.ThrottleAccelerate.isPressed)
 			val brakePressed = brakeHold.isPressedDown(AllKeys.ThrottleBrake.isPressed)
 			
@@ -147,9 +139,7 @@ object ThrottlesClient {
 		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
 		
 		val throttle = Throttles.Throttle(reverser, steering, gear)
-		// A changed gear must reach the server on the tick it changes: packetCooldown is a keepalive
-		// limiter, and routing held-key repeats through it would silently cap them at one level per
-		// PACKET_RATE ticks instead of the configured interval.
+		// A changed gear must reach the server on the tick it changes; packetCooldown only limits keepalives.
 		if(pressedKeys != ControlsHandler.currentlyPressed || throttle != previous || packetCooldown == 0) {
 			ControlsHandler.currentlyPressed = pressedKeys
 			this.throttle = throttle

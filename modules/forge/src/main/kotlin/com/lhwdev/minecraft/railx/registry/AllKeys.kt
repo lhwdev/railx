@@ -31,26 +31,21 @@ enum class AllKeys(val description: String, val defaultKey: Int) {
 	val key: Int
 		get() = bound?.key?.value ?: defaultKey
 	
-	/** Whether the key is held right now, regardless of when it was pressed. */
 	var isPressed: Boolean = false
 		private set
 	
-	/** True only on the tick the key was pressed. */
 	var isKeyDown: Boolean = false
 		private set
 	
-	/** True only on the tick the key was released. */
 	var isKeyUp: Boolean = false
 		private set
 	
-	/** Ticks elapsed since the key was pressed. */
 	var pressedTicks: Int = 0
 		private set
 	
 	private fun updatePressed() {
 		val previous = isPressed
 		val current = bound?.isDown ?: isKeyDown(defaultKey)
-		
 		isPressed = current
 		
 		isKeyDown = !previous && current

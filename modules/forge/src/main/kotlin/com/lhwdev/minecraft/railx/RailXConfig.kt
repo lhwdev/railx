@@ -51,17 +51,11 @@ object RailXConfig {
 		
 		inner class Throttle {
 			val holdRepeatDelay: IntValue = builder
-				.comment(
-					"How long, in milliseconds, the accelerate/brake key must be held before it starts repeating. " +
-						"A tap shorter than this still changes the gear by exactly one level."
-				)
+				.comment("How long, in milliseconds, to hold accelerate/brake before it starts repeating.")
 				.defineInRange("throttle.hold_repeat_delay_ms", 100, 0, 5000)
 			
 			val holdRepeatInterval: IntValue = builder
-				.comment(
-					"Interval, in milliseconds, at which the gear keeps changing while the accelerate/brake key is " +
-						"held down. Lower is faster; 75 means roughly 13 levels per second."
-				)
+				.comment("Interval, in milliseconds, at which the gear keeps changing while the key is held.")
 				.defineInRange("throttle.hold_repeat_interval_ms", 75, 1, 5000)
 		}
 		
