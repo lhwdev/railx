@@ -21,3 +21,9 @@ val ModConfigSpec.BooleanValue.orFalse: Boolean
 	} catch(_: IllegalStateException) {
 		false
 	}
+
+fun ModConfigSpec.DoubleValue.orDefault(default: Double): Double = try {
+	asDouble
+} catch(_: IllegalStateException) {
+	default
+}
