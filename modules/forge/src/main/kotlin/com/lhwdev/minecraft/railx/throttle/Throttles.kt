@@ -49,10 +49,17 @@ object Throttles {
 	enum class Steering {
 		Left, Neutral, Right;
 		
+		/**
+		 * Mirror of the steering in the frame of the controls, i.e. as seen by the driver.
+		 *
+		 * This must be an involution (applying it twice returns the original value): both the getter and the setter of
+		 * `ServerThrottleControl.relativeThrottle` apply it via [Throttle.reverseIf], so a value that is not mapped back
+		 * to itself silently changes the steering by the time it is read again.
+		 */
 		fun reverse(): Steering = when(this) {
 			Left -> Right
 			Neutral -> Neutral
-			Right -> Right
+			Right -> Left
 		}
 	}
 	
