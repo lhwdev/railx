@@ -13,8 +13,6 @@ object RailXConfig {
 		
 		val flexiTrak = FlexiTrak()
 		
-		val throttle = Throttle()
-		
 		
 		inner class Common {
 			val preciseOverlay: BooleanValue = builder
@@ -27,7 +25,7 @@ object RailXConfig {
 		}
 		
 		inner class Compat {
-			val pantographsAndWiresAutoCantilever = builder
+			val pantographsAndWiresAutoCantilever: BooleanValue = builder
 				.comment(
 					"(Experimental) For Pantographs and Wires mod, add feature to adjust cantilever" +
 						"width/yOffset consistently."
@@ -47,16 +45,6 @@ object RailXConfig {
 			val flexibleSelection: EnumValue<FlexiTrackPlacementClient.FlexibleSelection> = builder
 				.comment("Whether hold or toggle to enable/disable flexible placement.")
 				.defineEnum("flexi_trak.flexible_selection", FlexiTrackPlacementClient.FlexibleSelection.Hold)
-		}
-		
-		inner class Throttle {
-			val holdRepeatDelay: IntValue = builder
-				.comment("How long, in milliseconds, to hold accelerate/brake before it starts repeating.")
-				.defineInRange("throttle.hold_repeat_delay_ms", 100, 0, 5000)
-			
-			val holdRepeatInterval: IntValue = builder
-				.comment("Interval, in milliseconds, at which the gear keeps changing while the key is held.")
-				.defineInRange("throttle.hold_repeat_interval_ms", 75, 1, 5000)
 		}
 		
 		

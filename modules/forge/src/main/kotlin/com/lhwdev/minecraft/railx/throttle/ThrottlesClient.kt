@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.throttle
 
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.registry.AllKeys
+import com.lhwdev.minecraft.railx.utils.KeyDebounce
 import com.lhwdev.minecraft.railx.utils.orDefault
 import com.lhwdev.minecraft.railx.utils.sign
 import com.mojang.blaze3d.platform.InputConstants
@@ -21,20 +22,13 @@ object ThrottlesClient {
 	var throttle: Throttles.Throttle? = null
 	var packetCooldown = 0
 	
-	private val holdRepeatDelayTicks: Int
-		get() = HoldRepeat.millisToTicks(RailXConfig.Client.throttle.holdRepeatDelay.asInt)
+	private val accelerateKey = KeyDebounce.HoldRepeat(key = AllKeys.ThrottleAccelerate)
+	private val neutralKey = KeyDebounce.HoldRepeat(key = AllKeys.ThrottleNeutral)
+	private val brakeKey = KeyDebounce.HoldRepeat(key = AllKeys.ThrottleBrake)
+	private val emergencyBrakeKey = KeyDebounce.Hold(key = AllKeys.ThrottleEmergencyBrake)
 	
-	private val holdRepeatIntervalTicks: Int
-		get() = HoldRepeat.millisToTicks(RailXConfig.Client.throttle.holdRepeatInterval.asInt)
+	private val keyGroup = KeyDebounce.DebounceGroup(emergencyBrakeKey, brakeKey, neutralKey, accelerateKey)
 	
-	private val accelerateHold = HoldRepeat({ holdRepeatDelayTicks }, { holdRepeatIntervalTicks })
-	
-	private val brakeHold = HoldRepeat({ holdRepeatDelayTicks }, { holdRepeatIntervalTicks })
-	
-	/** Whether the emergency-brake key was down on the previous tick, so it only wins on a fresh press. */
-	private var lastEmergencyBrakePress = false
-	
-	/** EB is one level past the last brake notch, but only exists while the emergency brake is configured. */
 	private val emergencyBrakeGear: Int
 		get() = if(RailXConfig.Server.throttle.emergencyBrakeMultiplier.orDefault(1.0) != 1.0)
 			-Throttles.maxBreak - 1
@@ -44,9 +38,7 @@ object ThrottlesClient {
 	fun levelUnloaded(level: LevelAccessor) {
 		packetCooldown = 0
 		throttle = null
-		lastEmergencyBrakePress = false
-		accelerateHold.reset()
-		brakeHold.reset()
+		keyGroup.resetAll()
 	}
 	
 	fun startControlling() {
@@ -67,9 +59,7 @@ object ThrottlesClient {
 		
 		throttle = null
 		packetCooldown = 0
-		lastEmergencyBrakePress = false
-		accelerateHold.reset()
-		brakeHold.reset()
+		keyGroup.resetAll()
 	}
 	
 	fun tick() {
@@ -111,30 +101,21 @@ object ThrottlesClient {
 			else -> Throttles.Steering.Neutral
 		}
 		
-		val emergencyBrake = RailXConfig.Server.throttle.emergencyBrakeMultiplier.asDouble
-		val emergencyBrakeKey = AllKeys.ThrottleEmergencyBrake.isPressed
+		keyGroup.tickPressed()
 		
-		// EB wins on the tick it goes down and holds the handle there while held; any other key then takes the
-		// handle back, so the position is escapable.
-		if(emergencyBrakeKey && !lastEmergencyBrakePress) {
+		if(emergencyBrakeKey.isPressed) {
 			gear = emergencyBrakeGear
-			accelerateHold.reset()
-			brakeHold.reset()
+			keyGroup.resetAll()
 		} else {
-			// A held key counts as pressed repeatedly, so one press still moves one notch.
-			val acceleratePressed = accelerateHold.isPressedDown(AllKeys.ThrottleAccelerate.isPressed)
-			val brakePressed = brakeHold.isPressedDown(AllKeys.ThrottleBrake.isPressed)
-			
-			if(acceleratePressed)
+			if(accelerateKey.isPressed)
 				gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)
 			
-			if(AllKeys.ThrottleNeutral.isKeyDown)
+			if(neutralKey.isPressed)
 				gear += -sign(gear)
 			
-			if(brakePressed)
-				gear = (gear - 1).coerceAtLeast(-Throttles.maxBreak - if(emergencyBrake != 1.0) 1 else 0)
+			if(brakeKey.isPressed)
+				gear = (gear - 1).coerceAtLeast(emergencyBrakeGear)
 		}
-		lastEmergencyBrakePress = emergencyBrakeKey
 		
 		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
 		
