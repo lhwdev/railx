@@ -55,7 +55,7 @@ class AdvancedRollerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 				add(WideFill)
 				
 				if(CompatMods.railways) {
-					add(RailwayTrackReplace)
+					RailwayTrackReplace.Instance?.let { add(it) }
 				}
 				
 				add(SmoothWideFill)
@@ -78,10 +78,23 @@ class AdvancedRollerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 			translationKey = "create.contraptions.roller_mode.wide_fill"
 		)
 		
-		object RailwayTrackReplace : AdvancedRollingMode(
+		class RailwayTrackReplace : AdvancedRollingMode(
 			icon = CRIcons.I_SWAP_TRACKS,
 			translationKey = "create.contraptions.roller_mode.track_replace",
-		)
+		) {
+			companion object {
+				var Instance: RailwayTrackReplace? = null
+					get() = if(CompatMods.railways) {
+						var v = field
+						if(v == null) {
+							v = RailwayTrackReplace()
+							field = v
+						}
+						return v
+					} else null
+					private set
+			}
+		}
 		
 		object SmoothWideFill : AdvancedRollingMode(
 			icon = AllIcons.I_ROLLER_WIDE_FILL,
