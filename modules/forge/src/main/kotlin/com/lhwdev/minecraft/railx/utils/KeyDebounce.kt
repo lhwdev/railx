@@ -1,8 +1,8 @@
 package com.lhwdev.minecraft.railx.utils
 
 import com.lhwdev.minecraft.railx.registry.AllKeys
+import net.minecraft.util.Mth
 import java.util.*
-import kotlin.math.roundToInt
 
 interface KeyDebounce {
 	fun reset()
@@ -62,9 +62,9 @@ interface KeyDebounce {
 		override var isPressed: Boolean = false
 			protected set
 		
-		private var heldTicks = 0
-		private var nextPressTick = 0L
-		private var tick = 0L
+		protected var heldTicks = 0
+		protected var nextPressTick = 0L
+		protected var tick = 0L
 		
 		override fun reset() {
 			heldTicks = 0
@@ -75,7 +75,6 @@ interface KeyDebounce {
 			tick += deltaTicks
 			
 			if(!holding()) {
-				if(heldTicks > 0) println("up")
 				reset()
 				return
 			}
@@ -84,19 +83,22 @@ interface KeyDebounce {
 			heldTicks += deltaTicks
 			
 			if(previousHeldTicks == 0) {
-				println("down")
 				isPressed = true
-				nextPressTick = tick + DelayTicks
+				nextPressTick = tick + calculateDelayTicks(heldTicks = 0)
 				return
 			}
 			
 			if(tick >= nextPressTick) {
 				isPressed = true
-				
-				val fraction = (heldTicks - DelayTicks - IntervalTicks).toFloat() / IntervalTicks / 6
-				val currentInterval = lerp(DelayTicks, IntervalTicks, fraction.coerceIn(0f, 1f))
-				nextPressTick = tick + currentInterval
+				nextPressTick = tick + calculateDelayTicks(heldTicks)
 			}
+		}
+		
+		open fun calculateDelayTicks(heldTicks: Int) = if(heldTicks == 0) {
+			DelayTicks
+		} else {
+			val fraction = (heldTicks - DelayTicks - IntervalTicks).toFloat() / IntervalTicks / 6
+			Mth.lerpInt(fraction.coerceIn(0f, 1f), DelayTicks, IntervalTicks)
 		}
 		
 		override fun dismissHold() {
@@ -109,7 +111,37 @@ interface KeyDebounce {
 	}
 	
 	open class HoldRepeatWithBoost(holding: () -> Boolean) : HoldRepeat(holding) {
-	
+		constructor(key: AllKeys) : this(holding = { key.isPressed })
+		
+		companion object {
+			const val BoostDelayMaxTicks = 3
+		}
+		
+		protected var lastUpTick = -100L
+		protected var isBoosted = false
+		
+		override fun reset() {
+			super.reset()
+			isBoosted = false
+		}
+		
+		override fun tickPressed(deltaTicks: Int) {
+			if(heldTicks in 1..3 && !holding()) {
+				lastUpTick = tick
+			}
+			super.tickPressed(deltaTicks)
+		}
+		
+		override fun calculateDelayTicks(heldTicks: Int): Int {
+			if(heldTicks == 0 && tick - lastUpTick <= BoostDelayMaxTicks) {
+				isBoosted = true
+			}
+			return if(isBoosted) {
+				IntervalTicks
+			} else {
+				super.calculateDelayTicks(heldTicks)
+			}
+		}
 	}
 	
 	
@@ -169,10 +201,3 @@ interface KeyDebounce {
 			get() = keys.any { it.isPressed }
 	}
 }
-
-
-private fun Int.toTicks(minimumValue: Int = 0): Int =
-	(this / 50f).roundToInt().coerceAtLeast(minimumValue)
-
-private fun lerp(a: Int, b: Int, fraction: Float): Int =
-	a + ((b - a) * fraction).roundToInt()

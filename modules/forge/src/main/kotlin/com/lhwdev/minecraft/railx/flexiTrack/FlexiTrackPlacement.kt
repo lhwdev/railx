@@ -422,10 +422,6 @@ object FlexiTrackPlacement {
 			if(BuildTrak.enabled && BuildTrak.currentPlan.addPlacedTracks) addToPlan = true
 		}
 		
-		if(from.end.distanceToSqr(to.end) < 1.0 - 1e-5) {
-			return placeError(text = "too close")
-		}
-		
 		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)
 			return placeErrorCreate("turn_start")
 		
@@ -470,6 +466,11 @@ object FlexiTrackPlacement {
 				}
 			}
 		}
+		
+		if(from.end.distanceToSqr(to.end) < 1.0 - 1e-5) {
+			return placeError(text = "too close")
+		}
+		
 		return this
 	}
 	

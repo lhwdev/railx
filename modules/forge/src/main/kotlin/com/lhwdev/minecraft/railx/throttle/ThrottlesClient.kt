@@ -6,10 +6,13 @@ import com.lhwdev.minecraft.railx.utils.KeyDebounce
 import com.lhwdev.minecraft.railx.utils.orDefault
 import com.lhwdev.minecraft.railx.utils.sign
 import com.mojang.blaze3d.platform.InputConstants
+import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInputPacket
 import com.simibubi.create.foundation.utility.ControlsUtil
 import net.minecraft.client.Minecraft
+import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import net.minecraft.util.Mth
 import net.minecraft.world.level.LevelAccessor
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
@@ -22,9 +25,9 @@ object ThrottlesClient {
 	var throttle: Throttles.Throttle? = null
 	var packetCooldown = 0
 	
-	private val accelerateKey = KeyDebounce.HoldRepeat(key = AllKeys.ThrottleAccelerate)
-	private val neutralKey = KeyDebounce.HoldRepeat(key = AllKeys.ThrottleNeutral)
-	private val brakeKey = KeyDebounce.HoldRepeat(key = AllKeys.ThrottleBrake)
+	private val accelerateKey = KeyDebounce.HoldRepeatWithBoost(key = AllKeys.ThrottleAccelerate)
+	private val neutralKey = KeyDebounce.HoldRepeatWithBoost(key = AllKeys.ThrottleNeutral)
+	private val brakeKey = KeyDebounce.HoldRepeatWithBoost(key = AllKeys.ThrottleBrake)
 	private val emergencyBrakeKey = KeyDebounce.Hold(key = AllKeys.ThrottleEmergencyBrake)
 	
 	private val keyGroup = KeyDebounce.DebounceGroup(emergencyBrakeKey, brakeKey, neutralKey, accelerateKey)
@@ -103,6 +106,8 @@ object ThrottlesClient {
 		
 		keyGroup.tickPressed()
 		
+		val previousGear = gear
+		val emergencyBrakeGear = emergencyBrakeGear
 		if(emergencyBrakeKey.isPressed) {
 			gear = emergencyBrakeGear
 			keyGroup.resetAll()
@@ -115,6 +120,13 @@ object ThrottlesClient {
 			
 			if(brakeKey.isPressed)
 				gear = (gear - 1).coerceAtLeast(emergencyBrakeGear)
+		}
+		
+		if(keyGroup.isPressed && gear != previousGear) {
+			var pitch = (gear + -emergencyBrakeGear).toFloat() / (-emergencyBrakeGear + Throttles.maxThrottle)
+			pitch = Mth.lerp(pitch, 1.15f, 1.4f /* 1.5f */)
+			Minecraft.getInstance().soundManager
+				.play(SimpleSoundInstance.forUI(AllSoundEvents.SCROLL_VALUE.mainEvent, pitch, 0.25f))
 		}
 		
 		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
