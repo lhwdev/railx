@@ -4,18 +4,19 @@ import com.lhwdev.minecraft.railx.registry.AllKeys
 import net.minecraft.util.Mth
 import java.util.*
 
+
 interface KeyDebounce {
 	fun reset()
 	
 	fun tickPressed(deltaTicks: Int = 1)
 	
-	fun dismissHold() {}
+	fun dismissHold()
 	
 	val isHolding: Boolean
 	val isPressed: Boolean
 	
 	
-	/** Persists hold unless releasing key. */
+	/** Persists hold unless releasing key. Activates only on first down tick. */
 	class Hold(val holding: () -> Boolean) : KeyDebounce {
 		constructor(key: AllKeys) : this(holding = { key.isPressed })
 		
@@ -145,13 +146,37 @@ interface KeyDebounce {
 	}
 	
 	
+	open class Group(val keys: List<KeyDebounce>) : KeyDebounce {
+		constructor(vararg keys: KeyDebounce) : this(listOf(*keys))
+		
+		override fun reset() {}
+		
+		open fun resetAll() {
+			reset()
+			keys.forEach { it.reset() }
+		}
+		
+		override fun tickPressed(deltaTicks: Int) {
+			keys.forEach { it.tickPressed(deltaTicks) }
+		}
+		
+		override fun dismissHold() {
+			keys.forEach { it.dismissHold() }
+		}
+		
+		override val isHolding: Boolean
+			get() = keys.any { it.isHolding }
+		override val isPressed: Boolean
+			get() = keys.any { it.isPressed }
+	}
+	
 	/**
 	 * For keys like [HoldRepeat], when one key is hold down and another key is down then first key is processed as if
 	 * it is released. This simulates these behavior.
 	 *
 	 * If multiple is pressed simultaneously, first wins.
 	 */
-	class DebounceGroup(val keys: List<KeyDebounce>) : KeyDebounce {
+	class DebounceGroup(keys: List<KeyDebounce>) : Group(keys) {
 		constructor(vararg keys: KeyDebounce) : this(listOf(*keys))
 		
 		private val state = BitSet(keys.size)
@@ -161,11 +186,6 @@ interface KeyDebounce {
 			latest = null
 		}
 		
-		fun resetAll() {
-			reset()
-			for(key in keys) key.reset()
-		}
-		
 		override fun tickPressed(deltaTicks: Int) {
 			var latest: KeyDebounce? = null
 			
@@ -173,15 +193,15 @@ interface KeyDebounce {
 				val previous = state[index]
 				
 				key.tickPressed(deltaTicks = deltaTicks)
-				var current = key.isHolding
+				val current = key.isHolding
+				
 				if(previous != current) {
-					if(current) {
-						if(latest == null) {
-							latest = key
-						} else {
-							key.dismissHold()
-							current = key.isHolding
+					if(current && latest == null && key.isPressed) {
+						latest = key
+						for(other in keys) {
+							if(other != key) other.dismissHold()
 						}
+						
 					}
 					
 					state[index] = current
@@ -196,8 +216,5 @@ interface KeyDebounce {
 		
 		override val isHolding: Boolean
 			get() = state.nextSetBit(0) != -1
-		
-		override val isPressed: Boolean
-			get() = keys.any { it.isPressed }
 	}
 }

@@ -18,6 +18,7 @@ import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import net.neoforged.neoforge.network.PacketDistributor
 import org.lwjgl.glfw.GLFW
+import kotlin.math.abs
 
 
 @OnlyIn(Dist.CLIENT)
@@ -25,12 +26,19 @@ object ThrottlesClient {
 	var throttle: Throttles.Throttle? = null
 	var packetCooldown = 0
 	
+	private val reverserForwardKey = KeyDebounce.Hold(key = AllKeys.ThrottleReverserForward)
+	private val reverserBackwardKey = KeyDebounce.Hold(key = AllKeys.ThrottleReverserBackward)
+	
 	private val accelerateKey = KeyDebounce.HoldRepeatWithBoost(key = AllKeys.ThrottleAccelerate)
 	private val neutralKey = KeyDebounce.HoldRepeatWithBoost(key = AllKeys.ThrottleNeutral)
 	private val brakeKey = KeyDebounce.HoldRepeatWithBoost(key = AllKeys.ThrottleBrake)
 	private val emergencyBrakeKey = KeyDebounce.Hold(key = AllKeys.ThrottleEmergencyBrake)
+	private var emergencyBrakeSoundTicks = 0
+	private var emergencyBreakSoundRange = 0f..0f
 	
-	private val keyGroup = KeyDebounce.DebounceGroup(emergencyBrakeKey, brakeKey, neutralKey, accelerateKey)
+	private val reverserGroup = KeyDebounce.DebounceGroup(reverserForwardKey, reverserBackwardKey)
+	private val throttleNotchGroup = KeyDebounce.DebounceGroup(emergencyBrakeKey, brakeKey, neutralKey, accelerateKey)
+	private val keyGroup = KeyDebounce.Group(reverserGroup, throttleNotchGroup)
 	
 	private val emergencyBrakeGear: Int
 		get() = if(RailXConfig.Server.throttle.emergencyBrakeMultiplier.orDefault(1.0) != 1.0)
@@ -93,9 +101,11 @@ object ThrottlesClient {
 		var reverser = previous.reverser
 		var gear = previous.gear
 		
+		keyGroup.tickPressed()
+		
 		if(gear <= 0) {
-			if(AllKeys.ThrottleReverserForward.isKeyDown) reverser = reverser.forward()
-			if(AllKeys.ThrottleReverserBackward.isKeyDown) reverser = reverser.backward()
+			if(reverserForwardKey.isPressed) reverser = reverser.forward()
+			if(reverserBackwardKey.isPressed) reverser = reverser.backward()
 		}
 		
 		val steering = when {
@@ -104,13 +114,10 @@ object ThrottlesClient {
 			else -> Throttles.Steering.Neutral
 		}
 		
-		keyGroup.tickPressed()
-		
 		val previousGear = gear
 		val emergencyBrakeGear = emergencyBrakeGear
 		if(emergencyBrakeKey.isPressed) {
 			gear = emergencyBrakeGear
-			keyGroup.resetAll()
 		} else {
 			if(accelerateKey.isPressed)
 				gear = (gear + 1).coerceAtMost(Throttles.maxThrottle)
@@ -122,14 +129,46 @@ object ThrottlesClient {
 				gear = (gear - 1).coerceAtLeast(emergencyBrakeGear)
 		}
 		
-		if(keyGroup.isPressed && gear != previousGear) {
-			var pitch = (gear + -emergencyBrakeGear).toFloat() / (-emergencyBrakeGear + Throttles.maxThrottle)
-			pitch = Mth.lerp(pitch, 1.15f, 1.4f /* 1.5f */)
+		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
+		
+		fun pitchOf(gear: Int): Float {
+			val pitch = (gear + -emergencyBrakeGear).toFloat() / (-emergencyBrakeGear + Throttles.maxThrottle)
+			return Mth.lerp(pitch, 1.15f, 1.4f /* 1.5f */)
+		}
+		
+		fun playSound(pitch: Float) {
 			Minecraft.getInstance().soundManager
 				.play(SimpleSoundInstance.forUI(AllSoundEvents.SCROLL_VALUE.mainEvent, pitch, 0.25f))
 		}
 		
-		if(reverser == Throttles.Reverser.Neutral && gear > 0) gear = 0
+		val MaxEmergencyGearSound = 4
+		if(throttleNotchGroup.isPressed && gear != previousGear) {
+			if(emergencyBrakeKey.isPressed) {
+				val delta = gear - previousGear
+				if(abs(delta) <= MaxEmergencyGearSound) {
+					for(gearStep in previousGear downTo gear) {
+						playSound(pitch = pitchOf(gearStep))
+					}
+				} else {
+					emergencyBreakSoundRange = pitchOf(previousGear)..pitchOf(gear)
+					emergencyBrakeSoundTicks = MaxEmergencyGearSound
+				}
+			} else {
+				playSound(pitch = pitchOf(gear))
+				emergencyBrakeSoundTicks = 0
+			}
+		}
+		
+		if(emergencyBrakeSoundTicks > 0) {
+			emergencyBrakeSoundTicks--
+			
+			val pitch = Mth.lerp(
+				(emergencyBrakeSoundTicks).toFloat() / MaxEmergencyGearSound,
+				emergencyBreakSoundRange.start,
+				emergencyBreakSoundRange.endInclusive
+			)
+			playSound(pitch)
+		}
 		
 		val throttle = Throttles.Throttle(reverser, steering, gear)
 		// A changed gear must reach the server on the tick it changes; packetCooldown only limits keepalives.
