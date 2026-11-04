@@ -102,6 +102,7 @@ class ThrottlePacket(
 		
 		if(stopControlling) {
 			entity.stopControlling(controlsPos)
+			ThrottlesServer.stopControl(world, entity, player.uuid)
 			return
 		}
 		

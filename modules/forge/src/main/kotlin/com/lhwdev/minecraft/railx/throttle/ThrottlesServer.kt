@@ -56,6 +56,13 @@ object ThrottlesServer {
 				continue
 			}
 			
+			// Another player may have taken over the controls; then this control is not valid anymore.
+			val controllingPlayer = context.entity.controllingPlayer.orElse(null)
+			if(controllingPlayer != null && controllingPlayer != playerId) {
+				playerThrottlesToRemove += context
+				continue
+			}
+			
 			val keys = mutableSetOf<Int>()
 			val keysIterator = context.keys.iterator()
 			while(keysIterator.hasNext()) {
@@ -94,6 +101,21 @@ object ThrottlesServer {
 		}
 		for(toRemove in playerThrottlesToRemove)
 			worldThrottles.removeControl(toRemove)
+	}
+	
+	/**
+	 * Called when [playerId] left the controls of [entity], e.g. by pressing escape.
+	 *
+	 * The control has to be dropped here as well: it is what continuously calls
+	 * [CarriageContraptionEntity.control], which in turn keeps marking the train as manually controlled
+	 * (`Train.manualTick`) and overwriting its target speed. Create skips signal checks for manually
+	 * controlled trains, so retaining the control would let a train run red signals even after its schedule
+	 * is resumed. Note that the throttle (master controller) itself is retained, as intended.
+	 */
+	fun stopControl(world: LevelAccessor, entity: CarriageContraptionEntity, playerId: UUID) {
+		val context = receivedControls[world].byPlayer[playerId] ?: return
+		if(context.entity !== entity) return
+		receivedControls[world].removeControl(context)
 	}
 	
 	fun tickTrain(train: Train) {
