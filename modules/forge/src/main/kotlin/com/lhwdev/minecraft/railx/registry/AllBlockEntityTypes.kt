@@ -6,6 +6,7 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackRenderer
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackVisual
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlockEntity
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import com.simibubi.create.content.contraptions.actors.roller.RollerRenderer
 import com.simibubi.create.content.trains.observer.TrackObserverRenderer
 import com.simibubi.create.content.trains.observer.TrackObserverVisual

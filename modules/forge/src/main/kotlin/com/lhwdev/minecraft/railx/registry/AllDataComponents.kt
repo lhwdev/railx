@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.buildTrack.TrackPlan
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import com.mojang.serialization.Codec
 import net.minecraft.network.codec.ByteBufCodecs
 

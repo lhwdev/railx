@@ -1,6 +1,7 @@
 package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.buildTrack.TrackPlanItem
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import com.tterrag.registrate.util.entry.ItemEntry
 
 object AllItems {

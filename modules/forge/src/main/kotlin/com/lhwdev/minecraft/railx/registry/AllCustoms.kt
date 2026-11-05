@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.registry
 
 import com.lhwdev.minecraft.railx.realisticSpeed.BlockMaterialResolver
 import com.lhwdev.minecraft.railx.realisticSpeed.BlockMaterialResolvers
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceKey
 import net.neoforged.neoforge.registries.RegistryBuilder

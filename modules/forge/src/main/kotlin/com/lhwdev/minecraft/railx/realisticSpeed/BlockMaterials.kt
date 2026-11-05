@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.realisticSpeed
 
 import com.lhwdev.minecraft.railx.registry.AllCustoms
-import com.lhwdev.minecraft.railx.registry.RailXRegistry
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.state.BlockState

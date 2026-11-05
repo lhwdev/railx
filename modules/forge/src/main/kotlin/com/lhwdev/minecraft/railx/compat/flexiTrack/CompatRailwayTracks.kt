@@ -1,7 +1,12 @@
 package com.lhwdev.minecraft.railx.compat.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
-import com.lhwdev.minecraft.railx.registry.*
+import com.lhwdev.minecraft.railx.registry.AllBlockEntityTypes
+import com.lhwdev.minecraft.railx.registry.RailXBlockEntityEntry
+import com.lhwdev.minecraft.railx.registry.flexiTrackBlock
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistrate
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
+import com.lhwdev.minecraft.railx.registry.registrate.validFor
 import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackMaterial
 import com.tterrag.registrate.builders.BlockBuilder
@@ -23,15 +28,20 @@ abstract class CompatRailwayTracks {
 		crossinline factory: (BlockBehaviour.Properties, TrackMaterial) -> Track,
 		blockStateModel: ResourceLocation,
 		builder: BlockBuilder<Track, RailXRegistrate>.() -> Unit = {},
-	): BlockEntry<Track> = Registry.flexiTrackBlock(
-		name = compatNameFor(original.id),
-		material = original,
-		normalBlock = originalBlock,
-		factory = factory,
-		blockStates = { c, p -> p.simpleBlock(c.entry, p.models().getExistingFile(blockStateModel)) },
-	) {
-		validFor(blockEntity)
-		builder()
+	): BlockEntry<Track> {
+		val name = compatNameFor(original.id)
+		Registry.registerCompatBlock(name, dependencyModId = original.id.namespace)
+		
+		return Registry.flexiTrackBlock(
+			name = name,
+			material = original,
+			normalBlock = originalBlock,
+			factory = factory,
+			blockStates = { c, p -> p.simpleBlock(c.entry, p.models().getExistingFile(blockStateModel)) },
+		) {
+			validFor(blockEntity)
+			builder()
+		}
 	}
 	
 	inline fun <Track : FlexiTrackBlock> Iterable<TrackMaterial>.flexiTrackBlocks(

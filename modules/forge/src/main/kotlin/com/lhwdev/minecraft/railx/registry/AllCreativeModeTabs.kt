@@ -2,6 +2,7 @@
 
 package com.lhwdev.minecraft.railx.registry
 
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import com.tterrag.registrate.util.entry.RegistryEntry
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component

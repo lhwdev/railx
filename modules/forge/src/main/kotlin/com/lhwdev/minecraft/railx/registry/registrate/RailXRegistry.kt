@@ -1,13 +1,18 @@
-package com.lhwdev.minecraft.railx.registry
+package com.lhwdev.minecraft.railx.registry.registrate
 
 import com.lhwdev.minecraft.railx.RailX
+import com.lhwdev.minecraft.railx.compat.ConditionalBlockLootProvider
+import com.lhwdev.minecraft.railx.registry.RailXBlockEntityBuilder
+import com.lhwdev.minecraft.railx.registry.RailXBlockEntityEntry
 import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.data.CreateRegistrate
-import com.tterrag.registrate.builders.BlockBuilder
-import com.tterrag.registrate.builders.BlockEntityBuilder
-import com.tterrag.registrate.builders.ItemBuilder
+import com.tterrag.registrate.builders.*
+import com.tterrag.registrate.providers.ProviderType
+import com.tterrag.registrate.providers.RegistrateDataProvider
+import com.tterrag.registrate.providers.RegistrateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.entry.RegistryEntry
+import com.tterrag.registrate.util.nullness.NonNullConsumer
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
@@ -21,7 +26,9 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.neoforged.bus.api.IEventBus
+import net.neoforged.neoforge.data.event.GatherDataEvent
 import net.neoforged.neoforge.event.BlockEntityTypeAddBlocksEvent
+import java.util.*
 
 
 val RailXRegistry = RailXRegistrate(RailX.Id)
@@ -30,7 +37,7 @@ val RailXRegistry = RailXRegistrate(RailX.Id)
 @Suppress("UNCHECKED_CAST")
 class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 	init {
-		@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+		@Suppress("TYPE_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 		defaultCreativeTab(null as ResourceKey<CreativeModeTab>?)
 	}
 	
@@ -73,10 +80,60 @@ class RailXRegistrate(modId: String) : CreateRegistrate(modId) {
 			.register() as RailXBlockEntityEntry<T>
 	
 	
+	/// Compat resource dependencies
+	
+	private class CompatResource(val dependencyModId: String)
+	
+	private val compatResources = mutableMapOf<ProviderType<*>, MutableMap<String, CompatResource>>()
+	private var compatData: RegistrateDataProvider? = null
+	
+	fun registerCompat(registry: ProviderType<*>, name: String, dependencyModId: String) {
+		compatResources.getOrPut(registry) { mutableMapOf() }
+			.put(name, CompatResource(dependencyModId))
+	}
+	
+	fun registerCompatBlock(name: String, dependencyModId: String, itemName: String? = name) {
+		registerCompat(registry = ProviderType.BLOCK_TAGS, name, dependencyModId)
+		if(itemName != null) registerCompat(registry = ProviderType.ITEM_TAGS, itemName, dependencyModId)
+	}
+	
+	override fun <P : RegistrateProvider, R> setDataGenerator(
+		builder: Builder<R, *, *, *>,
+		type: ProviderType<out P>,
+		cons: NonNullConsumer<out P>,
+	): RailXRegistrate {
+		val resources = compatResources.getOrDefault(type, emptyMap())
+		if(builder.name in resources) {
+			(builder as? AbstractBuilder<*, *, *, *>)?.asOptional()
+		}
+		
+		return super.setDataGenerator(builder, type, cons) as RailXRegistrate
+	}
+	
+	override fun onData(event: GatherDataEvent) {
+		val provider = RegistrateDataProvider(this, modid, event)
+		compatData = provider
+		
+		val conditionalBlockLootProvider = ConditionalBlockLootProvider(
+			delegate = provider,
+			dataRoot = event.generator.packOutput.outputFolder.resolve("data"),
+			blockDependencies = compatResources.getOrDefault(ProviderType.BLOCK_TAGS, emptyMap())
+				.entries.associate { (k, v) -> location(k) to v.dependencyModId },
+		)
+		event.generator.addProvider(true, conditionalBlockLootProvider)
+	}
+	
+	override fun <P : RegistrateProvider> getDataProvider(type: ProviderType<P>): Optional<P> =
+		compatData?.getSubProvider(type) ?: super.getDataProvider(type)
+	
+	
+	/// addValidToBlockEntity
+	
 	private val addValidToBlockEntity = mutableListOf<BlockBuilder<out Block, *>>()
 	fun <T> addValidToBlockEntity(block: BlockBuilder<T, *>) where T : Block, T : IBE<*> {
 		addValidToBlockEntity += block
 	}
+	
 	
 	override fun registerEventListeners(bus: IEventBus): RailXRegistrate {
 		bus.addListener(BlockEntityTypeAddBlocksEvent::class.java) { event ->

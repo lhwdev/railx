@@ -1,5 +1,6 @@
 package com.lhwdev.minecraft.railx.registry
 
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import com.lhwdev.minecraft.railx.splitGraph.SplitGraphTrainSync
 import com.tterrag.registrate.util.entry.RegistryEntry
 import net.minecraft.network.syncher.EntityDataSerializer

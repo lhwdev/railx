@@ -10,6 +10,10 @@ import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackBlock
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistrate
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
+import com.lhwdev.minecraft.railx.registry.registrate.addValidToBlockEntity
+import com.lhwdev.minecraft.railx.registry.registrate.item
 import com.lhwdev.minecraft.railx.splitGraph.block.SplitGraphTrackBlock
 import com.lhwdev.minecraft.railx.splitGraph.flexiBlock.FlexiSplitGraphTrackBlock
 import com.railwayteam.railways.registry.CRTags
@@ -261,10 +265,11 @@ inline fun <Track, Material : TrackMaterial> RailXRegistrate.trackBlock(
 	}
 	blockstate { c, p -> blockStates(c, p) }
 	addLayer { Supplier { RenderType.cutoutMipped() } }
+	
 	tag(CreateTags.AllBlockTags.TRACKS.tag)
 	tag(BlockTags.MINEABLE_WITH_PICKAXE)
 	tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED)
-	tag(CreateTags.AllBlockTags.TRACKS.tag)
+	
 	if(!CompatMods.railways || material.trackType != CRTrackMaterials.CRTrackType.MONORAIL) // issue with cinit
 		tag(CreateTags.AllBlockTags.GIRDABLE_TRACKS.tag)
 	

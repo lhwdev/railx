@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx
 import com.lhwdev.minecraft.railx.compat.RailXCompat
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrack
 import com.lhwdev.minecraft.railx.registry.*
+import com.lhwdev.minecraft.railx.registry.registrate.RailXRegistry
 import com.lhwdev.minecraft.railx.splitGraph.SplitGraph
 import net.minecraft.resources.ResourceLocation
 import net.neoforged.api.distmarker.Dist
