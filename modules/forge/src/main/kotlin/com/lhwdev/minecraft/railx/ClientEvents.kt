@@ -8,6 +8,7 @@ import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackOutline
 import com.lhwdev.minecraft.railx.middleTrack.MiddleTrackTargetingClient
 import com.lhwdev.minecraft.railx.middleTrack.renderer.MiddleTracksRenderer
 import com.lhwdev.minecraft.railx.realisticSpeed.control.RealisticSpeedHUD
+import com.lhwdev.minecraft.railx.registry.key.KeyDebounceHandler
 import com.lhwdev.minecraft.railx.throttle.ThrottleHUD
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
@@ -25,6 +26,11 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(Dist.CLIENT)
 object ClientEvents {
+	@SubscribeEvent
+	fun onFramePre(event: RenderFrameEvent.Pre) {
+		KeyDebounceHandler.onFrame()
+	}
+	
 	@SubscribeEvent
 	fun onTickPost(event: ClientTickEvent.Post) {
 		MiddleTrackTargetingClient.clientTick()

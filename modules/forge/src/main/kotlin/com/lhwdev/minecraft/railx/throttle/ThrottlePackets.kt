@@ -4,7 +4,6 @@ import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
 import com.lhwdev.minecraft.railx.throttle.Throttles.Throttle
 import com.lhwdev.minecraft.railx.utils.StreamCodecs
-import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.createmod.catnip.net.base.ClientboundPacketPayload
@@ -59,9 +58,7 @@ class UpdateThrottlePacket(val contraptionEntityId: Int, val throttle: Throttle)
 	
 	override fun handle(player: LocalPlayer?) {
 		if(player == null) return
-		if(ControlsHandler.getContraption()?.id != contraptionEntityId) return
-		
-		ThrottlesClient.throttle = throttle
+		ThrottlesClient.receiveThrottle(contraptionEntityId, throttle)
 	}
 	
 	override fun getTypeProvider(): BasePacketPayload.PacketTypeProvider =
@@ -102,6 +99,8 @@ class ThrottlePacket(
 		
 		if(stopControlling) {
 			entity.stopControlling(controlsPos)
+			
+			// For safety; actually not required to call, as ThrottlesServer checks for null controllingPlayer.
 			ThrottlesServer.stopControl(world, entity, player.uuid)
 			return
 		}

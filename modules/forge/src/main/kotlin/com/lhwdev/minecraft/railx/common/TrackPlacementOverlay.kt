@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.common
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacementClient
-import com.lhwdev.minecraft.railx.registry.AllKeys
+import com.lhwdev.minecraft.railx.registry.key.AllKeys
 import com.simibubi.create.content.trains.track.TrackBlock
 import com.simibubi.create.content.trains.track.TrackBlockItem
 import com.simibubi.create.foundation.utility.CreateLang

@@ -3,8 +3,11 @@ package com.lhwdev.minecraft.railx.flexiTrack
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.compat.CompatMods
-import com.lhwdev.minecraft.railx.registry.AllKeys
 import com.lhwdev.minecraft.railx.registry.AllSpecialTextures
+import com.lhwdev.minecraft.railx.registry.key.AllKeys
+import com.lhwdev.minecraft.railx.registry.key.KeyDebounce
+import com.lhwdev.minecraft.railx.registry.key.KeyDebounceHandler
+import com.lhwdev.minecraft.railx.registry.key.registerKeyEvent
 import com.lhwdev.minecraft.railx.utils.ColorsArgb
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
@@ -32,7 +35,6 @@ import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
 import org.spongepowered.asm.mixin.injection.callback.Cancellable
-import java.lang.invoke.MethodHandles
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -43,12 +45,12 @@ import com.simibubi.create.AllTags as CreateTags
 object FlexiTrackPlacementClient {
 	enum class FlexibleSelection { Hold, Toggle }
 	
-	private object Reflection {
-		private val lookup = MethodHandles.lookup()
-		val extraTipWarmup = TrackPlacement::class.java.getDeclaredField("extraTipWarmup")
-			.also { it.isAccessible = true }
-		val getExtraTipWarmup = lookup.unreflectGetter(extraTipWarmup)
-		val setExtraTipWarmup = lookup.unreflectSetter(extraTipWarmup)
+	private object Keys : KeyDebounceHandler() {
+		val flexibleSelection = AllKeys.FlexiblePlacement bind KeyDebounce.Hold()
+		
+		init {
+			registerKeyEvent()
+		}
 	}
 	
 	
@@ -58,7 +60,7 @@ object FlexiTrackPlacementClient {
 		get() {
 			if(!RailXConfig.Server.flexiTrak.enabled.get()) return false
 			return when(RailXConfig.Client.flexiTrak.flexibleSelection.get()) {
-				FlexibleSelection.Hold -> AllKeys.FlexiblePlacement.isPressed
+				FlexibleSelection.Hold -> Keys.flexibleSelection.isHolding
 				FlexibleSelection.Toggle -> flexibleSelectionToggle
 			}
 		}
@@ -87,7 +89,7 @@ object FlexiTrackPlacementClient {
 		
 		if(
 			RailXConfig.Client.flexiTrak.flexibleSelection.get() == FlexibleSelection.Toggle &&
-			AllKeys.FlexiblePlacement.isKeyDown
+			Keys.flexibleSelection.consumePressed()
 		) {
 			val player = Minecraft.getInstance().player
 			if(player != null && CreateTags.AllBlockTags.TRACKS.matches(player.mainHandItem)) {
