@@ -57,7 +57,6 @@ class FlexiPlacementInfo(
 	val from: TrackEnd,
 	val to: TrackEnd,
 ) : FlexiPlaceResult {
-	var addToPlan: Boolean = false
 	var hasGirder: Boolean = false
 	var pavementBlock: Block? = null
 	
@@ -83,7 +82,6 @@ class FlexiPlacementInfo(
 	
 	fun copy(): FlexiPlacementInfo {
 		val info = FlexiPlacementInfo(material, trackItem, from, to)
-		info.addToPlan = addToPlan
 		info.hasGirder = hasGirder
 		info.curve = curve
 		info.pavementBlock = pavementBlock

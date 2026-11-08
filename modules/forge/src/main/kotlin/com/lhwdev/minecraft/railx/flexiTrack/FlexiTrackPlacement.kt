@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.lhwdev.minecraft.railx.buildTrack.BuildTrak
 import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult.PlaceError
 import com.lhwdev.minecraft.railx.registry.AllDataComponents
@@ -103,12 +102,6 @@ object FlexiTrackPlacement {
 	): FlexiPlaceResult {
 		val info = resolveConnection(level, player, toPos, toState, item, parameter)
 		if(info !is FlexiPlacementInfo || !info.valid) return info
-		
-		if(info.addToPlan) {
-			if(info.pavementBlock != null) return info.placeError("pavement not supported for track plan")
-			if(!level.isClientSide) BuildTrak.currentPlan.addSegment(info)
-			return info
-		}
 		
 		return connect(info, level, player)
 	}
@@ -413,13 +406,11 @@ object FlexiTrackPlacement {
 		val curve = curve
 		val distSqr = from.pos.distSqr(to.pos)
 		if(distSqr > RailXConfig.Server.flexiTrak.placementLength.asInt.pow2()) {
-			if(BuildTrak.enabled && distSqr <= RailXConfig.Server.buildTrak.maxPlacementLength.asInt.pow2()) {
-				addToPlan = true
-			} else {
-				return placeError(PlaceError.TooFar())
-			}
-		} else {
-			if(BuildTrak.enabled && BuildTrak.currentPlan.addPlacedTracks) addToPlan = true
+			return placeError(PlaceError.TooFar())
+		}
+		
+		if(curve != null && curve.length > RailXConfig.Server.flexiTrak.placementLength.asInt * 2) {
+			return placeError(PlaceError.TooFar())
 		}
 		
 		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)
