@@ -65,7 +65,7 @@ open class FlexiTrackVoxelShapes {
 		of(state.shape, cache = state.shapeCache)
 	
 	fun createKnown(direction: FlexiDirection.Known): VoxelShape {
-		val rotation = Quaterniond().rotationY(direction.direction)
+		val rotation = Quaterniond().rotationY(direction.direction.rad)
 		return createFlatShape(rotation)
 	}
 	

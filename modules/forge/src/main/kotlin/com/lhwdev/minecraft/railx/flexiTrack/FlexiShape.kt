@@ -1,6 +1,10 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.utils.*
+import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.asAllInstanceOf
+import com.lhwdev.minecraft.railx.utils.math.mirror
+import com.lhwdev.minecraft.railx.utils.math.rotate
+import com.lhwdev.minecraft.railx.utils.requireAllInstanceOf
 import com.lhwdev.minecraft.utils.vectors.minus
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.nbt.CompoundTag

@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.splitGraph.block
 
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.simibubi.create.Create
 import com.simibubi.create.content.trains.graph.TrackGraphLocation
 import com.simibubi.create.content.trains.graph.TrackNodeLocation

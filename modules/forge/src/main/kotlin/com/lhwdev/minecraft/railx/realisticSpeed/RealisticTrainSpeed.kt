@@ -4,9 +4,9 @@ import com.lhwdev.minecraft.railx.RailX
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.throttle.Throttles
 import com.lhwdev.minecraft.railx.utils.ContraptionLevelReader
-import com.lhwdev.minecraft.railx.utils.pow2
-import com.lhwdev.minecraft.railx.utils.round
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.pow2
+import com.lhwdev.minecraft.railx.utils.math.round
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInteractionBehaviour
 import com.simibubi.create.content.trains.bogey.AbstractBogeyBlock

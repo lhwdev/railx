@@ -2,7 +2,8 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.direction
-import com.lhwdev.minecraft.railx.utils.*
+import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.math.*
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.content.trains.track.TrackShape
 import net.createmod.catnip.math.VecHelper
@@ -10,11 +11,13 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.*
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.codec.StreamCodec
-import net.minecraft.util.Mth
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.phys.Vec3
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 
 interface FlexiDirection {
@@ -28,8 +31,8 @@ interface FlexiDirection {
 	val tangent2: Tangent2?
 	val normal: Vec3
 	
-	val tangentAngle: Double
-		get() = Mth.atan2(-tangent.z, tangent.x)
+	val tangentAngle: Angle
+		get() = atan2(-tangent.z, tangent.x)
 	
 	infix fun closeToUnsigned(other: FlexiDirection): Boolean =
 		tangent closeToUnsigned other.tangent && normal closeToUnsigned other.normal
@@ -154,15 +157,14 @@ interface FlexiDirection {
 				}
 			}
 			
-			fun roundFrom(radian: Double): UnsignedKnown {
-				val PI2 = PI * 2
-				val index = (DivisionCount * (radian floorMod PI2) / PI2).roundToInt()
+			fun roundFrom(direction: Angle): UnsignedKnown {
+				val index = (DivisionCount * direction.fraction).roundToInt()
 				val result = Known.DivisionsByOrdinal[index % DivisionCount]
 				return if(index < DivisionCount) result else -result
 			}
 			
 			fun roundFrom(vector: Vec3): UnsignedKnown =
-				roundFrom(radian = Mth.atan2(-vector.z, vector.x))
+				roundFrom(direction = atan2(-vector.z, vector.x))
 			
 			fun read(tag: CompoundTag): UnsignedKnown =
 				fromIndex(tag.getInt("Index"))
@@ -211,22 +213,22 @@ interface FlexiDirection {
 				DivisionsByIndex = byIndex.requireNoNulls()
 			}
 			
-			fun roundFrom(radian: Double): Known {
-				val index = DivisionCount * (radian floorMod PI) / PI
+			fun roundFrom(direction: Angle): Known {
+				val index = DivisionCount * direction.halfFraction
 				return DivisionsByOrdinal[index.roundToInt() % DivisionCount]
 			}
 			
 			fun roundFrom(tangent: Vec3): Known =
-				roundFrom(radian = Mth.atan2(-tangent.z, tangent.x))
+				roundFrom(direction = atan2(-tangent.z, tangent.x))
 			
-			fun fromOrNull(radian: Double): Known? {
-				val known = roundFrom(radian = radian)
-				val knownDifference = abs(radian - known.direction)
+			fun fromOrNull(direction: Angle): Known? {
+				val known = roundFrom(direction)
+				val knownDifference = direction distanceTo known.direction
 				return known.takeIf { knownDifference < 1e-8 || abs(knownDifference - PI) < 1e-8 }
 			}
 			
 			fun fromOrNull(tangent: Vec3): Known? =
-				fromOrNull(radian = Mth.atan2(-tangent.z, tangent.x))
+				fromOrNull(direction = atan2(-tangent.z, tangent.x))
 			
 			fun fromIndex(index: Int): Known {
 				check(index >= 0) { "index < 0" }
@@ -253,8 +255,7 @@ interface FlexiDirection {
 		override val known: Known
 			get() = this
 		
-		val angle = PI * (ordinal.toDouble() / DivisionCount)
-		val angleDegree get() = 180 * (ordinal.toDouble() / DivisionCount)
+		val angle: Angle = Angle.fromFraction2(ordinal.toDouble() / DivisionCount)
 		
 		override val tangent: KnownVec3 = KnownVec3(this)
 		
@@ -284,7 +285,7 @@ interface FlexiDirection {
 				null
 			}
 		
-		override val tangentAngle: Double
+		override val tangentAngle: Angle
 			get() = angle
 		
 		override fun closeToUnsigned(other: FlexiDirection): Boolean {
@@ -341,23 +342,22 @@ interface FlexiDirection {
 				KnownCreate(known = Known.DivisionsByOrdinal[3 * DivisionCount / 4], createShape = TrackShape.PD),
 			)
 			
-			fun roundFrom(radian: Double): KnownCreate {
-				val value = radian floorMod PI
+			fun roundFrom(direction: Angle): KnownCreate {
 				var max = Double.POSITIVE_INFINITY
 				var result = Values[0]
 				for(create in Values) {
-					val difference = abs(create.tangentAngle - value)
+					val difference = create.tangentAngle distanceTo direction
 					if(difference < max) {
 						max = difference
 						result = create
 					}
 				}
-				if(abs(PI - value) < max) return Values[0]
+				if(direction distanceTo Angle.Pi < max) return Values[0]
 				return result
 			}
 			
 			fun roundFrom(vector: Vec3): KnownCreate =
-				roundFrom(radian = Mth.atan2(-vector.z, vector.x))
+				roundFrom(direction = atan2(-vector.z, vector.x))
 		}
 		
 		override fun mirror(by: Mirror): Nothing = error("stub")

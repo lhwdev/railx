@@ -3,8 +3,8 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.utils.round
-import com.lhwdev.minecraft.railx.utils.transformUnit
+import com.lhwdev.minecraft.railx.utils.math.round
+import com.lhwdev.minecraft.railx.utils.math.transformUnit
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
@@ -93,7 +93,7 @@ class FlexiGradientScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTrans
 		
 		val targetSlope = targetValue / 1000.0
 		val axis = direction.tangent.cross(direction.normal)
-		val delta = atan(targetSlope) - direction.gradient
+		val delta = atan(targetSlope) - direction.gradient.radian
 		val rotation = Quaterniond().rotationAxis(delta, axis.x, axis.y, axis.z)
 		
 		val tangent = direction.tangent

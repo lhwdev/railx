@@ -40,8 +40,8 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 	ScrollValueBehaviour(Component.literal("Rotate Flexi Track"), be, FlexiRotationValueBox),
 	FlexiTrackBlockBehavior, ValueSettingsBehaviourExtra, ScrollValueBehaviorExtension {
 	
-	enum class Kind(val title: String) {
-		Direction(title = "Direction"),
+	enum class Kind(val title: String, val rowTitle: String = title) {
+		Direction(title = "Direction", rowTitle = "Direction \u27f2"),
 		Gradient(title = "Gradient"),
 		Cant(title = "Cant");
 		

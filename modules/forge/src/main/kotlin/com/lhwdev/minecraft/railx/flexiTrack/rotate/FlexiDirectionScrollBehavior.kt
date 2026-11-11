@@ -3,17 +3,12 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.utils.round
-import com.lhwdev.minecraft.railx.utils.similarTo
-import com.lhwdev.minecraft.railx.utils.transformUnit
+import com.lhwdev.minecraft.railx.utils.math.*
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import net.createmod.catnip.math.AngleHelper
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 
 class FlexiDirectionScrollBehavior(
@@ -23,7 +18,7 @@ class FlexiDirectionScrollBehavior(
 ) : FlexiTrackRotateScrollBehavior(kind = FlexiTrackRotateScrollBehaviors.Kind.Direction, be, slot) {
 	
 	override fun getValue(player: Player): Double =
-		axis.direction % PI
+		axis.direction.radian % PI
 	
 	override val normalRange: ClosedFloatingPointRange<Double>
 		get() = 0.0..PI
@@ -40,37 +35,37 @@ class FlexiDirectionScrollBehavior(
 		get() = null
 	
 	override fun formatRotation(value: Double, precise: Boolean): String {
+		val v = value.radian
 		return if(precise) {
-			val known = FlexiDirection.Known.fromOrNull(radian = value)
+			val known = FlexiDirection.Known.fromOrNull(direction = v)
 			if(known != null) {
 				"K${known.ordinal}"
 			} else {
-				val degrees = AngleHelper.deg(value)
-				"${round(degrees, 100)}°"
+				"${round(v.degree, 100)}°"
 			}
 		} else {
-			val known = FlexiDirection.Known.roundFrom(radian = value)
+			val known = FlexiDirection.Known.roundFrom(direction = v)
 			"K${known.ordinal}"
 		}
 	}
 	
 	override fun formatValue(): String {
-		val v = valueClient
-		val known = FlexiDirection.Known.fromOrNull(radian = v)
+		val v = valueClient.radian
+		val known = FlexiDirection.Known.fromOrNull(direction = v)
 		return if(known != null) {
 			"K${known.ordinal}"
 		} else {
-			val degrees = AngleHelper.deg(v)
-			"${round(degrees, points = 10)}°"
+			"${round(v.degree, points = 10)}°"
 		}
 	}
 	
 	override fun applyRotation(player: Player, targetValue: Double): Boolean {
-		val delta = targetValue - axis.direction
+		val v = targetValue.radian
+		val delta = targetValue - axis.direction.radian
 		if(delta similarTo 0.0) return false
 		
 		val rotation = Quaterniond().rotationY(delta)
-		val known = FlexiDirection.Known.fromOrNull(targetValue)
+		val known = FlexiDirection.Known.fromOrNull(v)
 		
 		applyRotation(
 			mapDirection = { previous ->
@@ -78,7 +73,7 @@ class FlexiDirectionScrollBehavior(
 					known.applyNormal(previous.normal)
 				} else {
 					val h = previous.tangent.horizontalDistance()
-					val newTangent = Vec3(h * cos(targetValue), previous.tangent.y, -h * sin(targetValue))
+					val newTangent = Vec3(h * cos(v), previous.tangent.y, -h * sin(v))
 					val newNormal = rotation.transformUnit(previous.normal)
 					FlexiDirection.Two(tangent = newTangent, normal = newNormal).optimize()
 				}

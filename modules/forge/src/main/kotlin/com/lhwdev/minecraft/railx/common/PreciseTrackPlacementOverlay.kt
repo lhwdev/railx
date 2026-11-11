@@ -5,9 +5,9 @@ import com.lhwdev.minecraft.railx.flexiTrack.*
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.toRotation
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.utils.ColorsArgb
+import com.lhwdev.minecraft.railx.utils.math.round
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.lhwdev.minecraft.railx.utils.orFalse
-import com.lhwdev.minecraft.railx.utils.round
-import com.lhwdev.minecraft.railx.utils.similarTo
 import com.lhwdev.minecraft.utils.vectors.*
 import com.simibubi.create.AllDataComponents
 import com.simibubi.create.content.trains.track.BezierConnection
@@ -416,7 +416,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 		val normal = direction.normal
 		val rot = direction.toRotation()
 		val radToDeg = 180 / PI
-		val angle = "${((rot.direction * radToDeg + 360) % 180).roundToInt()}°"
+		val angle = "${rot.direction.halfDegree.roundToInt()}°"
 		
 		val knownLength = log10(FlexiDirection.Known.DivisionCount.toDouble()).toInt() + 1
 		val known = tangent.asKnown()
@@ -425,7 +425,7 @@ object PreciseTrackPlacementOverlay : LayeredDraw.Layer {
 				?.let { "K${it.ordinal.toString().padStart(knownLength, padChar = '0')}" }
 		
 		if(abs(normal.x) > 1e-5 || abs(normal.z) > 1e-5) { // lesser than similarTo
-			val cant = round(rot.cant * radToDeg, 100)
+			val cant = round(rot.cant.degree, 100)
 			val info = if(cant == 0.0) {
 				"G=${tangent.gradient()}"
 			} else {

@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack.graph
 
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.simibubi.create.content.trains.graph.TrackNodeLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3

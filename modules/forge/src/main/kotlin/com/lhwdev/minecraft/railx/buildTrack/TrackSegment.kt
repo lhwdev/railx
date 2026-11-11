@@ -8,9 +8,9 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlacementInfo
 import com.lhwdev.minecraft.railx.flexiTrack.asKnownSigned
 import com.lhwdev.minecraft.railx.mixin.flexiTrack.PlacementInfoAccessor
 import com.lhwdev.minecraft.railx.utils.CompoundTag
-import com.lhwdev.minecraft.railx.utils.closeTo
 import com.lhwdev.minecraft.railx.utils.getVec3OrNull
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.closeTo
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.lhwdev.minecraft.utils.vectors.times
 import com.simibubi.create.Create

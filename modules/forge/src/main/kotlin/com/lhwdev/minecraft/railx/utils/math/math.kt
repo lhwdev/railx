@@ -1,6 +1,6 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package com.lhwdev.minecraft.railx.utils
+package com.lhwdev.minecraft.railx.utils.math
 
 import com.lhwdev.minecraft.utils.vectors.toVec3
 import com.lhwdev.minecraft.utils.vectors.toVector3d

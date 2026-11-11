@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.lhwdev.minecraft.utils.vectors.times
 import com.simibubi.create.content.trains.track.*
 import net.minecraft.util.Mth

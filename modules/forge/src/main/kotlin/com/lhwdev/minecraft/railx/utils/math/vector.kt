@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.utils
+package com.lhwdev.minecraft.railx.utils.math
 
 import com.lhwdev.minecraft.utils.vectors.minus
 import net.minecraft.world.level.block.Mirror

@@ -3,8 +3,8 @@ package com.lhwdev.minecraft.railx.common.commands
 import com.lhwdev.minecraft.railx.compat.onCurveUpdated
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
-import com.lhwdev.minecraft.railx.utils.closeTo
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.closeTo
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.Create

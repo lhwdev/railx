@@ -2,12 +2,12 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.utils.round
-import com.lhwdev.minecraft.railx.utils.transformUnit
+import com.lhwdev.minecraft.railx.utils.math.DegToRad
+import com.lhwdev.minecraft.railx.utils.math.round
+import com.lhwdev.minecraft.railx.utils.math.transformUnit
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import net.minecraft.world.entity.player.Player
 import org.joml.Quaterniond
-import kotlin.math.PI
 import kotlin.math.roundToInt
 
 
@@ -20,7 +20,7 @@ class FlexiCantScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 		val direction = be.block
 			.getNearestTrackDirection(level, be.blockPos, be.blockState, lookAngle)
 			?.signedAxis ?: return 0.0
-		return direction.cant * 180.0 / PI
+		return direction.cant.degree
 	}
 	
 	override val normalRange: ClosedFloatingPointRange<Double>
@@ -62,8 +62,7 @@ class FlexiCantScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 		val direction = be.block.getNearestTrackDirection(level, be.blockPos, be.blockState, player.lookAngle)
 			?.signedAxis ?: return false
 		
-		val targetCantRad = targetValue * PI / 180.0
-		val delta = targetCantRad - direction.cant
+		val delta = targetValue * DegToRad - direction.cant.radian
 		val axis = direction.tangent
 		val rotation = Quaterniond().rotationAxis(delta, axis.x, axis.y, axis.z)
 		

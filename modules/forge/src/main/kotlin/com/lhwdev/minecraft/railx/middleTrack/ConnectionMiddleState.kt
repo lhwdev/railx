@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
 import com.lhwdev.minecraft.railx.other.toTrackEdge
-import com.lhwdev.minecraft.railx.utils.closeTo
+import com.lhwdev.minecraft.railx.utils.math.closeTo
 import com.simibubi.create.content.trains.track.BezierConnection
 import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos

@@ -3,8 +3,8 @@
 package com.lhwdev.minecraft.railx.common
 
 import com.lhwdev.minecraft.railx.compat.copiedFrom
-import com.lhwdev.minecraft.railx.utils.closeTo
-import com.lhwdev.minecraft.railx.utils.pow3
+import com.lhwdev.minecraft.railx.utils.math.closeTo
+import com.lhwdev.minecraft.railx.utils.math.pow3
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.lhwdev.minecraft.utils.vectors.times
 import com.lhwdev.minecraft.utils.vectors.unaryMinus

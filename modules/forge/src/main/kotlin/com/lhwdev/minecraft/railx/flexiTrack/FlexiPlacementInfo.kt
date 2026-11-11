@@ -4,7 +4,7 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.BezierConnectionRuntimeStub
 import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.utils.CompoundTag
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.railwayteam.railways.registry.CRTrackMaterials
 import com.simibubi.create.content.trains.track.BezierConnection
 import com.simibubi.create.content.trains.track.ITrackBlock

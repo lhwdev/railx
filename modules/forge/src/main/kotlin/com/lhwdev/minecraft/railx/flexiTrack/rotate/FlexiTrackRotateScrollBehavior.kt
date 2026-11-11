@@ -4,7 +4,7 @@ import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
 import com.lhwdev.minecraft.railx.flexiTrack.map
 import com.lhwdev.minecraft.railx.flexiTrack.optimize
-import com.lhwdev.minecraft.railx.utils.transformUnit
+import com.lhwdev.minecraft.railx.utils.math.transformUnit
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour
@@ -125,7 +125,7 @@ abstract class FlexiTrackRotateScrollBehavior(
 				kind.createScreenLabel(),
 				PreciseStepCount,
 				10,
-				listOf(Component.literal(kind.title).withStyle(ChatFormatting.BOLD)),
+				listOf(Component.literal(kind.rowTitle).withStyle(ChatFormatting.BOLD)),
 				ValueSettingsFormatter { valueSettings ->
 					val v = preciseMinValue + valueSettings.value * preciseStep
 					Component.literal(formatRotation(v, precise = true))
@@ -145,7 +145,7 @@ abstract class FlexiTrackRotateScrollBehavior(
 			kind.createScreenLabel(),
 			if(endInclusive) steps else steps - 1,
 			8,
-			listOf(Component.literal(kind.title).withStyle(ChatFormatting.BOLD)),
+			listOf(Component.literal(kind.rowTitle).withStyle(ChatFormatting.BOLD)),
 			ValueSettingsFormatter { valueSettings ->
 				val v = range.start + valueSettings.value * step
 				Component.literal(formatRotation(v, precise = false))

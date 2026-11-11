@@ -4,9 +4,11 @@ import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.common.minRadius
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlaceResult.PlaceError
 import com.lhwdev.minecraft.railx.registry.AllDataComponents
-import com.lhwdev.minecraft.railx.utils.closeTo
-import com.lhwdev.minecraft.railx.utils.pow2
-import com.lhwdev.minecraft.railx.utils.similarTo
+import com.lhwdev.minecraft.railx.utils.math.atan2
+import com.lhwdev.minecraft.railx.utils.math.closeTo
+import com.lhwdev.minecraft.railx.utils.math.pow2
+import com.lhwdev.minecraft.railx.utils.math.radian
+import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
@@ -31,6 +33,12 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.EntityBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import kotlin.Boolean
+import kotlin.Double
+import kotlin.Int
+import kotlin.String
+import kotlin.check
+import kotlin.let
 import kotlin.math.*
 import com.simibubi.create.AllDataComponents as CreateDataComponents
 import com.simibubi.create.AllTags as CreateTags
@@ -147,12 +155,12 @@ object FlexiTrackPlacement {
 		
 		val lookVec = player.lookAngle.multiply(1.0, 0.0, 1.0)
 		val lookAngle = if(lookVec.lengthSqr() similarTo 0.0) {
-			player.yRot.toDouble()
+			player.yRot.radian
 		} else {
-			Mth.atan2(-lookVec.z, lookVec.x)
+			atan2(-lookVec.z, lookVec.x)
 		}.let {
-			if(parameter.isFlexible) FlexiDirection.Known.roundFrom(radian = it)
-			else FlexiDirection.KnownCreate.roundFrom(radian = it)
+			if(parameter.isFlexible) FlexiDirection.Known.roundFrom(direction = it)
+			else FlexiDirection.KnownCreate.roundFrom(direction = it)
 		}
 		
 		if(cacheStorage != null) {
@@ -263,7 +271,7 @@ object FlexiTrackPlacement {
 					else if(toDistance > fromDistance) toEx = (toDistance - fromDistance) / toTangent.length()
 					if(!parameter.extend) {
 						val turnSize = min(fromDistance, toDistance) - 0.1
-						val angle = abs(atan2(fromTangent.z, fromTangent.x) - atan2(toTangent.z, toTangent.x))
+						val angle = abs(atan2(fromTangent.z, fromTangent.x).rad - atan2(toTangent.z, toTangent.x).rad)
 						val minTurnSize = FlexiPlacementInfo.multiplyByRadiusFactor(
 							material,
 							base = if(angle % (PI / 2) < 0.015) 7.0 else 3.25

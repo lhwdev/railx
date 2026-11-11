@@ -7,7 +7,7 @@ import com.lhwdev.minecraft.railx.registry.key.KeyDebounceHandler
 import com.lhwdev.minecraft.railx.registry.key.registerGlobalKeyEvent
 import com.lhwdev.minecraft.railx.utils.getOrDefault
 import com.lhwdev.minecraft.railx.utils.orDefault
-import com.lhwdev.minecraft.railx.utils.sign
+import com.lhwdev.minecraft.railx.utils.math.sign
 import com.mojang.blaze3d.platform.InputConstants
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler
