@@ -61,15 +61,17 @@ private fun getCant(tangent: Vec3, normal: Vec3): Double =
 	}
 
 fun TravellingPoint.getDirection(graph: TrackGraph?): FlexiDirection {
+	val t = position / edge.length
 	val tangent = edge.getDirectionAt(position)
-	val normal = edge.getNormal(graph, position)
+	val normal = edge.getNormal(graph, t)
 	return FlexiDirection.Two(tangent, normal.normalizeIfNecessary())
 }
 
 fun TravellingPoint.getDirectionCant(graph: TrackGraph?): Double {
+	val t = position / edge.length
 	val tangent = edge.getDirectionAt(position)
-	val normal = edge.getNormal(graph, position)
-	return getCant(tangent, normal)
+	val normal = edge.getNormal(graph, t)
+	return getCant(tangent, normal.normalizeIfNecessary())
 }
 
 fun FlexiDirection.rotationValue(): Quaterniond =

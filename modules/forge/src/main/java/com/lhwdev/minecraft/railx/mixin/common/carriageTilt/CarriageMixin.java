@@ -2,7 +2,6 @@ package com.lhwdev.minecraft.railx.mixin.common.carriageTilt;
 
 import com.lhwdev.minecraft.railx.RailXConfig;
 import com.lhwdev.minecraft.railx.common.carriageTilt.DimensionalCarriageEntityWithTilt;
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection;
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.RotationUtils;
 import com.lhwdev.minecraft.railx.splitGraph.TravelingPointSplitUtils;
 import com.simibubi.create.content.trains.entity.Carriage;
@@ -57,13 +56,11 @@ public abstract class CarriageMixin {
 			
 			TrackGraph graph = TravelingPointSplitUtils.getDestinationGraph(point);
 			if(graph == null) graph = train.graph;
-			FlexiDirection direction = RotationUtils.getDirection(point, graph);
-			tilt.setFirst(RotationUtils.getCant(direction) * RAD_TO_DEG);
+			tilt.setFirst(RotationUtils.getDirectionCant(point, graph) * RAD_TO_DEG);
 			
-			graph = TravelingPointSplitUtils.getDestinationGraph(otherPoint);
-			if(graph == null) graph = train.graph;
-			direction = RotationUtils.getDirection(otherPoint, graph);
-			tilt.setSecond(RotationUtils.getCant(direction) * RAD_TO_DEG);
+			TrackGraph otherGraph = TravelingPointSplitUtils.getDestinationGraph(otherPoint);
+			if(otherGraph == null) otherGraph = train.graph;
+			tilt.setSecond(RotationUtils.getDirectionCant(otherPoint, otherGraph) * RAD_TO_DEG);
 		}
 	}
 }

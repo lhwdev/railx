@@ -66,7 +66,47 @@
       "required": false
     },
     {
+      "id": "railx:railways__track_bamboo_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_phantom_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_acacia_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_birch_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_cherry_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_stripped_bamboo_wide",
+      "required": false
+    },
+    {
       "id": "railx:railways__track_warped_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_create_andesite_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_jungle_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_mangrove_wide",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_crimson_wide",
       "required": false
     },
     {
@@ -78,31 +118,7 @@
       "required": false
     },
     {
-      "id": "railx:railways__track_jungle_wide",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_acacia_wide",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_spruce_wide",
-      "required": false
-    },
-    {
       "id": "railx:railways__track_tieless_wide",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_bamboo_wide",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_blackstone_wide",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_phantom_wide",
       "required": false
     },
     {
@@ -110,31 +126,55 @@
       "required": false
     },
     {
-      "id": "railx:railways__track_stripped_bamboo_wide",
+      "id": "railx:railways__track_blackstone_wide",
       "required": false
     },
     {
-      "id": "railx:railways__track_crimson_wide",
+      "id": "railx:railways__track_spruce_wide",
       "required": false
     },
     {
-      "id": "railx:railways__track_mangrove_wide",
+      "id": "railx:railways__track_bamboo_narrow",
       "required": false
     },
     {
-      "id": "railx:railways__track_cherry_wide",
+      "id": "railx:railways__track_phantom_narrow",
       "required": false
     },
     {
-      "id": "railx:railways__track_create_andesite_wide",
+      "id": "railx:railways__track_acacia_narrow",
       "required": false
     },
     {
-      "id": "railx:railways__track_birch_wide",
+      "id": "railx:railways__track_birch_narrow",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_cherry_narrow",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_stripped_bamboo_narrow",
       "required": false
     },
     {
       "id": "railx:railways__track_warped_narrow",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_create_andesite_narrow",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_jungle_narrow",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_mangrove_narrow",
+      "required": false
+    },
+    {
+      "id": "railx:railways__track_crimson_narrow",
       "required": false
     },
     {
@@ -146,31 +186,7 @@
       "required": false
     },
     {
-      "id": "railx:railways__track_jungle_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_acacia_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_spruce_narrow",
-      "required": false
-    },
-    {
       "id": "railx:railways__track_tieless_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_bamboo_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_blackstone_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_phantom_narrow",
       "required": false
     },
     {
@@ -178,27 +194,11 @@
       "required": false
     },
     {
-      "id": "railx:railways__track_stripped_bamboo_narrow",
+      "id": "railx:railways__track_spruce_narrow",
       "required": false
     },
     {
-      "id": "railx:railways__track_crimson_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_mangrove_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_cherry_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_create_andesite_narrow",
-      "required": false
-    },
-    {
-      "id": "railx:railways__track_birch_narrow",
+      "id": "railx:railways__track_blackstone_narrow",
       "required": false
     },
     {
