@@ -73,10 +73,16 @@ public class Carriage$DimensionalCarriageEntityMixin implements DimensionalCarri
 		float roll;
 		if(RailXConfig.Server.Value.getCommon().getCarriageTilt().isFalse()) {
 			roll = 0f;
-		} else if(railx$tilt.both(Objects::nonNull)) {
-			roll = (float) (railx$tilt.getFirst() + railx$tilt.getSecond()) / 2;
 		} else {
-			roll = 0f;
+			Double first = railx$tilt.getFirst();
+			Double second = railx$tilt.getSecond();
+			
+			//noinspection ConstantValue
+			if(first != null && second != null) {
+				roll = (float) (first + second) / 2;
+			} else {
+				roll = 0f;
+			}
 		}
 		entityWithRoll.setRailx$roll(roll);
 		
