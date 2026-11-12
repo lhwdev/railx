@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
+import com.lhwdev.minecraft.railx.flexiTrack.map
 import com.lhwdev.minecraft.railx.utils.math.*
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import net.minecraft.world.entity.player.Player
@@ -68,15 +69,22 @@ class FlexiDirectionScrollBehavior(
 		val known = FlexiDirection.Known.fromOrNull(v)
 		
 		applyRotation(
-			mapDirection = { previous ->
-				if(known != null && previous closeToUnsigned axis) {
-					known.applyNormal(previous.normal)
-				} else {
-					val h = previous.tangent.horizontalDistance()
-					val newTangent = Vec3(h * cos(v), previous.tangent.y, -h * sin(v))
-					val newNormal = rotation.transformUnit(previous.normal)
-					FlexiDirection.Two(tangent = newTangent, normal = newNormal).optimize()
-				}
+			mapState = { state ->
+				state.copy(
+					baseShape = state.baseShape.map { previous ->
+						if(known != null && previous closeToUnsigned axis) {
+							known.applyNormal(previous.normal)
+						} else {
+							val h = previous.tangent.horizontalDistance()
+							val newTangent = Vec3(h * cos(v), previous.tangent.y, -h * sin(v))
+							val newNormal = rotation.transformUnit(previous.normal)
+							FlexiDirection.Two(tangent = newTangent, normal = newNormal)
+								.optimize()
+						}
+					},
+					tilt = state.tilt?.transformAxis(rotation),
+				)
+				
 			},
 			rotation = rotation,
 		)

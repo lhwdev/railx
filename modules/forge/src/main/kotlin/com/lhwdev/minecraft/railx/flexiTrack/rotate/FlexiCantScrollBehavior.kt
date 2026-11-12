@@ -2,6 +2,7 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
+import com.lhwdev.minecraft.railx.flexiTrack.map
 import com.lhwdev.minecraft.railx.utils.math.DegToRad
 import com.lhwdev.minecraft.railx.utils.math.round
 import com.lhwdev.minecraft.railx.utils.math.transformUnit
@@ -67,7 +68,15 @@ class FlexiCantScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTransform
 		val rotation = Quaterniond().rotationAxis(delta, axis.x, axis.y, axis.z)
 		
 		applyRotation(
-			mapDirection = { direction.applyNormal(rotation.transformUnit(it.normal)).optimize() },
+			mapState = { state ->
+				state.copy(
+					baseShape = state.baseShape.map {
+						direction.applyNormal(rotation.transformUnit(it.normal))
+							.optimize()
+					},
+					tilt = state.tilt?.transformAxis(rotation),
+				)
+			},
 			rotation = rotation,
 		)
 		return true

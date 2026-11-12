@@ -1,8 +1,7 @@
 package com.lhwdev.minecraft.railx.flexiTrack.rotate
 
-import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
+import com.lhwdev.minecraft.railx.flexiTrack.FlexiState
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
-import com.lhwdev.minecraft.railx.flexiTrack.map
 import com.lhwdev.minecraft.railx.flexiTrack.optimize
 import com.lhwdev.minecraft.railx.utils.math.transformUnit
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
@@ -190,7 +189,7 @@ abstract class FlexiTrackRotateScrollBehavior(
 	}
 	
 	protected fun applyRotation(
-		mapDirection: (FlexiDirection) -> FlexiDirection,
+		mapState: (FlexiState) -> FlexiState,
 		rotation: Quaterniondc,
 	) {
 		val be = be
@@ -199,10 +198,7 @@ abstract class FlexiTrackRotateScrollBehavior(
 		
 		be.updateEachConnections {
 			val state = be.state
-			val newState = state.copy(
-				baseShape = state.baseShape.map(mapDirection),
-				tilt = state.tilt?.let { tilt -> tilt.copy(axis = rotation.transformUnit(tilt.axis).optimize()) },
-			)
+			val newState = mapState(state)
 			be.updateState(newState)
 			
 			val ends = mutableListOf<Vec3>()

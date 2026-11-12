@@ -2,8 +2,9 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.rotationValue
 import com.lhwdev.minecraft.railx.utils.CompoundTag
-import com.lhwdev.minecraft.railx.utils.maybeCompound
 import com.lhwdev.minecraft.railx.utils.math.similarTo
+import com.lhwdev.minecraft.railx.utils.math.transformUnit
+import com.lhwdev.minecraft.railx.utils.maybeCompound
 import com.lhwdev.minecraft.utils.vectors.toVec3
 import com.lhwdev.minecraft.utils.vectors.toVector3d
 import net.createmod.catnip.math.VecHelper
@@ -117,6 +118,12 @@ data class FlexiShapeTilt(val axis: Vec3, val rotation: Double) {
 	)
 	
 	fun applyTo(vec: Vec3): Vec3 = vec.toVector3d().rotate(rotationValue).toVec3()
+	
+	fun transformAxis(rotation: Quaterniond): FlexiShapeTilt = copy(
+		axis = rotation.transformUnit(axis)
+			.optimize(),
+	)
+	
 	
 	fun write(): CompoundTag = CompoundTag { tag ->
 		tag.put("Axis", VecHelper.writeNBT(axis))

@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 import com.lhwdev.minecraft.railx.RailXConfig
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlockEntity
+import com.lhwdev.minecraft.railx.flexiTrack.map
 import com.lhwdev.minecraft.railx.utils.math.round
 import com.lhwdev.minecraft.railx.utils.math.transformUnit
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
@@ -102,11 +103,16 @@ class FlexiGradientScrollBehavior(be: FlexiTrackBlockEntity, slot: ValueBoxTrans
 		val newNormal = rotation.transformUnit(direction.normal)
 		
 		applyRotation(
-			mapDirection = {
-				FlexiDirection.Two(
-					tangent = newTangent,
-					normal = newNormal,
-				).optimize()
+			mapState = { state ->
+				state.copy(
+					baseShape = state.shape.map {
+						FlexiDirection.Two(
+							tangent = newTangent,
+							normal = newNormal,
+						).optimize()
+					},
+					tilt = null, // preserving tilt then user behavior will become very obscure
+				)
 			},
 			rotation = rotation,
 		)

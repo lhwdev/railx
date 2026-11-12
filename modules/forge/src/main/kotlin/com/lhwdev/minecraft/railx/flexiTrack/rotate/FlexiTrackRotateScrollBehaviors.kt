@@ -253,7 +253,11 @@ class FlexiTrackRotateScrollBehaviors(be: FlexiTrackBlockEntity) :
 		
 		
 		be.updateEachConnections {
-			be.updateState(state.copy(baseShape = FlexiShape.Single(axis = newDirection)))
+			val newState = state.copy(
+				baseShape = FlexiShape.Single(axis = newDirection),
+				tilt = null,
+			)
+			be.updateState(newState)
 			
 			forEachConnections { connection ->
 				val factor = if(newAxisSigns.getValue(connection.key) xor opposite) 1.0 else -1.0
