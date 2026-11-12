@@ -222,11 +222,18 @@ interface KeyDebounce {
 	}
 	
 	
-	open class Group(vararg val keys: KeyDebounce) {
-		val isHolding: Boolean get() = keys.any { it.isHolding }
+	open class Group(vararg val keys: KeyDebounce) : KeyDebounce {
+		override val isHolding: Boolean
+			get() = keys.any { it.isHolding }
 		
-		val isPressed: Boolean get() = keys.any { it.isPressed }
+		override val isPressed: Boolean
+			get() = keys.any { it.isPressed }
 		
+		
+		@Deprecated(message = "use map variant", replaceWith = ReplaceWith("onInput(mapOf(key to down), now)"))
+		override fun onInput(down: Boolean, now: Instant) {
+			keys.forEach { it.onInput(down, now) }
+		}
 		
 		open fun onInput(changes: Map<KeyDebounce, Boolean>, now: Instant) {
 			for(key in keys) {
@@ -234,15 +241,23 @@ interface KeyDebounce {
 			}
 		}
 		
-		fun update(now: Instant) {
+		override fun update(now: Instant) {
 			for(key in keys) if(key.isHolding) key.update(now)
 		}
 		
-		fun consumeAll() {
-			keys.forEach { it.consumePressed() }
+		override fun consumePressed(): Boolean {
+			var consumed = false
+			for(key in keys) {
+				consumed = consumed or key.consumePressed()
+			}
+			return consumed
 		}
 		
-		open fun reset() {
+		override fun dismissHold() {
+			keys.forEach { it.dismissHold() }
+		}
+		
+		override fun reset() {
 			keys.forEach { it.reset() }
 		}
 	}
@@ -253,16 +268,22 @@ interface KeyDebounce {
 		private var latest: KeyDebounce? = null
 		
 		override fun onInput(changes: Map<KeyDebounce, Boolean>, now: Instant) {
-			for(key in keys) if(changes[key] == false && key.isHolding) {
-				key.onInput(false, now)
-				if(latest == key) latest = null
+			var latest: KeyDebounce? = null
+			for(key in keys) if(key.isHolding && changes[key] == false) {
+				key.onInput(down = false, now)
 			}
 			
-			for(key in keys) if(changes[key] == true && !key.isHolding) {
-				key.onInput(true, now)
+			for(key in keys) if(!key.isHolding && changes[key] == true) {
+				key.onInput(down = true, now)
 				if(latest == null) latest = key
 				else key.dismissHold()
 			}
+			
+			val previousLatest = this.latest
+			if(previousLatest != latest && previousLatest != null) {
+				previousLatest.dismissHold()
+			}
+			this.latest = latest
 		}
 		
 		override fun reset() {
