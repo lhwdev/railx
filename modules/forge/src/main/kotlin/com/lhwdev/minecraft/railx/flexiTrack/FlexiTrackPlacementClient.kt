@@ -378,6 +378,11 @@ object FlexiTrackPlacementClient {
 			.disableLineNormals()
 			.colored(color)
 	}
+	
+	
+	fun clearCache() {
+		placementCache.clear()
+	}
 }
 
 
@@ -410,5 +415,9 @@ private class PlacementCache : FlexiTrackPlacement.CacheStorage {
 	
 	override fun store(cached: FlexiPlaceResult, pos: BlockPos, angle: FlexiDirection.Known, lastItem: ItemStack) {
 		caches += Cache(cached, pos, angle, lastItem)
+	}
+	
+	override fun clear() {
+		caches.clear()
 	}
 }

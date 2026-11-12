@@ -92,6 +92,8 @@ object FlexiTrackPlacement {
 		fun pull(pos: BlockPos, angle: FlexiDirection.Known, item: ItemStack): Cache?
 		
 		fun store(cached: FlexiPlaceResult, pos: BlockPos, angle: FlexiDirection.Known, lastItem: ItemStack)
+		
+		fun clear()
 	}
 	
 	

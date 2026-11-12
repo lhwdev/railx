@@ -90,12 +90,20 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 	}
 	
 	fun updateState(newState: FlexiState) {
-		if(state == newState) return
+		val previousState = state
+		if(previousState == newState) return
+		
 		state = newState
 		notifyUpdate()
 		
 		for(behavior in allBehaviours)
 			if(behavior is FlexiTrackBlockBehavior) behavior.onFlexiStateUpdate(level!!, blockPos)
+		
+		if(level?.isClientSide == true && previousState.isEmpty()) {
+			// some workaround against case: one rotates track block and placement overlay from other block
+			// shows cached as previous.
+			FlexiTrackPlacementClient.clearCache()
+		}
 	}
 	
 	inner class UpdateEachConnectionsContext(
