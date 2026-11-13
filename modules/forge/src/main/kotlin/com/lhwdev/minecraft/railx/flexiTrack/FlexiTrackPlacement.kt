@@ -209,9 +209,10 @@ object FlexiTrackPlacement {
 		val shouldPave = offhandItem is BlockItem && !CreateItemTags.INVALID_FOR_TRACK_PAVING.matches(offhandItem)
 		if(shouldPave) info.pavementBlock = offhandItem.block
 		
-		info.curve = if(info.curveFrom.pos != info.curveTo.pos) {
-			info.createCurve() ?: return PlaceError("curve too long")
-		} else null
+		info.createCurve()
+		if(info.curveStub != null) {
+			if(info.curve == null) return PlaceError("curve too long")
+		}
 		
 		info = prepareConnect(info, level, player)
 		cacheStorage?.store(info, pos = toPos, angle = lookAngle.known, lastItem = item)
@@ -414,13 +415,14 @@ object FlexiTrackPlacement {
 	
 	private fun FlexiPlacementInfo.validateConnect(level: Level): FlexiPlacementInfo {
 		val curve = curve
+		val curveStub = curveStub
 		val distSqr = from.pos.distSqr(to.pos)
 		if(distSqr > RailXConfig.Server.flexiTrak.placementLength.asInt.pow2()) {
 			return placeError(PlaceError.TooFar())
 		}
 		
-		if(curve != null && curve.length > RailXConfig.Server.flexiTrak.placementLength.asInt * 2) {
-			return placeError(PlaceError.TooFar())
+		if(curveStub != null && curveStub.length > RailXConfig.Server.flexiTrak.placementLength.asInt * 3) {
+			return placeError(PlaceError.TooFar().noOverlay())
 		}
 		
 		if((level.getBlockEntity(to.pos) as? TrackBlockEntity)?.isTilted == true)

@@ -12,6 +12,12 @@ import kotlin.math.min
 import kotlin.math.tan
 
 
+/**
+ * Currently, only exists to precalculate [BezierConnection.getLength] without creating segments.
+ * There are a few cases where curve pass all
+ * [FlexiTrackPlacement][com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackPlacement] check but still is illegal.
+ * This might cause server to create segment array with length 1000000.
+ */
 class BezierConnectionRuntimeStub(bc: BezierConnection) {
 	private val end1 = bc.starts.first
 	private val end2 = bc.starts.second

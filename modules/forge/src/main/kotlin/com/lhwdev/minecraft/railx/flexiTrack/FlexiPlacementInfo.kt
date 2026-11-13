@@ -64,6 +64,7 @@ class FlexiPlacementInfo(
 	var curveTo: TrackEnd = to
 	
 	var curve: BezierConnection? = null
+	var curveStub: BezierConnectionRuntimeStub? = null
 	
 	var fromExtent: Int = 0
 	var toExtent: Int = 0
@@ -93,7 +94,9 @@ class FlexiPlacementInfo(
 		return info
 	}
 	
-	fun createCurve(): BezierConnection? {
+	fun createCurve() {
+		if(curveFrom.pos == curveTo.pos) return
+		
 		val curve = BezierConnection(
 			Couple.create(curveFrom.pos, curveTo.pos),
 			Couple.create(curveFrom.end, curveTo.end),
@@ -105,9 +108,10 @@ class FlexiPlacementInfo(
 		)
 		
 		val stub = BezierConnectionRuntimeStub(curve)
-		if(stub.length > 10000.0) return null
+		this.curveStub = stub
 		
-		return curve
+		if(stub.length > 10000.0) return
+		this.curve = curve
 	}
 	
 	fun placeError(text: String) = placeError(Component.literal(text))
