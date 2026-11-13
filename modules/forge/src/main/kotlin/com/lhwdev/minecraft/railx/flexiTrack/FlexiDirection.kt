@@ -342,19 +342,8 @@ interface FlexiDirection {
 				KnownCreate(known = Known.DivisionsByOrdinal[3 * DivisionCount / 4], createShape = TrackShape.PD),
 			)
 			
-			fun roundFrom(direction: Angle): KnownCreate {
-				var max = Double.POSITIVE_INFINITY
-				var result = Values[0]
-				for(create in Values) {
-					val difference = create.tangentAngle distanceTo direction
-					if(difference < max) {
-						max = difference
-						result = create
-					}
-				}
-				if(direction distanceTo Angle.Pi < max) return Values[0]
-				return result
-			}
+			fun roundFrom(direction: Angle): KnownCreate =
+				Values[(direction.halfFraction * 4.0).roundToInt() % 4]
 			
 			fun roundFrom(vector: Vec3): KnownCreate =
 				roundFrom(direction = atan2(-vector.z, vector.x))
@@ -368,6 +357,9 @@ interface FlexiDirection {
 			get() = known.tangent
 		override val tangent2: Tangent2
 			get() = known.tangent2!!
+		
+		override val tangentAngle: Angle
+			get() = known.angle
 		
 		override fun write(): CompoundTag = error("not meant to be written")
 		override fun write(buffer: FriendlyByteBuf) = error("not meant to be written")

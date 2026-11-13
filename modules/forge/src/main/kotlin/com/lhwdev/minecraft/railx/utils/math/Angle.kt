@@ -78,6 +78,9 @@ value class Angle(
 			}
 		}
 	
+	val halfRadian: Double
+		get() = radian % PI
+	
 	inline fun unboundedRadian(): Double =
 		rad - PI2 * floor(InvPI2 * rad)
 	

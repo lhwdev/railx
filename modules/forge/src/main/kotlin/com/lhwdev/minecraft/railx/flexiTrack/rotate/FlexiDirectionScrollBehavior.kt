@@ -19,7 +19,7 @@ class FlexiDirectionScrollBehavior(
 ) : FlexiTrackRotateScrollBehavior(kind = FlexiTrackRotateScrollBehaviors.Kind.Direction, be, slot) {
 	
 	override fun getValue(player: Player): Double =
-		axis.direction.radian % PI
+		axis.direction.halfRadian
 	
 	override val normalRange: ClosedFloatingPointRange<Double>
 		get() = 0.0..PI
