@@ -69,7 +69,6 @@ public class Carriage$DimensionalCarriageEntityMixin implements DimensionalCarri
 		var entityWithRoll = (OrientedContraptionEntityWithRoll) entity;
 		entityWithRoll.setRailx$prevRoll(entityWithRoll.getRailx$roll());
 		
-		// TODO: handle leading tilt != trailing tilt case
 		float roll;
 		if(RailXConfig.Server.Value.getCommon().getCarriageTilt().isFalse()) {
 			roll = 0f;

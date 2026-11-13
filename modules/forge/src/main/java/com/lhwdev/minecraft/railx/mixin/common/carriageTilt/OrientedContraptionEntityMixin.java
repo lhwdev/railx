@@ -64,16 +64,25 @@ public abstract class OrientedContraptionEntityMixin extends AbstractContraption
 		crs.xRotation = railx$roll;
 	}
 	
-	@Inject(method = "applyRotation", at = @At("RETURN"), cancellable = true)
-	void applyRollToRotation(Vec3 localPos, float partialTicks, CallbackInfoReturnable<Vec3> cir) {
-		Vec3 newLocalPos = cir.getReturnValue();
-		newLocalPos = VecHelper.rotate(newLocalPos, getRailx$viewZRot(partialTicks), Direction.Axis.X);
-		cir.setReturnValue(newLocalPos);
-	}
-	
 	@ModifyVariable(method = "applyRotation", at = @At("HEAD"), index = 1, argsOnly = true)
-	Vec3 reverseRollFromRotation(Vec3 localPos, @Local(index = 2, argsOnly = true) float partialTicks) {
-		return VecHelper.rotate(localPos, getRailx$viewZRot(partialTicks), Direction.Axis.X);
+	Vec3 applyRollToRotation(Vec3 localPos, @Local(index = 2, argsOnly = true) float partialTicks) {
+		return railx$rotateLocalRoll(localPos, getRailx$viewZRot(partialTicks));
+	}
+
+	@Inject(method = "reverseRotation", at = @At("RETURN"), cancellable = true)
+	void reverseRollFromRotation(Vec3 localPos, float partialTicks, CallbackInfoReturnable<Vec3> cir) {
+		cir.setReturnValue(railx$rotateLocalRoll(cir.getReturnValue(), -getRailx$viewZRot(partialTicks)));
+	}
+
+	@Unique
+	private Vec3 railx$rotateLocalRoll(Vec3 position, float degrees) {
+		// Match the model-space axis used by applyLocalTransforms.
+		return switch(((OrientedContraptionEntity) (Object) this).getInitialOrientation()) {
+			case EAST -> VecHelper.rotate(position, degrees, Direction.Axis.Z);
+			case WEST -> VecHelper.rotate(position, -degrees, Direction.Axis.Z);
+			case NORTH -> VecHelper.rotate(position, degrees, Direction.Axis.X);
+			default -> VecHelper.rotate(position, -degrees, Direction.Axis.X);
+		};
 	}
 	
 	

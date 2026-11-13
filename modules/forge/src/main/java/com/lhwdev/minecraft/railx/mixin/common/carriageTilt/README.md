@@ -13,7 +13,6 @@ Actually, tilt may have be placed in Carriage, i.e. `Carriage.railx$tilt`. But o
   This denotes roll of normal vector, originating from `rotationAnchors`.
   * When carriage is in one dimension, `rotationAnchors` denotes anchor of leading/trailing bogey.
     See `Carriage.updateContraptionAnchors()`.
-  * TODO: yaw/pitch should also update due to different tilt of leading/trailing.
 
 - `Carriage.updateContraptionAnchors()` updates every DCE, so that props are applied to
   `TravellingPoint -> positionAnchor, rotationAnchors`.
