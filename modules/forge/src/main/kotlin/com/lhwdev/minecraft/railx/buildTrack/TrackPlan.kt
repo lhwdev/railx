@@ -1,8 +1,8 @@
 package com.lhwdev.minecraft.railx.buildTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiPlacementInfo
-import com.lhwdev.minecraft.railx.utils.CompoundTag
-import com.lhwdev.minecraft.railx.utils.getList
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
+import com.lhwdev.minecraft.railx.utils.minecraft.getList
 import com.mojang.datafixers.util.Pair
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult

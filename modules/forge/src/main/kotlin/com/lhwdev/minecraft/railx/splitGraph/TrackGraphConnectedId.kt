@@ -4,7 +4,7 @@ package com.lhwdev.minecraft.railx.splitGraph
 
 import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
-import com.lhwdev.minecraft.railx.utils.StreamCodecs
+import com.lhwdev.minecraft.railx.utils.minecraft.StreamCodecs
 import com.simibubi.create.Create
 import com.simibubi.create.CreateClient
 import com.simibubi.create.content.trains.entity.Train

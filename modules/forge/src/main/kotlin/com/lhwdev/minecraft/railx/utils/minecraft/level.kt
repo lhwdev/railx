@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.utils
+package com.lhwdev.minecraft.railx.utils.minecraft
 
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level

@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.compat.pantographsandwires
 
 import com.lhwdev.minecraft.railx.common.CommonTrackBlockOutline
-import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
 import com.lhwdev.minecraft.utils.vectors.minus
 import com.lhwdev.minecraft.utils.vectors.plus
 import com.lhwdev.minecraft.utils.vectors.times

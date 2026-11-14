@@ -2,8 +2,8 @@ package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection.Known.Companion.DivisionCount
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.direction
-import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.math.*
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
 import com.lhwdev.minecraft.utils.vectors.unaryMinus
 import com.simibubi.create.content.trains.track.TrackShape
 import net.createmod.catnip.math.VecHelper

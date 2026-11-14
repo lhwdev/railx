@@ -2,7 +2,7 @@ package com.lhwdev.minecraft.railx.splitGraph
 
 import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
-import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
 import com.simibubi.create.CreateClient
 import com.simibubi.create.content.trains.graph.TrackGraph
 import com.simibubi.create.content.trains.graph.TrackNode

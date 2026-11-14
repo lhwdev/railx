@@ -1,7 +1,7 @@
 package com.lhwdev.minecraft.railx.throttle
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
 import net.minecraft.nbt.ByteTag
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NumericTag

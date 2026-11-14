@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.flexiTrack.rotate
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiDirection
 import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
-import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
 import com.simibubi.create.content.equipment.clipboard.ClipboardContent
 import com.simibubi.create.content.equipment.clipboard.ClipboardOverrides
 import com.simibubi.create.foundation.utility.CreateLang

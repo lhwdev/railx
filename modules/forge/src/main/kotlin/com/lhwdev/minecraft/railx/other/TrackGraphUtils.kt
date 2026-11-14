@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.other
 
-import com.lhwdev.minecraft.railx.utils.dimension
+import com.lhwdev.minecraft.railx.utils.minecraft.dimension
 import com.simibubi.create.Create
 import com.simibubi.create.content.trains.graph.TrackEdge
 import com.simibubi.create.content.trains.graph.TrackGraph

@@ -1,6 +1,6 @@
 package com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver
 
-import com.lhwdev.minecraft.railx.utils.CompoundTag
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
 import com.simibubi.create.content.trains.entity.Train
 import net.minecraft.nbt.CompoundTag
 

@@ -3,7 +3,7 @@ package com.lhwdev.minecraft.railx.throttle
 import com.lhwdev.minecraft.railx.registry.AllPackets
 import com.lhwdev.minecraft.railx.registry.RailXPacketType
 import com.lhwdev.minecraft.railx.throttle.Throttles.Throttle
-import com.lhwdev.minecraft.railx.utils.StreamCodecs
+import com.lhwdev.minecraft.railx.utils.minecraft.StreamCodecs
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity
 import net.createmod.catnip.net.base.BasePacketPayload
 import net.createmod.catnip.net.base.ClientboundPacketPayload

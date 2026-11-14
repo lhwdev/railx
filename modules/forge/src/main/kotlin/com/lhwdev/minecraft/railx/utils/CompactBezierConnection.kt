@@ -166,92 +166,93 @@ object CompactBezierConnection {
 		return bc
 	}
 	
-	fun write(bc: BezierConnection, localTo: BlockPos): CompoundTag = CompoundTag { tag ->
-		val bytes = ByteArrayOutputStream()
-		val output = DataOutputStream(bytes)
-		output.write(1) // version
-		
-		var flags = 0
-		output.writeShort(0) // placeholder for flags
-		fun writeFlag(index: Int, data: Int) {
-			flags = flags or (data shl index)
-		}
-		
-		fun writeFlag(index: Int, data: Boolean) {
-			writeFlag(index, if(data) 1 else 0)
-		}
-		writeFlag(0, bc.primary)
-		writeFlag(1, bc.hasGirder)
-		writeFlag(3, MaterialCache.indexOf(bc.material) + 1)
-		
-		fun write(pos: BlockPos) {
-			val pos = pos.subtract(localTo)
-			output.writeShort(pos.x)
-			output.writeByte(pos.y)
-			output.writeShort(pos.z)
-		}
-		
-		write(bc.bePositions.first)
-		write(bc.bePositions.second)
-		
-		fun writeMaybeFlat(vec: Vec3, flagIndex: Int) {
-			output.writeFloat(vec.x.toFloat())
-			if(vec.y similarTo 0.0) {
-				writeFlag(flagIndex, true)
-			} else {
-				output.writeFloat(vec.y.toFloat())
-			}
-			output.writeFloat(vec.z.toFloat())
-		}
-		
-		fun writeStart(pos: Vec3, blockPos: BlockPos, flagIndex: Int) {
-			val relative = pos - Vec3.atBottomCenterOf(blockPos)
-			writeMaybeFlat(relative, flagIndex)
-		}
-		
-		writeStart(bc.starts.first, bc.bePositions.first, 10)
-		writeStart(bc.starts.second, bc.bePositions.second, 11)
-		
-		fun writeAxis(axis: Vec3, flagIndex: Int) {
-			// data: i) known -> 10?????? ????????, ii) known opposite ->  11?????? ????????
-			// TODO: use asKnownSigned() on next upgrade
-			axis.asKnown()?.let { return output.writeShort(it.index or 0x8000) }
-			(-axis).asKnown()?.let { return output.writeShort(it.index or 0xc000) }
+	fun write(bc: BezierConnection, localTo: BlockPos): CompoundTag =
+		com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag { tag ->
+			val bytes = ByteArrayOutputStream()
+			val output = DataOutputStream(bytes)
+			output.write(1) // version
 			
-			output.writeByte(0)
-			writeMaybeFlat(axis, flagIndex)
-		}
-		
-		writeAxis(bc.axes.first, 12)
-		writeAxis(bc.axes.second, 13)
-		
-		fun writeMaybeNormal(vec: Vec3, flagIndex: Int) {
-			if(vec.x similarTo 0.0 && vec.z similarTo 0.0) {
-				writeFlag(flagIndex, true)
-			} else {
+			var flags = 0
+			output.writeShort(0) // placeholder for flags
+			fun writeFlag(index: Int, data: Int) {
+				flags = flags or (data shl index)
+			}
+			
+			fun writeFlag(index: Int, data: Boolean) {
+				writeFlag(index, if(data) 1 else 0)
+			}
+			writeFlag(0, bc.primary)
+			writeFlag(1, bc.hasGirder)
+			writeFlag(3, MaterialCache.indexOf(bc.material) + 1)
+			
+			fun write(pos: BlockPos) {
+				val pos = pos.subtract(localTo)
+				output.writeShort(pos.x)
+				output.writeByte(pos.y)
+				output.writeShort(pos.z)
+			}
+			
+			write(bc.bePositions.first)
+			write(bc.bePositions.second)
+			
+			fun writeMaybeFlat(vec: Vec3, flagIndex: Int) {
 				output.writeFloat(vec.x.toFloat())
-				output.writeFloat(vec.y.toFloat())
+				if(vec.y similarTo 0.0) {
+					writeFlag(flagIndex, true)
+				} else {
+					output.writeFloat(vec.y.toFloat())
+				}
 				output.writeFloat(vec.z.toFloat())
 			}
+			
+			fun writeStart(pos: Vec3, blockPos: BlockPos, flagIndex: Int) {
+				val relative = pos - Vec3.atBottomCenterOf(blockPos)
+				writeMaybeFlat(relative, flagIndex)
+			}
+			
+			writeStart(bc.starts.first, bc.bePositions.first, 10)
+			writeStart(bc.starts.second, bc.bePositions.second, 11)
+			
+			fun writeAxis(axis: Vec3, flagIndex: Int) {
+				// data: i) known -> 10?????? ????????, ii) known opposite ->  11?????? ????????
+				// TODO: use asKnownSigned() on next upgrade
+				axis.asKnown()?.let { return output.writeShort(it.index or 0x8000) }
+				(-axis).asKnown()?.let { return output.writeShort(it.index or 0xc000) }
+				
+				output.writeByte(0)
+				writeMaybeFlat(axis, flagIndex)
+			}
+			
+			writeAxis(bc.axes.first, 12)
+			writeAxis(bc.axes.second, 13)
+			
+			fun writeMaybeNormal(vec: Vec3, flagIndex: Int) {
+				if(vec.x similarTo 0.0 && vec.z similarTo 0.0) {
+					writeFlag(flagIndex, true)
+				} else {
+					output.writeFloat(vec.x.toFloat())
+					output.writeFloat(vec.y.toFloat())
+					output.writeFloat(vec.z.toFloat())
+				}
+			}
+			
+			writeMaybeNormal(bc.normals.first, 14)
+			writeMaybeNormal(bc.normals.second, 15)
+			
+			if(bc.material !in MaterialCache) {
+				output.writeUTF(bc.material.id.toString())
+			}
+			
+			bc.smoothing?.let { smoothing ->
+				writeFlag(2, true)
+				output.writeInt(smoothing.first)
+				output.writeInt(smoothing.second)
+			}
+			
+			val result = bytes.toByteArray()
+			result[1] = (flags shr 8).toByte()
+			result[2] = (flags).toByte()
+			
+			tag.putByteArray("B", result)
 		}
-		
-		writeMaybeNormal(bc.normals.first, 14)
-		writeMaybeNormal(bc.normals.second, 15)
-		
-		if(bc.material !in MaterialCache) {
-			output.writeUTF(bc.material.id.toString())
-		}
-		
-		bc.smoothing?.let { smoothing ->
-			writeFlag(2, true)
-			output.writeInt(smoothing.first)
-			output.writeInt(smoothing.second)
-		}
-		
-		val result = bytes.toByteArray()
-		result[1] = (flags shr 8).toByte()
-		result[2] = (flags).toByte()
-		
-		tag.putByteArray("B", result)
-	}
 }

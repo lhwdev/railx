@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.utils
+package com.lhwdev.minecraft.railx.utils.minecraft
 
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.codecs.PrimitiveCodec

@@ -1,4 +1,4 @@
-package com.lhwdev.minecraft.railx.utils
+package com.lhwdev.minecraft.railx.utils.minecraft
 
 import io.netty.buffer.ByteBuf
 import net.minecraft.network.FriendlyByteBuf

@@ -1,10 +1,10 @@
 package com.lhwdev.minecraft.railx.flexiTrack
 
 import com.lhwdev.minecraft.railx.flexiTrack.rotate.rotationValue
-import com.lhwdev.minecraft.railx.utils.CompoundTag
 import com.lhwdev.minecraft.railx.utils.math.similarTo
 import com.lhwdev.minecraft.railx.utils.math.transformUnit
-import com.lhwdev.minecraft.railx.utils.maybeCompound
+import com.lhwdev.minecraft.railx.utils.minecraft.CompoundTag
+import com.lhwdev.minecraft.railx.utils.minecraft.maybeCompound
 import com.lhwdev.minecraft.utils.vectors.toVec3
 import com.lhwdev.minecraft.utils.vectors.toVector3d
 import net.createmod.catnip.math.VecHelper
