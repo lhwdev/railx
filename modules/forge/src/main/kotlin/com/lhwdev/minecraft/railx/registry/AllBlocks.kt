@@ -6,6 +6,7 @@ import com.lhwdev.minecraft.railx.advancedRoller.AdvancedRollerBlock
 import com.lhwdev.minecraft.railx.advancedRoller.AdvancedRollerMovementBehavior
 import com.lhwdev.minecraft.railx.ccAdvanced.advancedTrackObserver.AdvancedTrackObserverBlock
 import com.lhwdev.minecraft.railx.common.gravelLayer.GravelLayerBlock
+import com.lhwdev.minecraft.railx.common.gravelLayer.GravelLayerBlockItem
 import com.lhwdev.minecraft.railx.compat.CompatMods
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackBlock
 import com.lhwdev.minecraft.railx.flexiTrack.FlexiTrackMaterial
@@ -95,7 +96,8 @@ object AllBlocks {
 				}
 			}
 		}
-		item()
+		
+		item(::GravelLayerBlockItem)
 			.model { c, p -> p.withExistingParent(c.name, p.modLoc("block/gravel_height2")) }
 			.build()
 	}
