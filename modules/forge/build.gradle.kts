@@ -134,6 +134,7 @@ dependencies {
 	implementation("com.tterrag.registrate:Registrate:MC1.21-1.3.0+67")
 	
 	// for mod compatibility
+	optionalModDependency("maven.modrinth:create-electro-energetics:1.21.1-1.1.4")
 	optionalModDependency("maven.modrinth:create-steam-n-rails-1.21.1:0.3.0-alpha.2+neoforge-mc1.21.1")
 	
 	compileOnly("de.mrjulsen.mcdragonlib:dragonlib-neoforge:1.21.1-beta-3.0.24")

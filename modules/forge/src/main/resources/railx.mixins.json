@@ -27,6 +27,8 @@
     "common.manualStation.TrainMixin",
     "common.reservedSignal.SignalBlockEntityMixin",
     "compat.pantographsandwires.CantileverBlockMixin",
+    "compat.electroenergetics.PantographMovementBehaviourMixin",
+    "compat.electroenergetics.CatenaryModuleMixin",
     "compat.pantographsandwires.PantographBlockEntityMixin",
     "compat.pantographsandwires.PantographMovementBehaviourMixin",
     "compat.railways.flexiTrack.CasingRenderUtilsMixin",

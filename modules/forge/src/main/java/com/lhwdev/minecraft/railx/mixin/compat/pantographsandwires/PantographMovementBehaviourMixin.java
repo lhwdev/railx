@@ -16,7 +16,10 @@ public abstract class PantographMovementBehaviourMixin {
 	@ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lde/mrjulsen/paw/blockentity" +
 		"/PantographBlockEntity;updateContraptionValues(Lorg/joml/Vector3d;Ljava/util/function/UnaryOperator;)V"),
 		index = 0, require = 0)
-	private Vector3d railx$rotateBaseOffset(Vector3d worldPosition, @Local(argsOnly = true) MovementContext context) {
+	Vector3d getBaseOffset(
+		Vector3d worldPosition,
+		@Local(argsOnly = true, index = 1) MovementContext context
+	) {
 		double offset = PantographBlockEntity.MIN_HEIGHT - 0.5D;
 		Vec3 rotatedOffset = context.rotation.apply(new Vec3(0, offset, 0));
 		return new Vector3d(worldPosition).add(rotatedOffset.x, rotatedOffset.y - offset, rotatedOffset.z);

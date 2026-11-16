@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class PantographBlockEntityMixin {
 	@ModifyExpressionValue(method = "calculateWireContact", at = @At(value = "INVOKE", target = "Ljava/lang/Math;" +
 		"sqrt(D)D", ordinal = 0), require = 0)
-	private double railx$localContactHeight(
+	double calculateDeltaY(
 		double original,
 		Vector3d worldPosition,
 		Vector3d upVec,

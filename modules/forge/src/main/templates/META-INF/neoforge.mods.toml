@@ -59,6 +59,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
+modId = "electroenergetics"
+type = "optional"
+versionRange = "[1.21.1-1.1.4,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
 modId = "framedblocks"
 type = "optional"
 versionRange = "[10.4.0,)"
