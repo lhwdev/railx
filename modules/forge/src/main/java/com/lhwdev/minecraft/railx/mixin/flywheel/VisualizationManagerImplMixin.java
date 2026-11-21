@@ -4,7 +4,6 @@ package com.lhwdev.minecraft.railx.mixin.flywheel;
 import com.lhwdev.minecraft.railx.flywheel.VisualManagers;
 import com.lhwdev.minecraft.railx.flywheel.VisualizationManagerContainer;
 import dev.engine_room.flywheel.api.visual.Effect;
-import dev.engine_room.flywheel.impl.task.Flag;
 import dev.engine_room.flywheel.impl.visualization.VisualManagerImpl;
 import dev.engine_room.flywheel.impl.visualization.VisualizationManagerImpl;
 import dev.engine_room.flywheel.impl.visualization.storage.BlockEntityStorage;
@@ -46,12 +45,6 @@ public abstract class VisualizationManagerImplMixin {
 	
 	@Accessor("blockEntities")
 	public abstract @NotNull VisualManagerImpl<@NotNull BlockEntity, @NotNull BlockEntityStorage> accessor$getBlockEntities();
-	
-	@Accessor("frameFlag")
-	public abstract @NotNull Flag accessor$getFrameFlag();
-	
-	@Accessor("tickFlag")
-	public abstract @NotNull Flag accessor$getTickFlag();
 	
 	public @NotNull VisualManagers accessor$getManagers() {
 		return railx$managers;

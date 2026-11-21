@@ -9,9 +9,6 @@ class VisualManagers(self: VisualizationManagerContainer) {
 	
 	val value: Collection<VisualManagerImpl<*, *>> = map.values
 	
-	val all: List<VisualManagerImpl<*, *>> = mutableListOf(self.blockEntities, self.entities, self.effects)
-		.also { it += value }
-	
 	
 	@Suppress("UNCHECKED_CAST")
 	fun <Manager : VisualManagerImpl<*, *>> getManager(type: VisualManagerType<Manager>): Manager =
