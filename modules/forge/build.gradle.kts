@@ -33,6 +33,11 @@ modDevPlatform {
 	configureShadow(tasks.shadowJar)
 }
 
+modDevPlatform.modDevRuntimeStandaloneJar.configure {
+	manifest.attributes["Premain-Class"] =
+		"com.lhwdev.minecraft.railx.modDevStandalone.debug.CoroutineDebugModuleAgent"
+}
+
 neoForge {
 	enable {}
 	
@@ -80,6 +85,11 @@ neoForge {
 		
 		configureEach {
 			sourceSet = modDevPlatform.modDevRuntime
+			jvmArguments.add(
+				modDevPlatform.modDevRuntimeStandaloneJar
+					.flatMap { it.archiveFile }
+					.map { "-javaagent:${it.asFile.absolutePath}" }
+			)
 			
 			// Recommended logging data for a userdev environment
 			// The markers can be added/remove as needed separated by commas.
