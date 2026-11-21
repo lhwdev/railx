@@ -42,6 +42,7 @@ abstract class CommonTrackVisual(
 	
 	override fun setSectionCollector(collector: SectionCollector?) {
 		lightSections = collector
+		lightSections?.sections(collectLightSections())
 	}
 	
 	
@@ -129,6 +130,7 @@ abstract class CommonTrackVisual(
 			for(d in ties) d.delete()
 			for(d in left) d.delete()
 			for(d in right) d.delete()
+			girder?.delete()
 		}
 	}
 	
@@ -152,7 +154,7 @@ abstract class CommonTrackVisual(
 			
 			beamCaps = Couple.createWithContext { top ->
 				Couple.create {
-					instancerProvider.instancer<TransformedInstance>(
+					instancerProvider.instancer(
 						InstanceTypes.TRANSFORMED,
 						Models.partial(if(top) AllPartialModels.GIRDER_SEGMENT_TOP else AllPartialModels.GIRDER_SEGMENT_BOTTOM),
 					).createInstances(segCount)
