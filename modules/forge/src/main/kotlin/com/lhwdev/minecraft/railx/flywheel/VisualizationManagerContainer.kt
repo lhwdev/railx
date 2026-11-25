@@ -11,7 +11,7 @@ interface VisualizationManagerContainer : VisualizationManager, VisualizationMan
 	
 	
 	companion object {
-		val ManagerTypes: MutableList<VisualManagerType<*>> = mutableListOf()
+		val ManagerTypes: MutableSet<VisualManagerType<*>> = mutableSetOf()
 		
 		fun get(level: LevelAccessor): VisualizationManagerContainer? =
 			VisualizationManager.get(level) as? VisualizationManagerContainer
@@ -19,5 +19,5 @@ interface VisualizationManagerContainer : VisualizationManager, VisualizationMan
 }
 
 interface VisualManagerType<Manager : VisualManagerImpl<*, *>> {
-	fun create(): Manager
+	fun create(container: VisualizationManagerContainer): Manager
 }

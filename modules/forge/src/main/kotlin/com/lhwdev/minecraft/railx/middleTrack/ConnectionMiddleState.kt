@@ -13,8 +13,11 @@ import thedarkcolour.kotlinforforge.neoforge.forge.DIST
 
 class ConnectionMiddleState(
 	val level: LevelAccessor,
-	var curve: BezierConnection,
+	curve: BezierConnection,
 ) {
+	var curve = curve
+		private set
+	
 	val pos: Couple<BlockPos> get() = curve.bePositions
 	val from: BlockPos get() = pos.first
 	val to: BlockPos get() = pos.second
@@ -24,37 +27,41 @@ class ConnectionMiddleState(
 	fun isEmpty(): Boolean =
 		value.isEmpty()
 	
-	private var isValid: Boolean = true
+	var canRender: Boolean = true
+		private set
 	
 	val isActive: Boolean
-		get() = if(DIST == Dist.CLIENT) {
-			isValid && from !in MiddleTrackClient.LoadedTracks[level]
-		} else {
-			true
-		}
+		get() = DIST != Dist.CLIENT || canRender && from !in MiddleTrackClient.LoadedTracks[level]
 	
 	val allMiddles: Set<BlockPos>
 		get() = value
 	
 	
-	fun addMiddle(middle: BlockPos) {
+	internal fun matches(candidate: BezierConnection): Boolean =
+		curve.matchesMiddleCurve(candidate)
+	
+	internal fun addEndpoint(endpoint: BlockPos, candidate: BezierConnection) {
+		curve = candidate
+		value += endpoint
+		canRender = true
+	}
+	
+	internal fun addMiddle(middle: BlockPos, valid: Boolean) {
 		value += middle
-		if(!isValid() && !level.isClientSide) {
-			level.destroyBlock(middle, false)
-		}
+		canRender = valid
 	}
 	
 	fun removeMiddle(middle: BlockPos) {
 		value -= middle
 	}
-	
-	fun isValid(): Boolean {
-		// maybe curve was removed; check the curve is still there, by TrackGraph
-		val edge = curve.toTrackEdge(level)?.edge
-		val valid = edge != null && edge.turn != null && curve.isSameCurve(edge.turn)
-		this.isValid = valid
-		return valid
-	}
+}
+
+internal fun BezierConnection.matchesMiddleCurve(other: BezierConnection): Boolean =
+	bePositions == other.bePositions && hasGirder == other.hasGirder && isSameCurve(other)
+
+internal fun BezierConnection.isInTrackGraph(level: LevelAccessor): Boolean {
+	val turn = toTrackEdge(level)?.edge?.turn ?: return false
+	return isSameCurve(turn)
 }
 
 private fun BezierConnection.isSameCurve(other: BezierConnection): Boolean =

@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniondc
 import org.joml.Quaternionfc
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.round
 
 
@@ -36,6 +37,26 @@ infix fun Double.floorMod(by: Double): Double {
 	return if(this * by < 0 && r != 0.0) r + by
 	else r
 }
+
+val Float.fraction: Float
+	get() {
+		val value = this - floor(this)
+		return when {
+			value >= 1f -> 0f
+			value < 0f -> 0f
+			else -> value
+		}
+	}
+
+val Double.fraction: Double
+	get() {
+		val value = this - floor(this)
+		return when {
+			value >= 1.0 -> 0.0
+			value < 0.0 -> 0.0
+			else -> value
+		}
+	}
 
 fun round(value: Double, points: Int): Double =
 	round(value * points) / points

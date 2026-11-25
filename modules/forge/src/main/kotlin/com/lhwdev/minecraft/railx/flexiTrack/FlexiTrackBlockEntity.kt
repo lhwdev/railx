@@ -7,6 +7,7 @@ import com.simibubi.create.content.trains.track.*
 import com.simibubi.create.foundation.blockEntity.IMergeableBE
 import com.simibubi.create.foundation.blockEntity.RemoveBlockEntityPacket
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import dev.engine_room.flywheel.lib.visualization.VisualizationHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
@@ -95,6 +96,7 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 		
 		state = newState
 		notifyUpdate()
+		if(level?.isClientSide == true) VisualizationHelper.queueUpdate(this)
 		
 		for(behavior in allBehaviours)
 			if(behavior is FlexiTrackBlockBehavior) behavior.onFlexiStateUpdate(level!!, blockPos)
@@ -182,9 +184,10 @@ open class FlexiTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 	
 	override fun read(tag: CompoundTag, registries: HolderLookup.Provider, clientPacket: Boolean) {
 		if(tag.contains("BoundLocation")) return
+		state = FlexiState.read(tag.getCompound("FlexiState"))
+		
 		super.read(tag, registries, clientPacket)
 		
-		state = FlexiState.read(tag.getCompound("FlexiState"))
 		val level = level
 		for(behavior in allBehaviours)
 			if(level != null && behavior is FlexiTrackBlockBehavior) behavior.onFlexiStateUpdate(level, blockPos)

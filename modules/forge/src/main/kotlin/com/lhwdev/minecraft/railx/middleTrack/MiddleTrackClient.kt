@@ -1,7 +1,6 @@
 package com.lhwdev.minecraft.railx.middleTrack
 
 import com.lhwdev.minecraft.railx.RailXConfig
-import com.lhwdev.minecraft.railx.middleTrack.visual.MiddleTrackVisuals
 import com.lhwdev.minecraft.railx.utils.getOrNull
 import com.simibubi.create.content.trains.track.TrackBlockEntity
 import net.createmod.catnip.data.WorldAttached
@@ -30,7 +29,6 @@ object MiddleTrackClient {
 			if(loaded.isEmpty()) return
 			
 			LoadedTracks.put(level, emptySet())
-			MiddleTrackVisuals.tickDisable(level)
 			return
 		}
 		
@@ -51,6 +49,5 @@ object MiddleTrackClient {
 		}
 		
 		LoadedTracks.put(level, tracks)
-		MiddleTrackVisuals.tick(level)
 	}
 }

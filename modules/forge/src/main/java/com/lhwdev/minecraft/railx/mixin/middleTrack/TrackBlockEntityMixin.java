@@ -57,20 +57,34 @@ public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements 
 	@Inject(method = "read", at = @At("RETURN"))
 	void afterRead(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
 		Level level = this.level;
-		if(level == null) return;
-		if(level.isClientSide) ConnectionMiddlesKt.getGlobalConnections().get(level)
+		if(level != null && level.isClientSide) railx$updateTrack(level);
+	}
+	
+	@Unique
+	private void railx$updateTrack(Level level) {
+		ConnectionMiddlesKt.getGlobalConnections().get(level)
 			.updateTrack((TrackBlockEntity) (Object) this, railx$previousConnections);
 		railx$previousConnections = getConnectionValues();
+	}
+	
+	@Inject(method = "addConnection", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;" +
+		"Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.AFTER))
+	void afterAddConnection(BezierConnection connection, CallbackInfo ci) {
+		if(level != null && !level.isClientSide) railx$updateTrack(level);
+	}
+	
+	@Inject(method = "removeConnection", at = @At(value = "INVOKE", target = "Ljava/util/Map;remove" +
+		"(Ljava/lang/Object;" +
+		")Ljava/lang/Object;", shift = At.Shift.AFTER))
+	void afterRemoveConnection(BlockPos target, CallbackInfo ci) {
+		if(level != null && !level.isClientSide) railx$updateTrack(level);
 	}
 	
 	@Unique
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		Level level = Objects.requireNonNull(this.level);
-		if(level.isClientSide) ConnectionMiddlesKt.getGlobalConnections().get(level)
-			.updateTrack((TrackBlockEntity) (Object) this, railx$previousConnections);
-		railx$previousConnections = getConnectionValues();
+		railx$updateTrack(Objects.requireNonNull(this.level));
 	}
 	
 	@Unique
@@ -80,7 +94,7 @@ public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements 
 		removeFromCurveInteraction();
 		
 		Level level = Objects.requireNonNull(this.level);
-		if(level.isClientSide) ConnectionMiddlesKt.getGlobalConnections().get(level)
+		ConnectionMiddlesKt.getGlobalConnections().get(level)
 			.removeTrack((TrackBlockEntity) (Object) this, railx$previousConnections);
 		railx$previousConnections = List.of();
 	}
@@ -88,7 +102,7 @@ public abstract class TrackBlockEntityMixin extends SmartBlockEntity implements 
 	@Inject(method = "remove", at = @At("HEAD"))
 	void onRemove(CallbackInfo ci) {
 		Level level = Objects.requireNonNull(this.level);
-		if(level.isClientSide) ConnectionMiddlesKt.getGlobalConnections().get(level)
+		ConnectionMiddlesKt.getGlobalConnections().get(level)
 			.removeTrack((TrackBlockEntity) (Object) this, railx$previousConnections);
 		railx$previousConnections = List.of();
 	}

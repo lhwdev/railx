@@ -3,6 +3,7 @@ package com.lhwdev.minecraft.railx.mixin.flywheel;
 
 import com.lhwdev.minecraft.railx.flywheel.VisualManagers;
 import com.lhwdev.minecraft.railx.flywheel.VisualizationManagerContainer;
+import dev.engine_room.flywheel.api.backend.RenderContext;
 import dev.engine_room.flywheel.api.visual.Effect;
 import dev.engine_room.flywheel.impl.visualization.VisualManagerImpl;
 import dev.engine_room.flywheel.impl.visualization.VisualizationManagerImpl;
@@ -15,10 +16,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.Implements;
-import org.spongepowered.asm.mixin.Interface;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,6 +26,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(VisualizationManagerImpl.class)
 @Implements(@Interface(iface = VisualizationManagerContainer.class, prefix = "accessor$"))
 public abstract class VisualizationManagerImplMixin {
+	@Shadow @Final
+	private LevelAccessor level;
+	
 	@Unique
 	private VisualManagers railx$managers;
 	
@@ -48,6 +49,12 @@ public abstract class VisualizationManagerImplMixin {
 	
 	public @NotNull VisualManagers accessor$getManagers() {
 		return railx$managers;
+	}
+	
+	@Inject(method = "beginFrame", at = @At(value = "INVOKE", target = "Ldev/engine_room/flywheel/api/task/Plan;" +
+		"execute(Ldev/engine_room/flywheel/api/task/TaskExecutor;Ljava/lang/Object;)V"))
+	private void beforeFrame(RenderContext context, CallbackInfo ci) {
+		railx$managers.beforeFrame(level);
 	}
 	
 	

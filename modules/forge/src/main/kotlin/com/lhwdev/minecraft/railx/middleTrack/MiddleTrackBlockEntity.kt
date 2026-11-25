@@ -26,35 +26,32 @@ class MiddleTrackBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
 	fun updateConnections(value: List<BezierConnection>) {
 		check(value.all { it.primary }) { "given value is not primary" }
 		val level = level
-		if(level == null || level.getBlockEntity(blockPos) !is MiddleTrackBlockEntity) {
+		if(level == null || level.getBlockEntity(blockPos) !== this) {
 			pendingConnections = value
 			return
 		}
 		
-		if(value.isEmpty() && !level.isClientSide) {
-			connections = emptyList()
+		val all = GlobalConnections[level].updateMiddle(this, value)
+		if(all.isEmpty() && !level.isClientSide) {
 			level.removeBlock(blockPos, false)
 			return
 		}
 		
+		connections = all
 		notifyUpdate()
-		
-		GlobalConnections[level].updateMiddle(this, value)
-		connections = value
 	}
 	
 	override fun onLoad() {
 		super.onLoad()
 		
-		if(connections.isEmpty() || RailXConfig.Server.middleTrack.removePrevious.isTrue) {
+		val pending = pendingConnections
+		pendingConnections = null
+		if((pending ?: connections).isEmpty() || RailXConfig.Server.middleTrack.removePrevious.isTrue) {
 			level!!.removeBlock(blockPos, false)
 			return
 		}
 		
-		pendingConnections?.let {
-			pendingConnections = null
-			updateConnections(it)
-		}
+		if(pending != null) updateConnections(pending)
 	}
 	
 	// Be aware that this is also called on chunk unload!

@@ -13,63 +13,65 @@ import dev.engine_room.flywheel.api.visual.Visual
 import dev.engine_room.flywheel.api.visualization.VisualizationContext
 import dev.engine_room.flywheel.lib.instance.InstanceTypes
 import dev.engine_room.flywheel.lib.instance.TransformedInstance
-import dev.engine_room.flywheel.lib.model.Models
 import dev.engine_room.flywheel.lib.transform.TransformStack
-import it.unimi.dsi.fastutil.longs.LongArraySet
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import it.unimi.dsi.fastutil.longs.LongSet
 import net.createmod.catnip.data.Couple
 import net.createmod.catnip.data.Iterate
 import net.minecraft.core.SectionPos
-import kotlin.math.max
-import kotlin.math.min
+import net.minecraft.core.Vec3i
+import net.minecraft.util.Mth
 
 
-abstract class CommonTrackVisual(
-	context: VisualizationContext,
-	protected val curve: BezierConnection,
-) : Visual, ShaderLightVisual {
+abstract class CommonTrackVisual(context: VisualizationContext) : Visual, ShaderLightVisual {
+	protected val instancerProvider = context.instancerProvider()
+	protected val renderOrigin = context.renderOrigin()
+	
 	protected var lightSections: SectionCollector? = null
 	
-	protected val instancerProvider = context.instancerProvider()
-	protected val visualPosition = curve.from - context.renderOrigin()
+	
+	protected abstract val beziers: Collection<Bezier>
 	
 	
 	override fun update(partialTick: Float) {
+		update()
+	}
+	
+	fun update() {
+		updateLightSections()
+	}
+	
+	protected fun updateLightSections() {
 		lightSections?.sections(collectLightSections())
 	}
 	
-	override fun delete() {}
+	override fun delete() {
+		for(bezier in beziers) bezier.delete()
+	}
+	
 	
 	override fun setSectionCollector(collector: SectionCollector?) {
 		lightSections = collector
-		lightSections?.sections(collectLightSections())
+		updateLightSections()
 	}
 	
-	
 	protected open fun collectLightSections(): LongSet {
-		var minX = Int.MAX_VALUE
-		var minY = Int.MAX_VALUE
-		var minZ = Int.MAX_VALUE
-		var maxX = Int.MIN_VALUE
-		var maxY = Int.MIN_VALUE
-		var maxZ = Int.MIN_VALUE
-		for(pos in curve.bePositions) {
-			minX = min(minX, pos.x - 1)
-			minY = min(minY, pos.y - 1)
-			minZ = min(minZ, pos.z - 1)
-			maxX = max(maxX, pos.x + 1)
-			maxY = max(maxY, pos.y + 1)
-			maxZ = max(maxZ, pos.z + 1)
-		}
+		val beziers = beziers
+		if(beziers.isEmpty()) return LongSet.of()
 		
-		val minSectionX = SectionPos.blockToSectionCoord(minX.toDouble())
-		val minSectionY = SectionPos.blockToSectionCoord(minY.toDouble())
-		val minSectionZ = SectionPos.blockToSectionCoord(minZ.toDouble())
-		val maxSectionX = SectionPos.blockToSectionCoord(maxX.toDouble())
-		val maxSectionY = SectionPos.blockToSectionCoord(maxY.toDouble())
-		val maxSectionZ = SectionPos.blockToSectionCoord(maxZ.toDouble())
-		
-		val out = LongArraySet()
+		val out = LongOpenHashSet()
+		for(bezier in beziers) addLightSections(bezier.curve, out)
+		return out
+	}
+	
+	protected open fun addLightSections(curve: BezierConnection, out: LongSet) {
+		val bounds = curve.bounds
+		val minSectionX = SectionPos.blockToSectionCoord(Mth.floor(bounds.minX) - 1)
+		val minSectionY = SectionPos.blockToSectionCoord(Mth.floor(bounds.minY) - 1)
+		val minSectionZ = SectionPos.blockToSectionCoord(Mth.floor(bounds.minZ) - 1)
+		val maxSectionX = SectionPos.blockToSectionCoord(Mth.ceil(bounds.maxX) + 1)
+		val maxSectionY = SectionPos.blockToSectionCoord(Mth.ceil(bounds.maxY) + 1)
+		val maxSectionZ = SectionPos.blockToSectionCoord(Mth.ceil(bounds.maxZ) + 1)
 		
 		for(x in minSectionX..maxSectionX) {
 			for(y in minSectionY..maxSectionY) {
@@ -78,12 +80,10 @@ abstract class CommonTrackVisual(
 				}
 			}
 		}
-		
-		return out
 	}
 	
 	
-	open inner class Bezier(curve: BezierConnection) : Visual {
+	open inner class Bezier(val curve: BezierConnection) : Visual {
 		protected val girder: Girder?
 		
 		protected val ties: List<TransformedInstance>
@@ -91,7 +91,8 @@ abstract class CommonTrackVisual(
 		protected val right: List<TransformedInstance>
 		
 		init {
-			girder = if(curve.hasGirder) Girder(curve) else null
+			val visualPosition = curve.from - renderOrigin
+			girder = if(curve.hasGirder) Girder(curve, visualPosition) else null
 			
 			val pose = PoseStack()
 			TransformStack.of(pose)
@@ -134,7 +135,7 @@ abstract class CommonTrackVisual(
 		}
 	}
 	
-	open inner class Girder(curve: BezierConnection) : Visual {
+	open inner class Girder(curve: BezierConnection, visualPosition: Vec3i) : Visual {
 		private val beams: Couple<List<TransformedInstance>>
 		private val beamCaps: Couple<Couple<List<TransformedInstance>>>
 		
@@ -148,7 +149,7 @@ abstract class CommonTrackVisual(
 			beams = Couple.create {
 				instancerProvider.instancer(
 					InstanceTypes.TRANSFORMED,
-					Models.partial(AllPartialModels.GIRDER_SEGMENT_MIDDLE)
+					SpecialModels.flatChunk(AllPartialModels.GIRDER_SEGMENT_MIDDLE)
 				).createInstances(segCount)
 			}
 			
@@ -156,7 +157,7 @@ abstract class CommonTrackVisual(
 				Couple.create {
 					instancerProvider.instancer(
 						InstanceTypes.TRANSFORMED,
-						Models.partial(if(top) AllPartialModels.GIRDER_SEGMENT_TOP else AllPartialModels.GIRDER_SEGMENT_BOTTOM),
+						SpecialModels.flatChunk(if(top) AllPartialModels.GIRDER_SEGMENT_TOP else AllPartialModels.GIRDER_SEGMENT_BOTTOM),
 					).createInstances(segCount)
 				}
 			}

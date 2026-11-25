@@ -2,8 +2,11 @@ package com.lhwdev.minecraft.railx.mixin.flywheel;
 
 
 import com.google.common.collect.ImmutableList;
+import com.lhwdev.minecraft.railx.flywheel.VisualManagerExtension;
 import com.lhwdev.minecraft.railx.flywheel.VisualizationManagerContainer;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.engine_room.flywheel.api.backend.RenderContext;
 import dev.engine_room.flywheel.api.task.Plan;
@@ -12,6 +15,8 @@ import dev.engine_room.flywheel.api.visual.TickableVisual;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
 import dev.engine_room.flywheel.impl.visualization.VisualManagerImpl;
 import dev.engine_room.flywheel.impl.visualization.VisualizationManagerImpl;
+import dev.engine_room.flywheel.lib.task.IfElsePlan;
+import dev.engine_room.flywheel.lib.task.MapContextPlan;
 import dev.engine_room.flywheel.lib.task.NestedPlan;
 import dev.engine_room.flywheel.lib.task.SimplePlan;
 import dev.engine_room.flywheel.lib.task.functional.RunnableWithContext;
@@ -50,50 +55,48 @@ public abstract class VisualizationManagerImpl$LateInitMixin {
 		return original;
 	}
 	
-	@ModifyExpressionValue(method = "<init>", at = @At(value = "INVOKE", target = "Ldev/engine_room/flywheel/lib" +
-		"/task/SimplePlan;of([Ldev/engine_room/flywheel/lib/task/functional/RunnableWithContext;)" +
-		"Ldev/engine_room/flywheel/lib/task/SimplePlan;", ordinal = 0))
-	SimplePlan<RenderContext> addManagersToRecreatePlan(
-		SimplePlan<RenderContext> original,
+	@WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Ldev/engine_room/flywheel/lib/task" +
+		"/IfElsePlan$Builder;ifTrue(Ldev/engine_room/flywheel/api/task/Plan;)" +
+		"Ldev/engine_room/flywheel/lib/task/IfElsePlan$Builder;", ordinal = 0))
+	IfElsePlan.Builder<RenderContext> addManagersToRecreatePlan(
+		IfElsePlan.Builder<RenderContext> builder,
+		Plan<RenderContext> onTrue,
+		Operation<IfElsePlan.Builder<RenderContext>> original,
 		@Local(ordinal = 0) VisualizationContext visualizationContext
 	) {
 		var containerManagers = railx$containerManagers();
-		if(containerManagers.isEmpty()) return original;
+		if(containerManagers.isEmpty()) return original.call(builder, onTrue);
 		
-		var tasks = containerManagers.stream()
-			.map((manager) -> {
-				RunnableWithContext<RenderContext> task = (context) -> manager.getStorage().recreateAll(
-					visualizationContext,
-					context.partialTick()
-				);
-				return task;
-			})
-			.iterator();
+		var tasks = containerManagers.stream().<RunnableWithContext<RenderContext>>map(
+			manager -> context -> {
+				if(manager instanceof VisualManagerExtension extension) {
+					extension.recreate(visualizationContext, context.partialTick());
+				} else {
+					manager.getStorage().recreateAll(visualizationContext, context.partialTick());
+				}
+			}
+		).toList();
 		
-		return SimplePlan.of(ImmutableList.<RunnableWithContext<RenderContext>>builder()
-			.addAll(original.parallelTasks())
-			.addAll(tasks)
-			.build());
+		return original.call(builder, onTrue.then(SimplePlan.of(tasks)));
 	}
 	
-	@ModifyExpressionValue(method = "<init>", at = @At(value = "INVOKE", target = "Ldev/engine_room/flywheel/lib" +
-		"/task/NestedPlan;of([Ldev/engine_room/flywheel/api/task/Plan;)Ldev/engine_room/flywheel/lib/task/NestedPlan;"
-		, ordinal = 0))
-	NestedPlan<DynamicVisual.Context> addManagerToUpdatePlan(
-		NestedPlan<DynamicVisual.Context> original,
+	@WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Ldev/engine_room/flywheel/lib/task" +
+		"/MapContextPlan$Builder;to(Ldev/engine_room/flywheel/api/task/Plan;)" +
+		"Ldev/engine_room/flywheel/lib/task/MapContextPlan;", ordinal = 0))
+	MapContextPlan<RenderContext, DynamicVisual.Context> addManagerToUpdatePlan(
+		MapContextPlan.Builder<RenderContext, DynamicVisual.Context> builder,
+		Plan<DynamicVisual.Context> plan,
+		Operation<MapContextPlan<RenderContext, DynamicVisual.Context>> original,
 		@Local(ordinal = 0) VisualizationContext visualizationContext
 	) {
 		var containerManagers = railx$containerManagers();
-		if(containerManagers.isEmpty()) return original;
+		if(containerManagers.isEmpty()) return original.call(builder, plan);
 		
 		var plans = containerManagers.stream()
 			.map((manager) -> manager.framePlan(visualizationContext))
-			.iterator();
+			.toList();
 		
-		return new NestedPlan<>(ImmutableList.<Plan<DynamicVisual.Context>>builder()
-			.addAll(original.parallelPlans())
-			.addAll(plans)
-			.build());
+		return original.call(builder, plan.then(new NestedPlan<>(plans)));
 	}
 	
 	@ModifyExpressionValue(method = "lambda$new$4", at = @At(value = "INVOKE", target = "Ldev/engine_room/flywheel" +
